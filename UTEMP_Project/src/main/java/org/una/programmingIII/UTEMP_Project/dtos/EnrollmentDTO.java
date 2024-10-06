@@ -15,9 +15,11 @@ public class EnrollmentDTO {
     private Long id;
 
     @NotNull(message = "Course must not be null")
+    @Builder.Default
     private CourseDTO course = new CourseDTO();
 
     @NotNull(message = "Student must not be null")
+    @Builder.Default
     private UserDTO student = new UserDTO();
 
     @NotNull(message = "State must not be null")

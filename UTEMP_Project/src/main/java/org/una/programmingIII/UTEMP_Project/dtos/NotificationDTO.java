@@ -16,6 +16,7 @@ public class NotificationDTO {
 
     private Long id;
 
+    @Builder.Default
     private UserDTO user = new UserDTO();
 
     @NotBlank(message = "Message must not be blank")

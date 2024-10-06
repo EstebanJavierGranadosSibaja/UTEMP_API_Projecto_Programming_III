@@ -29,10 +29,13 @@ public class AssignmentDTO {
     private Instant deadline;
 
     @NotNull(message = "Course must not be null")
-    private CourseDTO course;
+    @Builder.Default
+    private CourseDTO course = new CourseDTO();
 
+    @Builder.Default
     private List<FileMetadatumDTO> fileMetadata = new ArrayList<>();
 
+    @Builder.Default
     private List<SubmissionDTO> submissions = new ArrayList<>();
 
     @NotNull(message = "State must not be null")

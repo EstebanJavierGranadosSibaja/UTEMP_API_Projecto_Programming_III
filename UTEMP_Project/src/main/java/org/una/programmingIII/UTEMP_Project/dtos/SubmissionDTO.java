@@ -19,9 +19,11 @@ public class SubmissionDTO {
     private Long id;
 
     @NotNull(message = "Assignment must not be null")
+    @Builder.Default
     private AssignmentDTO assignment = new AssignmentDTO();
 
     @NotNull(message = "Student must not be null")
+    @Builder.Default
     private UserDTO student = new UserDTO();
 
     @NotBlank(message = "File name must not be blank")
@@ -33,6 +35,7 @@ public class SubmissionDTO {
     @Size(max = 500, message = "Comments must be at most 500 characters long")
     private String comments;
 
+    @Builder.Default
     private List<GradeDTO> grades = new ArrayList<>();
 
     @NotNull(message = "State must not be null")
