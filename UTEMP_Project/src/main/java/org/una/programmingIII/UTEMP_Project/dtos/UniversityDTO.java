@@ -22,6 +22,7 @@ public class UniversityDTO {
     @Size(max = 200, message = "Location must be at most 200 characters long")
     private String location;
 
+    @Builder.Default
     private List<FacultyDTO> faculties = new ArrayList<>();
 
     private LocalDateTime createdAt;

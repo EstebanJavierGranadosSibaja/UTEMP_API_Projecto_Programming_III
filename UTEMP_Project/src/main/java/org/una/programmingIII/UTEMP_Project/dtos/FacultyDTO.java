@@ -20,8 +20,10 @@ public class FacultyDTO {
     private String name;
 
     @NotNull(message = "University must not be null")
+    @Builder.Default
     private UniversityDTO university = new UniversityDTO();
 
+    @Builder.Default
     private List<DepartmentDTO> departments = new ArrayList<>();
 
     private LocalDateTime createdAt;

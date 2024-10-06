@@ -37,11 +37,15 @@ public class UserDTO {
 
     @Size(max = 50, message = "Identification number must be at most 50 characters long")
     private String identificationNumber;
-
+    @Builder.Default
     private List<FileMetadatumDTO> fileMetadata = new ArrayList<>();
+    @Builder.Default
     private List<CourseDTO> courses = new ArrayList<>();
+    @Builder.Default
     private List<NotificationDTO> notifications = new ArrayList<>();
+    @Builder.Default
     private List<EnrollmentDTO> enrollments = new ArrayList<>();
+    @Builder.Default
     private List<SubmissionDTO> submissions = new ArrayList<>();
 
     @NotNull(message = "State must not be null")
@@ -50,6 +54,7 @@ public class UserDTO {
     @NotNull(message = "Role must not be null")
     private UserRole role;
 
+    @Builder.Default
     private List<UserPermission> permissions = new ArrayList<>();
 
     private LocalDateTime createdAt;

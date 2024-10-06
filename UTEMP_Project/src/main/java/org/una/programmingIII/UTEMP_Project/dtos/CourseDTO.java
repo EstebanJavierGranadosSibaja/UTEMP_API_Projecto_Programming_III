@@ -26,13 +26,17 @@ public class CourseDTO {
     private String description;
 
     @NotNull(message = "Teacher must not be null")
-    private UserDTO teacher;
+    @Builder.Default
+    private UserDTO teacher = new UserDTO();
 
     @NotNull(message = "Department must not be null")
+    @Builder.Default
     private DepartmentDTO department = new DepartmentDTO();
 
+    @Builder.Default
     private List<AssignmentDTO> assignment = new ArrayList<>();
 
+    @Builder.Default
     private List<EnrollmentDTO> enrollments = new ArrayList<>();
 
     @NotNull(message = "State must not be null")

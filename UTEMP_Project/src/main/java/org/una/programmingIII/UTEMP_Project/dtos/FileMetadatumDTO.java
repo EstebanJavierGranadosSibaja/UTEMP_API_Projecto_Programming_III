@@ -13,8 +13,10 @@ public class FileMetadatumDTO {
 
     private Long id;
 
+    @Builder.Default
     private AssignmentDTO assignment = new AssignmentDTO();
 
+    @Builder.Default
     private UserDTO student = new UserDTO();
 
     @NotNull(message = "File name must not be null")
