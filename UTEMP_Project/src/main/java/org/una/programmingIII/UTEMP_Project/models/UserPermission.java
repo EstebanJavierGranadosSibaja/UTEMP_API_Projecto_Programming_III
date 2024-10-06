@@ -1,0 +1,17 @@
+package org.una.programmingIII.UTEMP_Project.models;
+
+public enum UserPermission {
+    CREATE_COURSE,
+    MANAGE_UNIVERSITY,
+    VIEW_ASSIGNMENTS,
+    GRADE_ASSIGNMENTS,
+    EDIT_COURSE,
+    DELETE_COURSE,
+    CREATE_ASSIGNMENT,
+    EDIT_ASSIGNMENT,
+    DELETE_ASSIGNMENT,
+    SUBMIT_ASSIGNMENT,
+    VIEW_GRADES,
+    MANAGE_USERS,
+    VIEW_REPORTS
+}
