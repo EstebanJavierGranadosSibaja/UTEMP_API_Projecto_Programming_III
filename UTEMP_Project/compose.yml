@@ -27,12 +27,16 @@ services:
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
     ports:
       - "8070:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin  # Añadir el volumen aquí
     networks:
       - backend
 
 volumes:
   postgres_data: # Volumen para almacenar datos de PostgreSQL
     name: postgres
+  pgadmin_data: # Volumen para almacenar datos de pgAdmin
+    name: pgadmin
 
 networks:
   backend: # Definición de la red backend
