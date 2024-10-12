@@ -38,13 +38,11 @@ public class UserDTO {
     @Size(max = 50, message = "Identification number must be at most 50 characters long")
     private String identificationNumber;
     @Builder.Default
-    private List<FileMetadatumDTO> fileMetadata = new ArrayList<>();
-    @Builder.Default
-    private List<CourseDTO> courses = new ArrayList<>();
+    private List<CourseDTO> coursesTeaching = new ArrayList<>();
     @Builder.Default
     private List<NotificationDTO> notifications = new ArrayList<>();
     @Builder.Default
-    private List<EnrollmentDTO> enrollments = new ArrayList<>();
+    private List<EnrollmentDTO> userEnrollments = new ArrayList<>();
     @Builder.Default
     private List<SubmissionDTO> submissions = new ArrayList<>();
 
