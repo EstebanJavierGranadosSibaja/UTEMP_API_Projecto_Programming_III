@@ -38,6 +38,9 @@ public class SubmissionDTO {
     @Builder.Default
     private List<GradeDTO> grades = new ArrayList<>();
 
+    @Builder.Default
+    private List<FileMetadatumDTO> fileMetadata = new ArrayList<>();
+
     @NotNull(message = "State must not be null")
     private SubmissionState state;
 
