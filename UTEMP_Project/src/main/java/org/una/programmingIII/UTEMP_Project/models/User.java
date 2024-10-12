@@ -45,13 +45,9 @@ public class User implements Identifiable  {
     @Column(name = "identification_number", length = 50)
     private String identificationNumber;
 
-    @OneToMany(mappedBy = "student")
-    @Builder.Default
-    private List<FileMetadatum> fileMetadata = new ArrayList<>();
-
     @OneToMany(mappedBy = "teacher")
     @Builder.Default
-    private List<Course> courses = new ArrayList<>();
+    private List<Course> coursesTeaching = new ArrayList<>();
 
     @OneToMany(mappedBy = "user")
     @Builder.Default
@@ -59,7 +55,7 @@ public class User implements Identifiable  {
 
     @OneToMany(mappedBy = "student")
     @Builder.Default
-    private List<Enrollment> enrollments = new ArrayList<>();
+    private List<Enrollment> userEnrollments = new ArrayList<>();
 
     @OneToMany(mappedBy = "student")
     @Builder.Default
