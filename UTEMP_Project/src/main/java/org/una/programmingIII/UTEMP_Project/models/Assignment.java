@@ -40,10 +40,6 @@ public class Assignment {
 
     @OneToMany(mappedBy = "assignment")
     @Builder.Default
-    private List<FileMetadatum> fileMetadata = new ArrayList<>();
-
-    @OneToMany(mappedBy = "assignment")
-    @Builder.Default
     private List<Submission> submissions = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
