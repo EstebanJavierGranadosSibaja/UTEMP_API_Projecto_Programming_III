@@ -33,9 +33,6 @@ public class AssignmentDTO {
     private CourseDTO course = new CourseDTO();
 
     @Builder.Default
-    private List<FileMetadatumDTO> fileMetadata = new ArrayList<>();
-
-    @Builder.Default
     private List<SubmissionDTO> submissions = new ArrayList<>();
 
     @NotNull(message = "State must not be null")
