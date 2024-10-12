@@ -35,6 +35,10 @@ public class Submission implements Identifiable{
     @Builder.Default
     private User student = new User();
 
+    @OneToMany(mappedBy = "submission")
+    @Builder.Default
+    private List<FileMetadatum> fileMetadata = new ArrayList<>();
+
     @NotBlank(message = "File name must not be blank")
     @Size(max = 255, message = "File name must be at most 255 characters long")
     @Column(name = "file_name", nullable = false, length = 255)

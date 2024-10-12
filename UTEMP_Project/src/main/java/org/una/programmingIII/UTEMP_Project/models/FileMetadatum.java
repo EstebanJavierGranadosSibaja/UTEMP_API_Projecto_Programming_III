@@ -22,7 +22,7 @@ public class FileMetadatum implements Identifiable{
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "assignment_id")
     @Builder.Default
-    private Assignment assignment = new Assignment();
+    private Submission submission = new Submission();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "student_id")
