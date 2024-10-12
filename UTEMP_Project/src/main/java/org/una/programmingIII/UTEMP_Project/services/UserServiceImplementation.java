@@ -1,10 +1,12 @@
 package org.una.programmingIII.UTEMP_Project.services;
 
 import jakarta.validation.Valid;
+import jakarta.validation.ValidationException;
 import org.hibernate.service.spi.ServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.una.programmingIII.UTEMP_Project.dtos.*;
@@ -13,14 +15,12 @@ import org.una.programmingIII.UTEMP_Project.models.*;
 import org.una.programmingIII.UTEMP_Project.repositories.*;
 import org.una.programmingIII.UTEMP_Project.transformers.mappers.GenericMapper;
 import org.una.programmingIII.UTEMP_Project.transformers.mappers.GenericMapperFactory;
-import org.una.programmingIII.UTEMP_Project.facades.transformersFacades.UserPermissionConverterFacade;
 import org.una.programmingIII.UTEMP_Project.validators.UserValidator;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 @Service
@@ -45,9 +45,6 @@ public class UserServiceImplementation implements UserService {
     private SubmissionRepository submissionRepository;
 
     @Autowired
-    private AssignmentRepository assignmentRepository;
-
-    @Autowired
     private UserValidator userValidator;
 
     @Autowired
@@ -70,274 +67,156 @@ public class UserServiceImplementation implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<UserDTO> getAllUsers() {
-        try {
-            return userMapper.convertToDTOList(userRepository.findAll());
-        } catch (Exception e) {
-            logger.error("Error fetching all users: {}", e.getMessage());
-            throw new ServiceException("An error occurred while retrieving all users.", e);
-        }
+        return executeWithLogging(() -> userMapper.convertToDTOList(userRepository.findAll()),
+                "Error fetching all users");
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<UserDTO> getUserById(Long id) {
-        try {
-            User user = userRepository.findById(id)
-                    .orElseThrow(() -> new ResourceNotFoundException("User", id));
-
+        return executeWithLogging(() -> {
+            User user = getEntityById(id, userRepository, "User");
             return Optional.of(userMapper.convertToDTO(user));
-        } catch (Exception e) {
-            logger.error("Error fetching user by ID: {}", e.getMessage());
-            throw new ServiceException("An error occurred while retrieving the user.", e);
-        }
+        }, "Error fetching user by ID");
     }
 
     @Override
     @Transactional
     public UserDTO createUser(UserDTO userDTO) {
-        try {
-            validateAndLogUser(userDTO);
+        validateUser(userDTO);
+        checkIfUserExists(userDTO.getIdentificationNumber());
 
-            if (userRepository.existsByIdentificationNumber(userDTO.getIdentificationNumber())) {
-                throw new ResourceAlreadyExistsException("User", "Identification number " + userDTO.getIdentificationNumber() + " is already in use.");
-            }
-
-            User user = userMapper.convertToEntity(userDTO);
-            user = userRepository.save(user);
-            logger.info("User created with ID: {}", user.getId());
-            return userMapper.convertToDTO(user);
-        } catch (Exception e) {
-            logger.error("Error creating user: {}", e.getMessage());
-            throw new ServiceException("An error occurred while creating the user.", e);
-        }
+        User user = userMapper.convertToEntity(userDTO);
+        return executeWithLogging(() -> userMapper.convertToDTO(userRepository.save(user)),
+                "Error creating user");
     }
 
     @Override
     @Transactional
     public Optional<UserDTO> updateUser(Long id, @Valid UserDTO userDTO) {
-        try {
-            User existingUser = userRepository.findById(id)
-                    .orElseThrow(() -> new ResourceNotFoundException("User", id));
+        validateUser(userDTO);
 
-            validateAndLogUser(userDTO);
+        User existingUser = getEntityById(id, userRepository, "User");
+        updateUserFields(existingUser, userDTO);
+        updateUserRelations(existingUser, userDTO);
 
-            updateUserFields(existingUser, userDTO);
-            updateUserRelations(existingUser, userDTO);
-
-            userRepository.save(existingUser);
-            logger.info("User updated with ID: {}", id);
-
-            return Optional.of(userMapper.convertToDTO(existingUser));
-        } catch (Exception e) {
-            logger.error("Error updating user: {}", e.getMessage());
-            throw new ServiceException("An error occurred while updating the user.", e);
-        }
+        return executeWithLogging(() -> Optional.of(userMapper.convertToDTO(userRepository.save(existingUser))),
+                "Error updating user");
     }
 
     @Override
+    @Transactional
     public void deleteUser(Long id, Boolean isPermanentDelete) {
-        try {
-            User user = userRepository.findById(id)
-                    .orElseThrow(() -> new ResourceNotFoundException("User", id));
+        User user = getEntityById(id, userRepository, "User");
 
-            if (!isPermanentDelete) {
-                suspendUser(user);
-                return;
-            }
-            if (userHasAssociatedItems(user)) {
-                permanentDeleteUser(user);
-                return;
-            }
-            logger.error("You cannot permanently delete users with associated items. User ID: {}", id);
-        } catch (Exception e) {
-            logger.error("Error deleting user: {}", e.getMessage());
-            throw new ServiceException("An error occurred while deleting the user.", e);
+        if (Boolean.TRUE.equals(isPermanentDelete)) {
+            permanentDeleteUser(user);
+        } else {
+            suspendUser(user);
         }
     }
 
     @Override
+    @Transactional
     public void enrollUserToCourse(Long userId, Long courseId) {
-        try {
-            User user = userRepository.findById(userId)
-                    .orElseThrow(() -> new ResourceNotFoundException("User", userId));
-            Course course = courseRepository.findById(courseId)
-                    .orElseThrow(() -> new ResourceNotFoundException("Course", courseId));
+        User user = getEntityById(userId, userRepository, "User");
+        Course course = getEntityById(courseId, courseRepository, "Course");
 
-            Enrollment enrollment = new Enrollment();
-            enrollment.setStudent(user);
-            enrollment.setCourse(course);
-            enrollment.setState(EnrollmentState.ENROLLED);
+        Enrollment enrollment = new Enrollment();
+        enrollment.setStudent(user);
+        enrollment.setCourse(course);
+        enrollment.setState(EnrollmentState.ENROLLED);
 
-            user.getUserEnrollments().add(enrollment);
-            course.getEnrollments().add(enrollment);
-
+        executeWithLogging(() -> {
             enrollmentRepository.save(enrollment);
-            userRepository.save(user);
-            courseRepository.save(course);
-
-            logger.info("User with ID: {} enrolled to course with ID: {}", userId, courseId);
-        } catch (Exception e) {
-            logger.error("Error enrolling user to course: {}", e.getMessage());
-            throw new ServiceException("An error occurred while enrolling the user to the course.", e);
-        }
+            return null;
+        }, "Error enrolling user to course");
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<NotificationDTO> getUserNotifications(Long userId) {
-        try {
-            return notificationMapper.convertToDTOList(notificationRepository.findByUserId(userId));
-        } catch (Exception e) {
-            logger.error("Error fetching user notifications: {}", e.getMessage());
-            throw new ServiceException("An error occurred while retrieving the user notifications.", e);
-        }
+        return executeWithLogging(() -> notificationMapper.convertToDTOList(notificationRepository.findByUserId(userId)),
+                "Error fetching user notifications");
     }
 
     @Override
+    @Transactional
     public void addNotificationToUser(Long userId, NotificationDTO notificationDTO) {
-        try {
-            User user = userRepository.findById(userId)
-                    .orElseThrow(() -> new ResourceNotFoundException("User", userId));
+        User user = getEntityById(userId, userRepository, "User");
 
-            Notification notification = notificationMapper.convertToEntity(notificationDTO);
-            notification.setUser(user);
-            user.getNotifications().add(notification);
+        Notification notification = notificationMapper.convertToEntity(notificationDTO);
+        notification.setUser(user);
+        user.getNotifications().add(notification);
 
+        executeWithLogging(() -> {
             notificationRepository.save(notification);
-            logger.info("Notification added to user with ID: {}", userId);
-        } catch (Exception e) {
-            logger.error("Error adding notification to user: {}", e.getMessage());
-            throw new ServiceException("An error occurred while adding the notification to the user.", e);
+            return null;
+        }, "Error adding notification to user");
+    }
+
+    // --------------- MÉTODOS AUXILIARES -----------------
+
+    private void validateUser(UserDTO userDTO) {
+        userValidator.validate(userDTO);
+        logger.info("User validated: {}", userDTO);
+    }
+
+    private void checkIfUserExists(String identificationNumber) {
+        if (userRepository.existsByIdentificationNumber(identificationNumber)) {
+            throw new ResourceAlreadyExistsException("User",
+                    "Identification number " + identificationNumber + " is already in use.");
         }
     }
 
-    private void validateAndLogUser(UserDTO userDTO) {
-        try {
-            userValidator.validate(userDTO);
-            logger.info("User validated: {}", userDTO);
-        } catch (Exception e) {
-            logger.error("Error validating user: {}", e.getMessage());
-            throw new ServiceException("An error occurred while validating the user.", e);
-        }
+    private <T> T getEntityById(Long id, JpaRepository<T, Long> repository, String entityName) {
+        return repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(entityName, id));
     }
 
     private void updateUserFields(User existingUser, UserDTO userDTO) {
-        try {
-            existingUser.setName(userDTO.getName());
-            existingUser.setEmail(userDTO.getEmail());
-            existingUser.setIdentificationNumber(userDTO.getIdentificationNumber());
-            existingUser.setPassword(userDTO.getPassword());
-            existingUser.setRole(userDTO.getRole());
-            existingUser.setState(userDTO.getState());
-            existingUser.setLastUpdate(LocalDateTime.now());
-        } catch (Exception e) {
-            logger.error("Error updating user fields: {}", e.getMessage());
-            throw new ServiceException("An error occurred while updating user fields.", e);
-        }
+        existingUser.setName(userDTO.getName());
+        existingUser.setEmail(userDTO.getEmail());
+        existingUser.setIdentificationNumber(userDTO.getIdentificationNumber());
+        existingUser.setPassword(userDTO.getPassword());
+        existingUser.setRole(userDTO.getRole());
+        existingUser.setState(userDTO.getState());
+        existingUser.setLastUpdate(LocalDateTime.now());
     }
 
     private void updateUserRelations(User existingUser, UserDTO userDTO) {
-        try {
-            if (userDTO == null) return;
-
-            updateEnrollmentRelations(existingUser, userDTO.getUserEnrollments());
-            updateCourseRelations(existingUser, userDTO.getCoursesTeaching());
-            updateNotificationRelations(existingUser, userDTO.getNotifications());
-            updateSubmissionRelations(existingUser, userDTO.getSubmissions());
-        } catch (Exception e) {
-            logger.error("Error updating user relations: {}", e.getMessage());
-            throw new ServiceException("An error occurred while updating user relations.", e);
-        }
+        updateRelations(existingUser.getUserEnrollments(), enrollmentMapper.convertToEntityList(userDTO.getUserEnrollments()));
+        updateRelations(existingUser.getCoursesTeaching(), courseMapper.convertToEntityList(userDTO.getCoursesTeaching()));
+        updateRelations(existingUser.getNotifications(), notificationMapper.convertToEntityList(userDTO.getNotifications()));
+        updateRelations(existingUser.getSubmissions(), submissionMapper.convertToEntityList(userDTO.getSubmissions()));
     }
 
-    private void updateEnrollmentRelations(User existingUser, List<EnrollmentDTO> enrollments) {
-        try {
-            if (enrollments != null) {
-                Set<Long> updatedEnrollmentIds = enrollments.stream()
-                        .map(EnrollmentDTO::getId)
-                        .collect(Collectors.toSet());
-
-                existingUser.getUserEnrollments().removeIf(enrollment -> !updatedEnrollmentIds.contains(enrollment.getId()));
-                existingUser.getUserEnrollments().addAll(enrollmentMapper.convertToEntityList(enrollments));
-            }
-        } catch (Exception e) {
-            logger.error("Error updating enrollment relations: {}", e.getMessage());
-            throw new ServiceException("An error occurred while updating enrollment relations.", e);
-        }
+    private <T> void updateRelations(List<T> existingList, List<T> newList) {
+        existingList.retainAll(newList);
+        newList.removeAll(existingList);
+        existingList.addAll(newList);
     }
 
-    private void updateCourseRelations(User existingUser, List<CourseDTO> courses) {
+    private <T> T executeWithLogging(Supplier<T> action, String errorMessage) {
         try {
-            if (courses != null) {
-                Set<Long> updatedCourseIds = courses.stream()
-                        .map(CourseDTO::getId)
-                        .collect(Collectors.toSet());
-
-                existingUser.getCoursesTeaching().removeIf(course -> !updatedCourseIds.contains(course.getId()));
-                existingUser.getCoursesTeaching().addAll(courseMapper.convertToEntityList(courses));
-            }
+            return action.get();
         } catch (Exception e) {
-            logger.error("Error updating course relations: {}", e.getMessage());
-            throw new ServiceException("An error occurred while updating course relations.", e);
+            logger.error("{}: {}", errorMessage, e.getMessage());
+            throw new ServiceException(errorMessage, e);
         }
-    }
-
-    private void updateNotificationRelations(User existingUser, List<NotificationDTO> notifications) {
-        try {
-            if (notifications != null) {
-                Set<Long> updatedNotificationIds = notifications.stream()
-                        .map(NotificationDTO::getId)
-                        .collect(Collectors.toSet());
-
-                existingUser.getNotifications().removeIf(notification -> !updatedNotificationIds.contains(notification.getId()));
-                existingUser.getNotifications().addAll(notificationMapper.convertToEntityList(notifications));
-            }
-        } catch (Exception e) {
-            logger.error("Error updating notification relations: {}", e.getMessage());
-            throw new ServiceException("An error occurred while updating notification relations.", e);
-        }
-    }
-
-    private void updateSubmissionRelations(User existingUser, List<SubmissionDTO> submissions) {
-        try {
-            if (submissions != null) {
-                Set<Long> updatedSubmissionIds = submissions.stream()
-                        .map(SubmissionDTO::getId)
-                        .collect(Collectors.toSet());
-
-                existingUser.getSubmissions().removeIf(submission -> !updatedSubmissionIds.contains(submission.getId()));
-                existingUser.getSubmissions().addAll(submissionMapper.convertToEntityList(submissions));
-            }
-        } catch (Exception e) {
-            logger.error("Error updating submission relations: {}", e.getMessage());
-            throw new ServiceException("An error occurred while updating submission relations.", e);
-        }
-    }
-
-    private boolean userHasAssociatedItems(User user) {
-        return user.getCoursesTeaching().isEmpty()
-                && user.getUserEnrollments().isEmpty()
-                && user.getNotifications().isEmpty()
-                && user.getSubmissions().isEmpty();
     }
 
     private void suspendUser(User user) {
-        try {
-            user.setState(UserState.SUSPENDED);
-            userRepository.save(user);
-            logger.info("User with ID: {} has been suspended.", user.getId());
-        } catch (Exception e) {
-            logger.error("Error suspending user: {}", e.getMessage());
-            throw new ServiceException("An error occurred while suspending the user.", e);
-        }
+        user.setState(UserState.SUSPENDED);
+        executeWithLogging(() -> userRepository.save(user), "Error suspending user");
     }
 
     private void permanentDeleteUser(User user) {
-        try {
+        executeWithLogging(() -> {
             userRepository.delete(user);
-            logger.info("User with ID: {} permanently deleted.", user.getId());
-        } catch (Exception e) {
-            logger.error("Error permanently deleting user: {}", e.getMessage());
-            throw new ServiceException("An error occurred while permanently deleting the user.", e);
-        }
+            return null;
+        }, "Error permanently deleting user");
     }
 }
