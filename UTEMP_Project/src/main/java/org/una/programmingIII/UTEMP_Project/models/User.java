@@ -7,10 +7,13 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.una.programmingIII.UTEMP_Project.facades.transformersFacades.UserPermissionConverterFacade;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 @Data
@@ -75,6 +78,23 @@ public class User implements Identifiable  {
     @Column(name = "permissions", nullable = false)
     @Builder.Default
     private List<UserPermission> permissions = new ArrayList<>();
+
+    @Transient
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        List<GrantedAuthority> authorities = new ArrayList<>();
+
+        if (role != null) {
+            authorities.add(new SimpleGrantedAuthority(role.name()));
+        }
+
+        if (permissions != null) {
+            for (UserPermission permission : permissions) {
+                authorities.add(new SimpleGrantedAuthority(permission.name()));
+            }
+        }
+
+        return authorities;
+    }
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
