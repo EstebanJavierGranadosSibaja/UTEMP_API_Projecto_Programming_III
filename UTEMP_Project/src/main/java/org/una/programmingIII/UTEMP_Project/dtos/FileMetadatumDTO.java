@@ -14,7 +14,7 @@ public class FileMetadatumDTO {
     private Long id;
 
     @Builder.Default
-    private SubmissionDTO assignment = new SubmissionDTO();
+    private SubmissionDTO submission = new SubmissionDTO();
 
     @Builder.Default
     private UserDTO student = new UserDTO();
