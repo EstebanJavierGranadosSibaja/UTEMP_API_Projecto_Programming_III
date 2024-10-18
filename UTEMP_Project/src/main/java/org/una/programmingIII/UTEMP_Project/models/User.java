@@ -9,8 +9,7 @@ import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.una.programmingIII.UTEMP_Project.facades.transformersFacades.UserPermissionConverterFacade;
-
+import org.una.programmingIII.UTEMP_Project.transformers.converters.UserPermissionConverterImplementation;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -74,11 +73,10 @@ public class User implements Identifiable  {
     @Column(name = "role", nullable = false)
     private UserRole role;
 
-    @Convert(converter = UserPermissionConverterFacade.class)
+    @Convert(converter = UserPermissionConverterImplementation.class)
     @Column(name = "permissions", nullable = false)
     @Builder.Default
     private List<UserPermission> permissions = new ArrayList<>();
-
     @Transient
     public Collection<? extends GrantedAuthority> getAuthorities() {
         List<GrantedAuthority> authorities = new ArrayList<>();
