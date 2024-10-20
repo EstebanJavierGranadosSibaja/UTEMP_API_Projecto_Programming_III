@@ -1,0 +1,71 @@
+
+UTEMP_Project/.idea/workspace.xml
+UTEMP_Project/.env
+/UTEMP_Project/target
+/UTEMP_Project/.idea/shelf
+*.patch
+/UTEMP_Project/.idea
+*.xml
+
+
+# Default ignored files
+/shelf/
+workspace.xml
+# Editor-based HTTP Client requests
+/httpRequests/
+# Datasource local storage ignored files
+/dataSources/
+dataSources.local.xml
+
+# Maven build files
+/target/
+*.log
+
+# Maven Wrapper
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+
+# IDE specific files
+/.idea/
+/*.iws
+/*.iml
+/*.ipr
+/.env
+
+# Spring Tool Suite (STS)
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# VS Code
+.vscode/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Other ignored files
+/.mvn/
+*.class
+/.mvn/timing.log
+*.hprof
+*.jar
+*.war
+*.ear
+*.swp
+*.swo
+UTEMP_Project/.idea/workspace.xml
