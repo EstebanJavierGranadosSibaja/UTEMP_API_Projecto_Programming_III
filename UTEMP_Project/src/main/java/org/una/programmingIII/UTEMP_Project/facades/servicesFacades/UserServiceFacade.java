@@ -15,9 +15,9 @@ public class UserServiceFacade {
     @Autowired
     private UserService userService;
 
-    public List<UserDTO> getAllUsers() {
-        return userService.getAllUsers();
-    }
+//    public List<UserDTO> getAllUsers() {
+//        return userService.getAllUsers();
+//    }
 
     public Optional<UserDTO> getUserById(Long id) {
         return userService.getUserById(id);
