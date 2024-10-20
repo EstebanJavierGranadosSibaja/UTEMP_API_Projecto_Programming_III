@@ -5,13 +5,20 @@ import org.hibernate.service.spi.ServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.una.programmingIII.UTEMP_Project.dtos.*;
-import org.una.programmingIII.UTEMP_Project.exceptions.*;
+import org.una.programmingIII.UTEMP_Project.exceptions.InvalidDataException;
+import org.una.programmingIII.UTEMP_Project.exceptions.ResourceAlreadyExistsException;
+import org.una.programmingIII.UTEMP_Project.exceptions.ResourceNotFoundException;
 import org.una.programmingIII.UTEMP_Project.models.*;
-import org.una.programmingIII.UTEMP_Project.repositories.*;
+import org.una.programmingIII.UTEMP_Project.repositories.CourseRepository;
+import org.una.programmingIII.UTEMP_Project.repositories.EnrollmentRepository;
+import org.una.programmingIII.UTEMP_Project.repositories.NotificationRepository;
+import org.una.programmingIII.UTEMP_Project.repositories.UserRepository;
 import org.una.programmingIII.UTEMP_Project.services.PasswordEncryptionServices.PasswordEncryptionService;
 import org.una.programmingIII.UTEMP_Project.transformers.mappers.GenericMapper;
 import org.una.programmingIII.UTEMP_Project.transformers.mappers.GenericMapperFactory;
@@ -29,29 +36,12 @@ public class UserServiceImplementation implements UserService {
 
     private static final Logger logger = LoggerFactory.getLogger(UserServiceImplementation.class);
 
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private CourseRepository courseRepository;
-
-    @Autowired
-    private NotificationRepository notificationRepository;
-
-    @Autowired
-    private EnrollmentRepository enrollmentRepository;
-
-    @Autowired
-    private SubmissionRepository submissionRepository;
-
-    @Autowired
-    private PasswordEncryptionService passwordEncryptionService;
-
-    @Autowired
-    private UserValidator userValidator;
-
-    @Autowired
-    private final GenericMapperFactory mapperFactory;
+    private final UserRepository userRepository;
+    private final CourseRepository courseRepository;
+    private final NotificationRepository notificationRepository;
+    private final EnrollmentRepository enrollmentRepository;
+    private final PasswordEncryptionService passwordEncryptionService;
+    private final UserValidator userValidator;
 
     private final GenericMapper<User, UserDTO> userMapper;
     private final GenericMapper<Notification, NotificationDTO> notificationMapper;
@@ -60,29 +50,18 @@ public class UserServiceImplementation implements UserService {
     private final GenericMapper<Submission, SubmissionDTO> submissionMapper;
 
     @Autowired
-    public UserServiceImplementation(GenericMapperFactory mapperFactory) {
-        this.mapperFactory = mapperFactory;
+    public UserServiceImplementation(GenericMapperFactory mapperFactory, UserRepository userRepository, CourseRepository courseRepository, NotificationRepository notificationRepository, EnrollmentRepository enrollmentRepository, PasswordEncryptionService passwordEncryptionService, UserValidator userValidator) {
         this.userMapper = mapperFactory.createMapper(User.class, UserDTO.class);
         this.notificationMapper = mapperFactory.createMapper(Notification.class, NotificationDTO.class);
         this.enrollmentMapper = mapperFactory.createMapper(Enrollment.class, EnrollmentDTO.class);
         this.courseMapper = mapperFactory.createMapper(Course.class, CourseDTO.class);
         this.submissionMapper = mapperFactory.createMapper(Submission.class, SubmissionDTO.class);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<UserDTO> getAllUsers() {
-        return executeWithLogging(() -> userMapper.convertToDTOList(userRepository.findAll()),
-                "Error fetching all users");
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public Optional<UserDTO> getUserById(Long id) {
-        return executeWithLogging(() -> {
-            User user = getEntityById(id, userRepository, "User");
-            return Optional.of(userMapper.convertToDTO(user));
-        }, "Error fetching user by ID");
+        this.userRepository = userRepository;
+        this.courseRepository = courseRepository;
+        this.notificationRepository = notificationRepository;
+        this.enrollmentRepository = enrollmentRepository;
+        this.passwordEncryptionService = passwordEncryptionService;
+        this.userValidator = userValidator;
     }
 
     @Override
@@ -96,6 +75,37 @@ public class UserServiceImplementation implements UserService {
 
         return executeWithLogging(() -> userMapper.convertToDTO(userRepository.save(user)),
                 "Error creating user");
+    }
+
+    //GetsBY()
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<UserDTO> getUserById(Long id) {
+        return executeWithLogging(() -> {
+            User user = getEntityById(id, userRepository, "User");
+            return Optional.of(userMapper.convertToDTO(user));
+        }, "Error fetching user by ID");
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<UserDTO> getUserByIdentificationNumber(String identificationNumber) {
+        return executeWithLogging(() -> {
+            User user = userRepository.findByIdentificationNumber(identificationNumber);
+            if (user == null) {
+                return Optional.empty();
+            }
+            return Optional.of(userMapper.convertToDTO(user));
+        }, "Error fetching user by identification number");
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<UserDTO> getAllUsers(Pageable pageable) {
+        return executeWithLogging(() -> {
+            Page<User> userPage = userRepository.findAll(pageable);
+            return userPage.map(userMapper::convertToDTO);
+        }, "Error fetching all users");
     }
 
     @Override
@@ -114,16 +124,22 @@ public class UserServiceImplementation implements UserService {
 
     @Override
     @Transactional
-    public void deleteUser(Long id, Boolean isPermanentDelete) {
+    public boolean deleteUser(Long id, Boolean isPermanentDelete) {
         User user = getEntityById(id, userRepository, "User");
 
-        if (Boolean.TRUE.equals(isPermanentDelete)) {
-            permanentDeleteUser(user);
+        if (user == null) {
+            return false;
         } else {
-            suspendUser(user);
+            if (Boolean.TRUE.equals(isPermanentDelete)) {
+                permanentDeleteUser(user);
+            } else {
+                suspendUser(user);
+            }
         }
+        return true;
     }
 
+    //user elements
     @Override
     @Transactional(readOnly = true)
     public List<CourseDTO> getCoursesTeachingByUserId(Long userId) {
@@ -198,7 +214,6 @@ public class UserServiceImplementation implements UserService {
         }, "Error enrolling user to course");
     }
 
-
     @Override
     @Transactional
     public void unrollUserFromCourse(Long userId, Long courseId) {
@@ -213,7 +228,6 @@ public class UserServiceImplementation implements UserService {
             return null;
         }, "Error unrolling user from course");
     }
-
 
     @Override
     @Transactional(readOnly = true)
@@ -268,6 +282,7 @@ public class UserServiceImplementation implements UserService {
         }
     }
 
+    //TODO que es ?
     private <T> T getEntityById(Long id, JpaRepository<T, Long> repository, String entityName) {
         return repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(entityName, id));
@@ -281,6 +296,7 @@ public class UserServiceImplementation implements UserService {
         });
     }
 
+    // todo /\
     private void updateUserFields(User existingUser, UserDTO userDTO) {
         updateFieldIfChanged(User::setName, Optional.ofNullable(userDTO.getName()), existingUser.getName(), existingUser);
         updateFieldIfChanged(User::setEmail, Optional.ofNullable(userDTO.getEmail()), existingUser.getEmail(), existingUser);

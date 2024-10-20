@@ -1,5 +1,6 @@
 package org.una.programmingIII.UTEMP_Project.services.UserServices;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -10,22 +11,19 @@ import org.una.programmingIII.UTEMP_Project.repositories.UserRepository;
 @Service
 public class UserDetailsServiceImplementation implements UserDetailsService {
 
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+
+    @Autowired
+    public UserDetailsServiceImplementation(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.findByName(username);
+    public UserDetails loadUserByUsername(String identificationNumber) throws UsernameNotFoundException {
+        User user = userRepository.findByIdentificationNumber(identificationNumber);
         if (user == null) {
-            throw new UsernameNotFoundException("User not found with username: " + username);
+            throw new UsernameNotFoundException("User not found with identification number: " + identificationNumber);
         }
-        return org.springframework.security.core.userdetails.User.builder()
-                .username(user.getName())
-                .password(user.getPassword())
-                .authorities(user.getAuthorities())
-                .accountExpired(false)
-                .accountLocked(false)
-                .credentialsExpired(false)
-                .disabled(false)
-                .build();
+        return new CustomUserDetails(user); // Usando tu CustomUserDetails
     }
 }
