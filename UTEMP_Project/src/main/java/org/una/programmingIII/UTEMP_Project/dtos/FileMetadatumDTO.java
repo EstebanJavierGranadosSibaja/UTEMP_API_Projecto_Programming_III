@@ -2,7 +2,11 @@ package org.una.programmingIII.UTEMP_Project.dtos;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.time.LocalDateTime;
 
 @Data
@@ -35,4 +39,10 @@ public class FileMetadatumDTO {
     private LocalDateTime createdAt;
 
     private LocalDateTime lastUpdate;
+
+    // Nuevos campos para manejo de fragmentos
+    private byte[] fileChunk; // Fragmento del archivo
+    private int chunkIndex; // Índice del fragmento
+    private int totalChunks; // Número total de fragmentos
+
 }

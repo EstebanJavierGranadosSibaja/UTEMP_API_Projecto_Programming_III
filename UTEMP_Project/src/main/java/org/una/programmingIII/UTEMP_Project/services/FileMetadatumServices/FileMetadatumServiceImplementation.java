@@ -1,6 +1,7 @@
 package org.una.programmingIII.UTEMP_Project.services.FileMetadatumServices;
 
 import jakarta.validation.Valid;
+import org.apache.tomcat.util.http.fileupload.FileUploadException;
 import org.hibernate.service.spi.ServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,15 +12,18 @@ import org.springframework.transaction.annotation.Transactional;
 import org.una.programmingIII.UTEMP_Project.dtos.FileMetadatumDTO;
 import org.una.programmingIII.UTEMP_Project.exceptions.ResourceNotFoundException;
 import org.una.programmingIII.UTEMP_Project.models.FileMetadatum;
+import org.una.programmingIII.UTEMP_Project.models.Submission;
+import org.una.programmingIII.UTEMP_Project.models.User;
 import org.una.programmingIII.UTEMP_Project.repositories.FileMetadatumRepository;
 import org.una.programmingIII.UTEMP_Project.repositories.SubmissionRepository;
 import org.una.programmingIII.UTEMP_Project.repositories.UserRepository;
 import org.una.programmingIII.UTEMP_Project.transformers.mappers.GenericMapper;
 import org.una.programmingIII.UTEMP_Project.transformers.mappers.GenericMapperFactory;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Supplier;
 
 @Service
@@ -27,21 +31,92 @@ import java.util.function.Supplier;
 public class FileMetadatumServiceImplementation implements FileMetadatumService {
 
     private static final Logger logger = LoggerFactory.getLogger(FileMetadatumServiceImplementation.class);
-
-    @Autowired
-    private FileMetadatumRepository fileMetadatumRepository;
-
-    @Autowired
-    private SubmissionRepository submissionRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
+    private final FileMetadatumRepository fileMetadatumRepository;
+    private final SubmissionRepository submissionRepository;
+    private final UserRepository userRepository;
     private final GenericMapper<FileMetadatum, FileMetadatumDTO> fileMetadatumMapper;
 
+    // Mapa para almacenar los fragmentos en memoria
+    private final Map<Long, List<byte[]>> fileChunksMap = new HashMap<>();
+
     @Autowired
-    public FileMetadatumServiceImplementation(GenericMapperFactory mapperFactory) {
+    public FileMetadatumServiceImplementation(GenericMapperFactory mapperFactory, FileMetadatumRepository fileMetadatumRepository, SubmissionRepository submissionRepository, UserRepository userRepository) {
         this.fileMetadatumMapper = mapperFactory.createMapper(FileMetadatum.class, FileMetadatumDTO.class);
+        this.fileMetadatumRepository = fileMetadatumRepository;
+        this.submissionRepository = submissionRepository;
+        this.userRepository = userRepository;
+    }
+
+    public void receiveFileChunk(FileMetadatumDTO fileChunkDTO) throws FileUploadException {
+        Long fileId = fileChunkDTO.getId();
+        fileChunksMap.putIfAbsent(fileId, new ArrayList<>());
+
+        List<byte[]> chunks = fileChunksMap.get(fileId);
+
+        // Validar que el chunkIndex es válido
+        if (fileChunkDTO.getChunkIndex() < 0 || fileChunkDTO.getChunkIndex() >= fileChunkDTO.getTotalChunks()) {
+            throw new IllegalArgumentException("Invalid chunk index: " + fileChunkDTO.getChunkIndex());
+        }
+
+        // Agregar el fragmento si es el siguiente en la secuencia
+        if (fileChunkDTO.getChunkIndex() == chunks.size()) {
+            chunks.add(fileChunkDTO.getFileChunk());
+            logger.info("Chunk {} added for file ID: {}", fileChunkDTO.getChunkIndex(), fileId);
+        } else {
+            logger.warn("Received out-of-order chunk for file ID: {}, expected index: {}", fileId, chunks.size());
+        }
+
+        // Verificar si todos los fragmentos han sido recibidos
+        if (chunks.size() == fileChunkDTO.getTotalChunks()) {
+            finalizeFileUpload(fileId, fileChunkDTO);
+        }
+    }
+
+    public void finalizeFileUpload(Long fileId, FileMetadatumDTO fileDTO) throws FileUploadException {
+        List<byte[]> chunks = fileChunksMap.get(fileId);
+        if (chunks == null || chunks.isEmpty()) {
+            throw new IllegalArgumentException("No chunks found for file ID: " + fileId);
+        }
+
+        String finalFilePath = String.format("path/to/final/%s<%d>.%s",
+                fileDTO.getFileName(), fileId, fileDTO.getFileType());
+
+        // Escribir los fragmentos en el archivo final
+        try (FileOutputStream fos = new FileOutputStream(finalFilePath)) {
+            for (byte[] chunk : chunks) {
+                fos.write(chunk);
+            }
+            logger.info("File upload finalized for file ID: {}", fileId);
+        } catch (IOException e) {
+            logger.error("Error finalizing file upload: {}", e.getMessage());
+            throw new FileUploadException("Error finalizing file upload", e);
+        }
+
+        // Crear y guardar la metadata del archivo
+        FileMetadatum fileMetadatum = new FileMetadatum();
+        fileMetadatum.setId(fileId);
+        fileMetadatum.setFileName(String.format("%s<%d>.%s", fileDTO.getFileName(), fileId, fileDTO.getFileType()));
+        fileMetadatum.setFileSize(chunks.stream().mapToLong(chunk -> chunk.length).sum());
+        fileMetadatum.setStoragePath(finalFilePath);
+        fileMetadatum.setFileType(fileDTO.getFileType()); // Ajustar según el tipo real
+
+//         Aquí se asume que los IDs de Submission y User están disponibles en el DTO
+//        if (fileDTO.getSubmissionID() != null) {
+//            Submission submission = submissionRepository.findById(fileDTO.getSubmissionId())
+//                    .orElseThrow(() -> new ResourceNotFoundException("Submission not found for ID: " + fileDTO.getSubmissionId()));
+//            fileMetadatum.setSubmission(submission);
+//        }
+//
+//        if (fileDTO.getStudentId() != null) {
+//            User student = userRepository.findById(fileDTO.getStudentId())
+//                    .orElseThrow(() -> new ResourceNotFoundException("User not found for ID: " + fileDTO.getStudentId()));
+//            fileMetadatum.setStudent(student);
+//        }
+
+        fileMetadatumRepository.save(fileMetadatum);
+
+        // Limpiar los fragmentos después de la carga
+        fileChunksMap.remove(fileId);
     }
 
     @Override
