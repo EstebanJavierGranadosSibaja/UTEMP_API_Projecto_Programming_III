@@ -1,34 +1,46 @@
-maricar49@gmail.comHELP.md
-target/
-!.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
+# Default ignored files
+/shelf/
+workspace.xml
+# Editor-based HTTP Client requests
+/httpRequests/
+# Datasource local storage ignored files
+/dataSources/
+dataSources.local.xml
 
-### STS ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
+# Maven build files
+/target/
+*.log
 
-### IntelliJ IDEA ###
-.idea
-*.iws
-*.iml
-*.ipr
+# IDE specific files
+/.idea/
+/*.iml
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Configuration files
+/.mvn/
+*.class
+
+# Java dependency files
+/.mvn/timing.log
+
+# Environment files
 .env
 
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
-build/
-!**/src/main/**/build/
-!**/src/test/**/build/
+# IntelliJ specific files
+/.idea/modules.xml
+/.idea/inspectionProfiles/
+/.idea/vcs.xml
+.idea/dictionaries
+.idea/misc.xml
 
-### VS Code ###
-.vscode/
+# Other ignored files
+/.gradle/
+*.hprof
+*.jar
+*.war
+*.ear
+*.swp
+*.swo
