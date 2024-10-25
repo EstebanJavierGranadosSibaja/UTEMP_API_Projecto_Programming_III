@@ -1,4 +1,4 @@
-package org.una.programmingIII.UTEMP_Project.security.utils;
+package org.una.programmingIII.UTEMP_Project.utils;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;

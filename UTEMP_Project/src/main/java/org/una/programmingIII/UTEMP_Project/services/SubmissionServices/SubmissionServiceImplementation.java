@@ -16,10 +16,12 @@ import org.una.programmingIII.UTEMP_Project.models.Assignment;
 import org.una.programmingIII.UTEMP_Project.models.FileMetadatum;
 import org.una.programmingIII.UTEMP_Project.models.Grade;
 import org.una.programmingIII.UTEMP_Project.models.Submission;
+import org.una.programmingIII.UTEMP_Project.observers.Subject;
 import org.una.programmingIII.UTEMP_Project.repositories.AssignmentRepository;
 import org.una.programmingIII.UTEMP_Project.repositories.FileMetadatumRepository;
 import org.una.programmingIII.UTEMP_Project.repositories.GradeRepository;
 import org.una.programmingIII.UTEMP_Project.repositories.SubmissionRepository;
+import org.una.programmingIII.UTEMP_Project.services.NotificationServices.NotificationService;
 import org.una.programmingIII.UTEMP_Project.transformers.mappers.GenericMapper;
 import org.una.programmingIII.UTEMP_Project.transformers.mappers.GenericMapperFactory;
 
@@ -30,21 +32,20 @@ import java.util.function.Supplier;
 
 @Service
 @Transactional
-public class SubmissionServiceImplementation implements SubmissionService {
+public class SubmissionServiceImplementation extends Subject implements SubmissionService {
 
     private static final Logger logger = LoggerFactory.getLogger(SubmissionServiceImplementation.class);
 
     @Autowired
     private SubmissionRepository submissionRepository;
-
     @Autowired
     private AssignmentRepository assignmentRepository;
-
     @Autowired
     private FileMetadatumRepository fileMetadatumRepository;
-
     @Autowired
     private GradeRepository gradeRepository;
+    @Autowired
+    private NotificationService notificationService;
 
     private final GenericMapper<Submission, SubmissionDTO> submissionMapper;
     private final GenericMapper<FileMetadatum, FileMetadatumDTO> fileMetadatumMapper;
@@ -137,6 +138,13 @@ public class SubmissionServiceImplementation implements SubmissionService {
         return executeWithLogging(() -> {
             Grade savedGrade = gradeRepository.save(grade);
             submission.getGrades().add(savedGrade);
+
+            notifyObservers("SUBMISSION_GRADED", "The grade of the assigment '" +
+                    submission.getAssignment().getTitle() + "' was " + grade.getGrade(), submission.getStudent().getEmail());
+
+            notificationService.sendNotificationToUser(submission.getStudent(), "The grade of the assigment '" +
+                    submission.getAssignment().getTitle() + "' was " + grade.getGrade());
+
             return gradeMapper.convertToDTO(savedGrade);
         }, "Error adding grade to submission ID: " + submissionId);
     }

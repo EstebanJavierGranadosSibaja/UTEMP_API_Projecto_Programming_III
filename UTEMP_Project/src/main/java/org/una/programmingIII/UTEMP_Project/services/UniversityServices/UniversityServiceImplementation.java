@@ -125,6 +125,8 @@ public class UniversityServiceImplementation implements UniversityService {
                 facultyRepository.delete(faculty);
                 return null;
             }, "Error removing faculty from university");
+        } else {
+            throw new ResourceNotFoundException("Faculty not found in this university", universityId);
         }
     }
 
