@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import org.una.programmingIII.UTEMP_Project.dtos.AssignmentDTO;
 import org.una.programmingIII.UTEMP_Project.dtos.SubmissionDTO;
 import org.una.programmingIII.UTEMP_Project.responses.ApiResponse;
-import org.una.programmingIII.UTEMP_Project.services.AssignmentServices.AssignmentService;
+import org.una.programmingIII.UTEMP_Project.services.assignment.AssignmentService;
 
 import java.util.List;
 import java.util.Optional;

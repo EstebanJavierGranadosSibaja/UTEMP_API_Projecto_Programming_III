@@ -5,7 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.una.programmingIII.UTEMP_Project.dtos.NotificationDTO;
-import org.una.programmingIII.UTEMP_Project.services.NotificationServices.NotificationService;
+import org.una.programmingIII.UTEMP_Project.services.notification.NotificationService;
 
 import java.util.List;
 import java.util.Optional;

@@ -16,8 +16,8 @@ import org.una.programmingIII.UTEMP_Project.dtos.EnrollmentDTO;
 import org.una.programmingIII.UTEMP_Project.dtos.NotificationDTO;
 import org.una.programmingIII.UTEMP_Project.dtos.UserDTO;
 import org.una.programmingIII.UTEMP_Project.responses.ApiResponse;
-import org.una.programmingIII.UTEMP_Project.services.UserServices.CustomUserDetails;
-import org.una.programmingIII.UTEMP_Project.services.UserServices.UserService;
+import org.una.programmingIII.UTEMP_Project.services.user.CustomUserDetails;
+import org.una.programmingIII.UTEMP_Project.services.user.UserService;
 
 import java.util.List;
 import java.util.Optional;
@@ -58,6 +58,7 @@ public class UserController {
     }
 
     @GetMapping("/me")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse<UserDTO>> getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Long authenticatedUserId = ((CustomUserDetails) authentication.getPrincipal()).getUser().getId();

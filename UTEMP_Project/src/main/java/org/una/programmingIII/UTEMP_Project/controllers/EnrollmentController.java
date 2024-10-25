@@ -5,7 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.una.programmingIII.UTEMP_Project.dtos.EnrollmentDTO;
-import org.una.programmingIII.UTEMP_Project.services.EnrollmentServices.EnrollmentService;
+import org.una.programmingIII.UTEMP_Project.services.enrollment.EnrollmentService;
 import java.util.List;
 import java.util.Optional;
 

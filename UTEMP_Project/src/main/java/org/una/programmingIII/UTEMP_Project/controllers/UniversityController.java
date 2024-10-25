@@ -7,7 +7,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.una.programmingIII.UTEMP_Project.dtos.UniversityDTO;
 import org.una.programmingIII.UTEMP_Project.dtos.FacultyDTO;
-import org.una.programmingIII.UTEMP_Project.services.UniversityServices.UniversityService;
+import org.una.programmingIII.UTEMP_Project.services.university.UniversityService;
 
 import java.util.List;
 import java.util.Optional;

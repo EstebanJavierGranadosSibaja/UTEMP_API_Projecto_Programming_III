@@ -6,7 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.una.programmingIII.UTEMP_Project.dtos.CourseDTO;
-import org.una.programmingIII.UTEMP_Project.services.CourseServices.CourseService;
+import org.una.programmingIII.UTEMP_Project.services.course.CourseService;
 
 import java.util.List;
 import java.util.Optional;

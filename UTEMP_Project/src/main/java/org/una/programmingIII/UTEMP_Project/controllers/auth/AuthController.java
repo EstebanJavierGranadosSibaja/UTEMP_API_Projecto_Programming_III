@@ -4,27 +4,26 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.una.programmingIII.UTEMP_Project.models.User;
+import org.una.programmingIII.UTEMP_Project.configurations.security.utils.JwtTokenProvider;
 import org.una.programmingIII.UTEMP_Project.responses.ApiResponse;
-import org.una.programmingIII.UTEMP_Project.security.utils.JwtUtil;
+import org.una.programmingIII.UTEMP_Project.services.user.CustomUserDetails;
+import org.una.programmingIII.UTEMP_Project.services.user.CustomUserDetailsService;
 
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
 
-    private final JwtUtil jwtUtil;
-    private final UserDetailsService userDetailsService;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final CustomUserDetailsService userDetailsService;
     private final AuthenticationManager authenticationManager;
 
-    public AuthController(AuthenticationManager authenticationManager, JwtUtil jwtUtil, UserDetailsService userDetailsService) {
+    public AuthController(AuthenticationManager authenticationManager, JwtTokenProvider jwtTokenProvider, CustomUserDetailsService userDetailsService) {
         this.authenticationManager = authenticationManager;
-        this.jwtUtil = jwtUtil;
+        this.jwtTokenProvider = jwtTokenProvider;
         this.userDetailsService = userDetailsService;
     }
 
@@ -35,12 +34,15 @@ public class AuthController {
                     new UsernamePasswordAuthenticationToken(authRequest.getIdentificationNumber(), authRequest.getPassword())
             );
 
-            final UserDetails userDetails = userDetailsService.loadUserByUsername(authRequest.getIdentificationNumber());
-            final String jwt = jwtUtil.generateAccessToken((User) userDetails); // Asegúrate de que `UserDetails` sea el tipo correcto
+            CustomUserDetails userDetails = (CustomUserDetails) userDetailsService.loadUserByUsername(authRequest.getIdentificationNumber());
 
-            new ApiResponse<>(HttpStatus.NOT_FOUND.value(), "User not found");
-            ApiResponse<String> response = new ApiResponse<>(jwt);
-            return ResponseEntity.ok(response);
+            if (userDetails == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(new ApiResponse<>(HttpStatus.NOT_FOUND.value(), "User not found"));
+            }
+
+            final String jwt = jwtTokenProvider.generateAccessToken(userDetails.getUser());
+            return ResponseEntity.ok(new ApiResponse<>(jwt));//TODO de bearer
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new ApiResponse<>(HttpStatus.UNAUTHORIZED.value(), "Invalid credentials"));
