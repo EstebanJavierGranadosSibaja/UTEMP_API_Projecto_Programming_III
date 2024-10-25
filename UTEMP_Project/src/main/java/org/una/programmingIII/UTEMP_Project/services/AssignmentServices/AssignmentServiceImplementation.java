@@ -14,9 +14,11 @@ import org.una.programmingIII.UTEMP_Project.exceptions.ResourceNotFoundException
 import org.una.programmingIII.UTEMP_Project.models.Assignment;
 import org.una.programmingIII.UTEMP_Project.models.Course;
 import org.una.programmingIII.UTEMP_Project.models.Submission;
+import org.una.programmingIII.UTEMP_Project.observers.Subject;
 import org.una.programmingIII.UTEMP_Project.repositories.AssignmentRepository;
 import org.una.programmingIII.UTEMP_Project.repositories.CourseRepository;
 import org.una.programmingIII.UTEMP_Project.repositories.SubmissionRepository;
+import org.una.programmingIII.UTEMP_Project.services.NotificationServices.NotificationService;
 import org.una.programmingIII.UTEMP_Project.transformers.mappers.GenericMapper;
 import org.una.programmingIII.UTEMP_Project.transformers.mappers.GenericMapperFactory;
 
@@ -27,21 +29,20 @@ import java.util.function.Supplier;
 
 @Service
 @Transactional
-public class AssignmentServiceImplementation implements AssignmentService {
+public class AssignmentServiceImplementation extends Subject implements AssignmentService {
 
     private static final Logger logger = LoggerFactory.getLogger(AssignmentServiceImplementation.class);
 
     @Autowired
     private AssignmentRepository assignmentRepository;
-
     @Autowired
     private CourseRepository courseRepository;
-
     @Autowired
     private SubmissionRepository submissionRepository;
+    @Autowired
+    private NotificationService notificationService;
 
     private final GenericMapper<Assignment, AssignmentDTO> assignmentMapper;
-
     private final GenericMapper<Submission, SubmissionDTO> submissionMapper;
 
     @Autowired
@@ -122,6 +123,13 @@ public class AssignmentServiceImplementation implements AssignmentService {
         return executeWithLogging(() -> {
             Submission savedSubmission = submissionRepository.save(submission);
             assignment.getSubmissions().add(savedSubmission);
+
+            notifyObservers("USER_SUBMISSION", "The student " + submission.getStudent().getName() +
+                    " added a new submission in the assignment " + assignment.getTitle(), assignment.getCourse().getTeacher().getEmail());
+
+            notificationService.sendNotificationToUser(assignment.getCourse().getTeacher(), "The student " + submission.getStudent().getName() +
+                    " added a new submission in the assignment " + assignment.getTitle());
+
             return submissionMapper.convertToDTO(savedSubmission);
         }, "Error adding submission to assignment ID: " + assignmentId);
     }
