@@ -34,9 +34,9 @@ services:
 
 volumes:
   postgres_data: # Volumen para almacenar datos de PostgreSQL
-    name: postgres
+    name: postgres_utemp
   pgadmin_data: # Volumen para almacenar datos de pgAdmin
-    name: pgadmin
+    name: pgadmin_utemp
 
 networks:
   backend: # Definición de la red backend
