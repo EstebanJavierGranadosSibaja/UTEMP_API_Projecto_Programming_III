@@ -8,15 +8,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.una.programmingIII.UTEMP_Project.dtos.AssignmentDTO;
 import org.una.programmingIII.UTEMP_Project.dtos.CourseDTO;
 import org.una.programmingIII.UTEMP_Project.exceptions.ResourceNotFoundException;
-import org.una.programmingIII.UTEMP_Project.models.Course;
-import org.una.programmingIII.UTEMP_Project.models.Department;
-import org.una.programmingIII.UTEMP_Project.models.User;
-import org.una.programmingIII.UTEMP_Project.models.CourseState;
+import org.una.programmingIII.UTEMP_Project.models.*;
+import org.una.programmingIII.UTEMP_Project.observers.Subject;
+import org.una.programmingIII.UTEMP_Project.repositories.AssignmentRepository;
 import org.una.programmingIII.UTEMP_Project.repositories.CourseRepository;
 import org.una.programmingIII.UTEMP_Project.repositories.DepartmentRepository;
 import org.una.programmingIII.UTEMP_Project.repositories.UserRepository;
+import org.una.programmingIII.UTEMP_Project.services.NotificationServices.NotificationService;
 import org.una.programmingIII.UTEMP_Project.transformers.mappers.GenericMapper;
 import org.una.programmingIII.UTEMP_Project.transformers.mappers.GenericMapperFactory;
 
@@ -27,24 +28,28 @@ import java.util.function.Supplier;
 
 @Service
 @Transactional
-public class CourseServiceImplementation implements CourseService {
+public class CourseServiceImplementation extends Subject implements CourseService {
 
     private static final Logger logger = LoggerFactory.getLogger(CourseServiceImplementation.class);
 
     @Autowired
     private CourseRepository courseRepository;
-
     @Autowired
     private UserRepository userRepository;
-
     @Autowired
     private DepartmentRepository departmentRepository;
+    @Autowired
+    private AssignmentRepository assignmentRepository;
+    @Autowired
+    private NotificationService notificationService;
 
     private final GenericMapper<Course, CourseDTO> courseMapper;
+    private final GenericMapper<Assignment, AssignmentDTO> assignmentMapper;
 
     @Autowired
     public CourseServiceImplementation(GenericMapperFactory mapperFactory) {
         this.courseMapper = mapperFactory.createMapper(Course.class, CourseDTO.class);
+        this.assignmentMapper = mapperFactory.createMapper(Assignment.class, AssignmentDTO.class);
     }
 
     @Override
@@ -111,6 +116,44 @@ public class CourseServiceImplementation implements CourseService {
                 "Error fetching courses by department ID");
     }
 
+    @Override
+    @Transactional
+    public void addAssignmentToCourse(Long courseId, AssignmentDTO assignmentDTO) {
+        Course course = getEntityById(courseId, courseRepository, "Course");
+        Assignment assignment = assignmentMapper.convertToEntity(assignmentDTO);
+
+        assignment.setCourse(course);
+        course.getAssignment().add(assignment);
+
+        executeWithLogging(() -> {
+            assignmentRepository.save(assignment);
+
+            sendMailToAllStudents(course.getEnrollments(), assignment);
+
+            return null;
+        }, "Error adding assignment to course");
+    }
+
+    @Override
+    @Transactional
+    public void removeAssignmentFromCourse(Long courseId, Long assignmentId) {
+        Course course = getEntityById(courseId, courseRepository, "Course");
+        Assignment assignment = getEntityById(assignmentId, assignmentRepository, "Assignment");
+
+        if (course.getAssignment().contains(assignment)) {
+            course.getAssignment().remove(assignment);
+            assignment.setCourse(null);
+
+            executeWithLogging(() -> {
+                assignmentRepository.delete(assignment);
+                return null;
+            }, "Error removing assignment from course");
+        } else {
+            throw new ResourceNotFoundException("Assignment not found in this course", courseId);
+        }
+    }
+
+
     // --------------- MÉTODOS AUXILIARES -----------------
 
     private <T> T getEntityById(Long id, JpaRepository<T, Long> repository, String entityName) {
@@ -131,6 +174,16 @@ public class CourseServiceImplementation implements CourseService {
         } catch (Exception e) {
             logger.error("{}: {}", errorMessage, e.getMessage());
             throw new ServiceException(errorMessage, e);
+        }
+    }
+
+    private void sendMailToAllStudents(List<Enrollment> enrollments, Assignment assignment) {
+        for (Enrollment enrollment : enrollments) {
+            notifyObservers("NEW_ASSIGMENT", "Assigment '" + assignment.getTitle() +
+                    "' was added in the " + assignment.getCourse().getName() + "course", enrollment.getStudent().getEmail());
+
+            notificationService.sendNotificationToUser(enrollment.getStudent(), "Assigment '" + assignment.getTitle() +
+                    "' was added in the " + assignment.getCourse().getName() + "course");
         }
     }
 }
