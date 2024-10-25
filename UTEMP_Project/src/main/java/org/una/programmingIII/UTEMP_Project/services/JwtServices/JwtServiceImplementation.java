@@ -8,7 +8,7 @@ import org.una.programmingIII.UTEMP_Project.dtos.TokenDTOs.TokenResponseDTO;
 import org.una.programmingIII.UTEMP_Project.exceptions.CustomServiceException;
 import org.una.programmingIII.UTEMP_Project.models.User;
 import org.una.programmingIII.UTEMP_Project.repositories.UserRepository;
-import org.una.programmingIII.UTEMP_Project.security.utils.JwtUtil;
+import org.una.programmingIII.UTEMP_Project.utils.JwtUtil;
 
 import java.util.Objects;
 
