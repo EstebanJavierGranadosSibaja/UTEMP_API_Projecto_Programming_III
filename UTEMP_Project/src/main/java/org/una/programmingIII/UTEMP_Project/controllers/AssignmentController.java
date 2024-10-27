@@ -8,7 +8,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.una.programmingIII.UTEMP_Project.dtos.AssignmentDTO;
 import org.una.programmingIII.UTEMP_Project.dtos.SubmissionDTO;
-import org.una.programmingIII.UTEMP_Project.responses.ApiResponse;
+import org.una.programmingIII.UTEMP_Project.controllers.responses.ApiResponse;
 import org.una.programmingIII.UTEMP_Project.services.assignment.AssignmentService;
 
 import java.util.List;

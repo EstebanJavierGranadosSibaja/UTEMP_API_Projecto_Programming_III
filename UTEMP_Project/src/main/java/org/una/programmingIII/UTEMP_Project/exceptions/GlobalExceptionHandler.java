@@ -6,7 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.una.programmingIII.UTEMP_Project.responses.ApiResponse;
+import org.una.programmingIII.UTEMP_Project.controllers.responses.ApiResponse;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {

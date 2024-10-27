@@ -29,4 +29,6 @@ public enum UserPermission {
 
     //TODO?
     VIEW_REPORTS
+    //for all
+
 }

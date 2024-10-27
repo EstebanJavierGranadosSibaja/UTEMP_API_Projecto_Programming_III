@@ -15,13 +15,15 @@ import org.una.programmingIII.UTEMP_Project.dtos.CourseDTO;
 import org.una.programmingIII.UTEMP_Project.dtos.EnrollmentDTO;
 import org.una.programmingIII.UTEMP_Project.dtos.NotificationDTO;
 import org.una.programmingIII.UTEMP_Project.dtos.UserDTO;
-import org.una.programmingIII.UTEMP_Project.responses.ApiResponse;
+import org.una.programmingIII.UTEMP_Project.controllers.responses.ApiResponse;
+import org.una.programmingIII.UTEMP_Project.controllers.responses.PageResponse;
 import org.una.programmingIII.UTEMP_Project.services.user.CustomUserDetails;
 import org.una.programmingIII.UTEMP_Project.services.user.UserService;
 
 import java.util.List;
 import java.util.Optional;
 
+//Backend
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
@@ -35,11 +37,12 @@ public class UserController {
     //crud basico
     @GetMapping
     @PreAuthorize("hasAuthority('MANAGE_USERS')")
-    public ResponseEntity<Page<UserDTO>> getAllUsers(@PageableDefault(size = 10, page = 0) Pageable pageable) {
-        Page<UserDTO> users = userService.getAllUsers(pageable);
-        return ResponseEntity.ok(users);
+    public ResponseEntity<PageResponse<UserDTO>> getAllUsers(@PageableDefault(size = 10, page = 0) Pageable pageable) {
+        Page<UserDTO> page = userService.getAllUsers(pageable);
+        return ResponseEntity.ok(new PageResponse<UserDTO>(page));
     }
 
+    // Obtener usuario por número de identificación
     @GetMapping("/identification/{identificationNumber}")
     @PreAuthorize("hasAuthority('MANAGE_USERS') or hasAuthority('ADMIN')")
     public ResponseEntity<ApiResponse<UserDTO>> getUserByIdentificationNumber(@PathVariable String identificationNumber) {
@@ -47,16 +50,7 @@ public class UserController {
         return getApiResponseResponseEntity(userDTO);
     }
 
-    private ResponseEntity<ApiResponse<UserDTO>> getApiResponseResponseEntity(Optional<UserDTO> userDTO) {
-        return userDTO.map(user -> {
-            ApiResponse<UserDTO> response = new ApiResponse<>(user);
-            return ResponseEntity.ok(response);
-        }).orElseGet(() -> {
-            ApiResponse<UserDTO> response = new ApiResponse<>(HttpStatus.NOT_FOUND.value(), "User not found");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-        });
-    }
-
+    // Obtener usuario actual
     @GetMapping("/me")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse<UserDTO>> getCurrentUser() {
@@ -67,6 +61,7 @@ public class UserController {
         return getApiResponseResponseEntity(userDTO);
     }
 
+    // Crear usuario
     @PostMapping
     @PreAuthorize("hasAuthority('MANAGE_USERS')")
     public ResponseEntity<ApiResponse<UserDTO>> createUser(@Valid @RequestBody UserDTO userDTO) {
@@ -75,6 +70,7 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    // Actualizar usuario
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('MANAGE_USERS')")
     public ResponseEntity<ApiResponse<UserDTO>> updateUser(@PathVariable Long id, @Valid @RequestBody UserDTO userDTO) {
@@ -82,6 +78,7 @@ public class UserController {
         return getApiResponseResponseEntity(updatedUser);
     }
 
+    // Eliminar usuario
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('MANAGE_USERS')")
     public ResponseEntity<ApiResponse<Boolean>> deleteUser(@PathVariable Long id, @RequestParam(defaultValue = "false") Boolean isPermanentDelete) {
@@ -94,6 +91,18 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
     }
+
+    // Método privado para manejar la respuesta de usuario
+    private ResponseEntity<ApiResponse<UserDTO>> getApiResponseResponseEntity(Optional<UserDTO> userDTO) {
+        return userDTO.map(user -> {
+            ApiResponse<UserDTO> response = new ApiResponse<>(user);
+            return ResponseEntity.ok(response);
+        }).orElseGet(() -> {
+            ApiResponse<UserDTO> response = new ApiResponse<>(HttpStatus.NOT_FOUND.value(), "User not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        });
+    }
+
 
     //Metodo sobre los elementos de usuario
     @GetMapping("/{id}/notifications")

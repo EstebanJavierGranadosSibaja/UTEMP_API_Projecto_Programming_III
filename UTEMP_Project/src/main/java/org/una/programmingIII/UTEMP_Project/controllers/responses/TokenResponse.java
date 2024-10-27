@@ -1,4 +1,4 @@
-package org.una.programmingIII.UTEMP_Project.responses;
+package org.una.programmingIII.UTEMP_Project.controllers.responses;
 
 import lombok.Getter;
 import lombok.Setter;
