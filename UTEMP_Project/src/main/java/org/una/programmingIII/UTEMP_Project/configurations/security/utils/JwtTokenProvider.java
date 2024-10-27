@@ -1,8 +1,4 @@
-<<<<<<<< HEAD:UTEMP_Project/src/main/java/org/una/programmingIII/UTEMP_Project/configurations/security/utils/JwtTokenProvider.java
 package org.una.programmingIII.UTEMP_Project.configurations.security.utils;
-========
-package org.una.programmingIII.UTEMP_Project.utils;
->>>>>>>> origin/develop:UTEMP_Project/src/main/java/org/una/programmingIII/UTEMP_Project/utils/JwtUtil.java
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;

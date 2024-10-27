@@ -19,7 +19,7 @@ import org.una.programmingIII.UTEMP_Project.repositories.CourseRepository;
 import org.una.programmingIII.UTEMP_Project.repositories.DepartmentRepository;
 import org.una.programmingIII.UTEMP_Project.repositories.UserRepository;
 import org.una.programmingIII.UTEMP_Project.services.EmailNotificationObserver;
-import org.una.programmingIII.UTEMP_Project.services.NotificationServices.NotificationService;
+import org.una.programmingIII.UTEMP_Project.services.notification.NotificationService;
 import org.una.programmingIII.UTEMP_Project.transformers.mappers.GenericMapper;
 import org.una.programmingIII.UTEMP_Project.transformers.mappers.GenericMapperFactory;
 

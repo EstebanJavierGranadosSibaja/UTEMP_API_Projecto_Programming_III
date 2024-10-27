@@ -1,4 +1,4 @@
-package org.una.programmingIII.UTEMP_Project.services.UserServices;
+package org.una.programmingIII.UTEMP_Project.services.user;
 
 import jakarta.validation.Valid;
 import org.hibernate.service.spi.ServiceException;
@@ -21,8 +21,8 @@ import org.una.programmingIII.UTEMP_Project.repositories.CourseRepository;
 import org.una.programmingIII.UTEMP_Project.repositories.EnrollmentRepository;
 import org.una.programmingIII.UTEMP_Project.repositories.UserRepository;
 import org.una.programmingIII.UTEMP_Project.services.EmailNotificationObserver;
-import org.una.programmingIII.UTEMP_Project.services.NotificationServices.NotificationService;
-import org.una.programmingIII.UTEMP_Project.services.PasswordEncryptionServices.PasswordEncryptionService;
+import org.una.programmingIII.UTEMP_Project.services.notification.NotificationService;
+import org.una.programmingIII.UTEMP_Project.services.passwordEncryption.PasswordEncryptionService;
 import org.una.programmingIII.UTEMP_Project.transformers.mappers.GenericMapper;
 import org.una.programmingIII.UTEMP_Project.transformers.mappers.GenericMapperFactory;
 import org.una.programmingIII.UTEMP_Project.validators.UserValidator;

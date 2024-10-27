@@ -105,13 +105,13 @@ public class UserController {
 
 
     //Metodo sobre los elementos de usuario
-    @GetMapping("/{id}/notifications")
-    @PreAuthorize("hasAuthority('NOTIFICATION')")
-    public ResponseEntity<ApiResponse<List<NotificationDTO>>> getUserNotifications(@PathVariable Long id) {
-        List<NotificationDTO> notifications = userService.getUserNotifications(id);
-        ApiResponse<List<NotificationDTO>> response = new ApiResponse<>(notifications);
-        return ResponseEntity.ok(response);
-    }
+//    @GetMapping("/{id}/notifications")
+//    @PreAuthorize("hasAuthority('NOTIFICATION')")
+//    public ResponseEntity<ApiResponse<List<NotificationDTO>>> getUserNotifications(@PathVariable Long id) {
+//        List<NotificationDTO> notifications = userService.getUserNotifications(id);
+//        ApiResponse<List<NotificationDTO>> response = new ApiResponse<>(notifications);
+//        return ResponseEntity.ok(response);
+//    }
 
     @GetMapping("/{id}/courses")
     @PreAuthorize("hasAuthority('USER_INFO')")
@@ -162,22 +162,22 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
-    //TODO notificaciones, uso de patron estructural de tipo subcripcion por curso, se envia a los estudiantes la dentro del un curso, se genera la lista
-    @PostMapping("/{userId}/notifications")
-    @PreAuthorize("hasAuthority('NOTIFICATION')")
-    public ResponseEntity<ApiResponse<String>> addNotificationToUser(@PathVariable Long userId, @Valid @RequestBody NotificationDTO notificationDTO) {
-        userService.addNotificationToUser(userId, notificationDTO);
-        ApiResponse<String> response = new ApiResponse<>("Notification added successfully");
-        return ResponseEntity.ok(response);
-    }
-
-    //TODO?
-    @DeleteMapping("/{userId}/notifications/{notificationId}")
-    @PreAuthorize("hasAuthority('NOTIFICATION')")
-    public ResponseEntity<ApiResponse<String>> removeNotificationFromUser(@PathVariable Long userId, @PathVariable Long notificationId) {
-        userService.removeNotificationFromUser(userId, notificationId);
-        ApiResponse<String> response = new ApiResponse<>("Notification removed successfully");
-        return ResponseEntity.ok(response);
-    }
+//    //TODO notificaciones, uso de patron estructural de tipo subcripcion por curso, se envia a los estudiantes la dentro del un curso, se genera la lista
+//    @PostMapping("/{userId}/notifications")
+//    @PreAuthorize("hasAuthority('NOTIFICATION')")
+//    public ResponseEntity<ApiResponse<String>> addNotificationToUser(@PathVariable Long userId, @Valid @RequestBody NotificationDTO notificationDTO) {
+//        userService.addNotificationToUser(userId, notificationDTO);
+//        ApiResponse<String> response = new ApiResponse<>("Notification added successfully");
+//        return ResponseEntity.ok(response);
+//    }
+//
+//    //TODO?
+//    @DeleteMapping("/{userId}/notifications/{notificationId}")
+//    @PreAuthorize("hasAuthority('NOTIFICATION')")
+//    public ResponseEntity<ApiResponse<String>> removeNotificationFromUser(@PathVariable Long userId, @PathVariable Long notificationId) {
+//        userService.removeNotificationFromUser(userId, notificationId);
+//        ApiResponse<String> response = new ApiResponse<>("Notification removed successfully");
+//        return ResponseEntity.ok(response);
+//    }
 
 }
