@@ -63,7 +63,7 @@ public class AutoReviewServiceImplementation implements AutoReviewService {
 
     @Async("taskExecutor")
     @Override
-    public CompletableFuture<Grade> autoReview(Long submissionId) {
+    public CompletableFuture<Grade> autoReviewSubmission(Long submissionId) {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 Submission submission = validateSubmission(submissionId);

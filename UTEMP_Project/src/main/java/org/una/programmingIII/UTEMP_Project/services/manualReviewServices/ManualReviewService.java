@@ -4,5 +4,5 @@ import org.una.programmingIII.UTEMP_Project.models.Grade;
 import java.util.Optional;
 
 public interface ManualReviewService {
-    Optional<Grade> reviewSubmission(Long submissionId, double gradeValue, String comments);
+    Optional<Grade> ManualReviewSubmission(Long submissionId, double gradeValue, String comments);
 }

@@ -4,5 +4,5 @@ import org.una.programmingIII.UTEMP_Project.models.Grade;
 import java.util.concurrent.CompletableFuture;
 
 public interface AutoReviewService {
-    CompletableFuture<Grade> autoReview(Long submissionId);
+    CompletableFuture<Grade> autoReviewSubmission(Long submissionId);
 }
