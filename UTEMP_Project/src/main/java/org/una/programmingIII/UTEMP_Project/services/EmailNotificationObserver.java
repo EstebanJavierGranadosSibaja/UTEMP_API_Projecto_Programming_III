@@ -19,7 +19,7 @@ public class EmailNotificationObserver implements Observer {
             "PROFESSOR_NOTIFICATION", "New Student Enrolled",
             "USER_SUBMISSION", "New Assignment Submission",
             "SUBMISSION_GRADED", "Submission Reviewed",
-            "NEW_ASSIGMENT", "You Have a New Assignment"
+            "NEW_ASSIGNMENT", "You Have a New Assignment"
     );
 
     @Autowired
