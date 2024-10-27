@@ -119,6 +119,16 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-mail</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>io.krakens</groupId>
+			<artifactId>java-grok</artifactId>
+			<version>0.1.9</version>
+		</dependency>
+		<dependency>
+			<groupId>org.languagetool</groupId>
+			<artifactId>languagetool-server</artifactId>
+			<version>6.5</version>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -137,5 +147,10 @@
 			</plugin>
 		</plugins>
 	</build>
-
+	<repositories>
+		<repository>
+			<id>graylog</id>
+			<url>https://raw.github.com/Graylog2/graylog2-server/master/repo</url>
+		</repository>
+	</repositories>
 </project>
