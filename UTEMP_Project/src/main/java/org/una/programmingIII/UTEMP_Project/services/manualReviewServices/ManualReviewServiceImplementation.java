@@ -24,7 +24,7 @@ public class ManualReviewServiceImplementation implements ManualReviewService {
     }
 
     @Override
-    public Optional<Grade> reviewSubmission(Long submissionId, double gradeValue, String comments) {
+    public Optional<Grade> ManualReviewSubmission(Long submissionId, double gradeValue, String comments) {
         validateGradeValue(gradeValue);
         validateComments(comments);
 
