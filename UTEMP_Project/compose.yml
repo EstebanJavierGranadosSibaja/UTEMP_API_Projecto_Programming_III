@@ -28,7 +28,7 @@ services:
     ports:
       - "8070:80"
     volumes:
-      - pgadmin_data:/var/lib/pgadmin  # Añadir el volumen aquí
+      - pgadmin_data:/var/lib/pgadmin
     networks:
       - backend
 
@@ -39,4 +39,4 @@ volumes:
     name: pgadmin_utemp
 
 networks:
-  backend: # Definición de la red backend
+  backend:
