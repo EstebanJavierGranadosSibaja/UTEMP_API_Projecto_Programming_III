@@ -18,7 +18,10 @@ public class ObserverConfig {
 
     @PostConstruct
     public void initObservers() {
-        // Agregar el observador de notificaciones por correo al servicio de usuario
-        userService.addObserver(emailNotificationObserver);
+        if (emailNotificationObserver != null) {
+            userService.addObserver(emailNotificationObserver);
+        } else {
+            throw new IllegalStateException("EmailNotificationObserver is not initialized.");
+        }
     }
 }
