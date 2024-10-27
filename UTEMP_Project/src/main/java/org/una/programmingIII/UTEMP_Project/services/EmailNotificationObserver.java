@@ -1,5 +1,6 @@
 package org.una.programmingIII.UTEMP_Project.services;
 
+import org.springframework.scheduling.annotation.Async;
 import org.una.programmingIII.UTEMP_Project.observers.Observer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -26,6 +27,7 @@ public class EmailNotificationObserver implements Observer {
         this.mailSender = mailSender;
     }
 
+    @Async("taskExecutor")
     @Override
     public void update(String eventType, String message, String mail) {
         String subject = SUBJECTS.getOrDefault(eventType, "Notification");

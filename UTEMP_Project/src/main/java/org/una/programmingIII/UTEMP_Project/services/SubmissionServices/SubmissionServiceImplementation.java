@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.una.programmingIII.UTEMP_Project.dtos.SubmissionDTO;
@@ -138,13 +139,7 @@ public class SubmissionServiceImplementation extends Subject implements Submissi
         return executeWithLogging(() -> {
             Grade savedGrade = gradeRepository.save(grade);
             submission.getGrades().add(savedGrade);
-
-            notifyObservers("SUBMISSION_GRADED", "The grade of the assigment '" +
-                    submission.getAssignment().getTitle() + "' was " + grade.getGrade(), submission.getStudent().getEmail());
-
-            notificationService.sendNotificationToUser(submission.getStudent(), "The grade of the assigment '" +
-                    submission.getAssignment().getTitle() + "' was " + grade.getGrade());
-
+            sendNotificationForGrade(grade, submission);
             return gradeMapper.convertToDTO(savedGrade);
         }, "Error adding grade to submission ID: " + submissionId);
     }
@@ -186,8 +181,12 @@ public class SubmissionServiceImplementation extends Subject implements Submissi
     // --------------- MÉTODOS AUXILIARES -----------------
 
     private <T> T getEntityById(Long id, JpaRepository<T, Long> repository, String entityName) {
-        return repository.findById(id)
+        return findEntityById(id, repository)
                 .orElseThrow(() -> new ResourceNotFoundException(entityName, id));
+    }
+
+    private <T> Optional<T> findEntityById(Long id, JpaRepository<T, Long> repository) {
+        return repository.findById(id);
     }
 
     private void updateSubmissionFields(Submission existingSubmission, SubmissionDTO submissionDTO) {
@@ -204,6 +203,19 @@ public class SubmissionServiceImplementation extends Subject implements Submissi
         } catch (Exception e) {
             logger.error("{}: {}", errorMessage, e.getMessage());
             throw new ServiceException(errorMessage, e);
+        }
+    }
+
+    @Async("taskExecutor")
+    protected void sendNotificationForGrade(Grade grade, Submission submission) {
+        String message = "The grade of the assigment '" +
+                submission.getAssignment().getTitle() + "' was " + grade.getGrade();
+        try {
+            notifyObservers("SUBMISSION_GRADED", message, submission.getStudent().getEmail());
+            notificationService.sendNotificationToUser(submission.getStudent(), message);
+
+        } catch (Exception e) {
+            logger.error("Error notifying student {}: {}", submission.getStudent().getEmail(), e.getMessage());
         }
     }
 }

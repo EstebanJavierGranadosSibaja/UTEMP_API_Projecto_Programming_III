@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.una.programmingIII.UTEMP_Project.dtos.AssignmentDTO;
@@ -17,6 +18,7 @@ import org.una.programmingIII.UTEMP_Project.repositories.AssignmentRepository;
 import org.una.programmingIII.UTEMP_Project.repositories.CourseRepository;
 import org.una.programmingIII.UTEMP_Project.repositories.DepartmentRepository;
 import org.una.programmingIII.UTEMP_Project.repositories.UserRepository;
+import org.una.programmingIII.UTEMP_Project.services.EmailNotificationObserver;
 import org.una.programmingIII.UTEMP_Project.services.NotificationServices.NotificationService;
 import org.una.programmingIII.UTEMP_Project.transformers.mappers.GenericMapper;
 import org.una.programmingIII.UTEMP_Project.transformers.mappers.GenericMapperFactory;
@@ -24,11 +26,12 @@ import org.una.programmingIII.UTEMP_Project.transformers.mappers.GenericMapperFa
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
 @Service
 @Transactional
-public class CourseServiceImplementation extends Subject implements CourseService {
+public class CourseServiceImplementation extends Subject<EmailNotificationObserver> implements CourseService {
 
     private static final Logger logger = LoggerFactory.getLogger(CourseServiceImplementation.class);
 
@@ -127,9 +130,7 @@ public class CourseServiceImplementation extends Subject implements CourseServic
 
         executeWithLogging(() -> {
             assignmentRepository.save(assignment);
-
             sendMailToAllStudents(course.getEnrollments(), assignment);
-
             return null;
         }, "Error adding assignment to course");
     }
@@ -157,8 +158,12 @@ public class CourseServiceImplementation extends Subject implements CourseServic
     // --------------- MÉTODOS AUXILIARES -----------------
 
     private <T> T getEntityById(Long id, JpaRepository<T, Long> repository, String entityName) {
-        return repository.findById(id)
+        return findEntityById(id, repository)
                 .orElseThrow(() -> new ResourceNotFoundException(entityName, id));
+    }
+
+    private <T> Optional<T> findEntityById(Long id, JpaRepository<T, Long> repository) {
+        return repository.findById(id);
     }
 
     private void updateCourseFields(Course existingCourse, CourseDTO courseDTO) {
@@ -177,13 +182,19 @@ public class CourseServiceImplementation extends Subject implements CourseServic
         }
     }
 
-    private void sendMailToAllStudents(List<Enrollment> enrollments, Assignment assignment) {
-        for (Enrollment enrollment : enrollments) {
-            notifyObservers("NEW_ASSIGMENT", "Assigment '" + assignment.getTitle() +
-                    "' was added in the " + assignment.getCourse().getName() + "course", enrollment.getStudent().getEmail());
+    @Async("taskExecutor")
+    protected CompletableFuture<Void> sendMailToAllStudents(List<Enrollment> enrollments, Assignment assignment) {
+        String message = "Assignment '" + assignment.getTitle() +
+                "' was added in the " + assignment.getCourse().getName() + " course";
 
-            notificationService.sendNotificationToUser(enrollment.getStudent(), "Assigment '" + assignment.getTitle() +
-                    "' was added in the " + assignment.getCourse().getName() + "course");
+        for (Enrollment enrollment : enrollments) {
+            try {
+                notifyObservers("NEW_ASSIGNMENT", message, enrollment.getStudent().getEmail());
+                notificationService.sendNotificationToUser(enrollment.getStudent(), message);
+            } catch (Exception e) {
+                logger.error("Error notifying student {}: {}", enrollment.getStudent().getEmail(), e.getMessage());
+            }
         }
+        return CompletableFuture.completedFuture(null);
     }
 }

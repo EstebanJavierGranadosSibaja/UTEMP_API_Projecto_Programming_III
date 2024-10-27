@@ -169,8 +169,12 @@ public class FileMetadatumServiceImplementation implements FileMetadatumService 
     // --------------- MÉTODOS AUXILIARES -----------------
 
     private <T> T getEntityById(Long id, JpaRepository<T, Long> repository, String entityName) {
-        return repository.findById(id)
+        return findEntityById(id, repository)
                 .orElseThrow(() -> new ResourceNotFoundException(entityName, id));
+    }
+
+    private <T> Optional<T> findEntityById(Long id, JpaRepository<T, Long> repository) {
+        return repository.findById(id);
     }
 
     private void updateFileMetadatumFields(FileMetadatum existingFileMetadatum, FileMetadatumDTO fileMetadatumDTO) {

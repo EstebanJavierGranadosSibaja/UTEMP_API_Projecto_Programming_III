@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.una.programmingIII.UTEMP_Project.dtos.*;
@@ -19,6 +20,7 @@ import org.una.programmingIII.UTEMP_Project.observers.Subject;
 import org.una.programmingIII.UTEMP_Project.repositories.CourseRepository;
 import org.una.programmingIII.UTEMP_Project.repositories.EnrollmentRepository;
 import org.una.programmingIII.UTEMP_Project.repositories.UserRepository;
+import org.una.programmingIII.UTEMP_Project.services.EmailNotificationObserver;
 import org.una.programmingIII.UTEMP_Project.services.NotificationServices.NotificationService;
 import org.una.programmingIII.UTEMP_Project.services.PasswordEncryptionServices.PasswordEncryptionService;
 import org.una.programmingIII.UTEMP_Project.transformers.mappers.GenericMapper;
@@ -28,12 +30,13 @@ import org.una.programmingIII.UTEMP_Project.validators.UserValidator;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
 @Service
 @Transactional
-public class UserServiceImplementation extends Subject implements UserService {
+public class UserServiceImplementation extends Subject<EmailNotificationObserver> implements UserService {
 
     private static final Logger logger = LoggerFactory.getLogger(UserServiceImplementation.class);
 
@@ -213,17 +216,7 @@ public class UserServiceImplementation extends Subject implements UserService {
 
         executeWithLogging(() -> {
             enrollmentRepository.save(enrollment);
-
-            notifyObservers("USER_ENROLLED", "The user " + user.getName() + " " +
-                    "has been enrolled in the course " + course.getName(), user.getEmail());
-            notifyObservers("PROFESSOR_NOTIFICATION", "The student " + user.getName() + " " +
-                    "has been enrolled in your course " + course.getName(), course.getTeacher().getEmail());
-
-            notificationService.sendNotificationToUser(user, "The user " + user.getName() +
-                    " has been enrolled in the course " + course.getName());
-            notificationService.sendNotificationToUser(course.getTeacher(), "The student " + user.getName() +
-                    " has been enrolled in your course " + course.getName());
-
+            notifyUserAndProfessor(user, course);
             return null;
         }, "Error enrolling user to course");
     }
@@ -259,8 +252,12 @@ public class UserServiceImplementation extends Subject implements UserService {
 
     //TODO que es ?
     private <T> T getEntityById(Long id, JpaRepository<T, Long> repository, String entityName) {
-        return repository.findById(id)
+        return findEntityById(id, repository)
                 .orElseThrow(() -> new ResourceNotFoundException(entityName, id));
+    }
+
+    private <T> Optional<T> findEntityById(Long id, JpaRepository<T, Long> repository) {
+        return repository.findById(id);
     }
 
     private <T> void updateFieldIfChanged(BiConsumer<User, T> setter, Optional<T> newValueOpt, T existingValue, User user) {
@@ -320,12 +317,30 @@ public class UserServiceImplementation extends Subject implements UserService {
     private void suspendUser(User user) {
         user.setState(UserState.SUSPENDED);
         executeWithLogging(() -> userRepository.save(user), "Error suspending user");
+        logger.info("User suspended: {}", user.getId());
     }
 
     private void permanentDeleteUser(User user) {
         executeWithLogging(() -> {
             userRepository.delete(user);
+            logger.info("User permanently deleted: {}", user.getId());
             return null;
         }, "Error permanently deleting user");
+    }
+
+    @Async
+    public CompletableFuture<Void> notifyUserAndProfessor(User user, Course course) {
+        String userMessage = "The user " + user.getName() + " has been enrolled in the course " + course.getName();
+        String professorMessage = "The student " + user.getName() + " has been enrolled in your course " + course.getName();
+
+        notifyObservers("USER_ENROLLED", userMessage, user.getEmail());
+        notifyObservers("PROFESSOR_NOTIFICATION", professorMessage, course.getTeacher().getEmail());
+
+        notificationService.sendNotificationToUser(user, userMessage);
+        notificationService.sendNotificationToUser(course.getTeacher(), professorMessage);
+
+        logger.info("Notifying user {} and professor about enrollment in course {}", user.getId(), course.getId());
+
+        return CompletableFuture.completedFuture(null);
     }
 }
