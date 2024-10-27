@@ -45,7 +45,8 @@ public class Assignment {
     @Enumerated(EnumType.STRING)
     @Column(name = "state", nullable = false)
     @ColumnDefault("'PENDING'")
-    private AssignmentState state;
+    @Builder.Default
+    private AssignmentState state = AssignmentState.PENDING;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
