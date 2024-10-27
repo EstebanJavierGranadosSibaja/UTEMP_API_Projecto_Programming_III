@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.una.programmingIII.UTEMP_Project.dtos.AssignmentDTO;
@@ -18,6 +19,7 @@ import org.una.programmingIII.UTEMP_Project.observers.Subject;
 import org.una.programmingIII.UTEMP_Project.repositories.AssignmentRepository;
 import org.una.programmingIII.UTEMP_Project.repositories.CourseRepository;
 import org.una.programmingIII.UTEMP_Project.repositories.SubmissionRepository;
+import org.una.programmingIII.UTEMP_Project.services.EmailNotificationObserver;
 import org.una.programmingIII.UTEMP_Project.services.NotificationServices.NotificationService;
 import org.una.programmingIII.UTEMP_Project.transformers.mappers.GenericMapper;
 import org.una.programmingIII.UTEMP_Project.transformers.mappers.GenericMapperFactory;
@@ -29,7 +31,7 @@ import java.util.function.Supplier;
 
 @Service
 @Transactional
-public class AssignmentServiceImplementation extends Subject implements AssignmentService {
+public class AssignmentServiceImplementation extends Subject<EmailNotificationObserver> implements AssignmentService {
 
     private static final Logger logger = LoggerFactory.getLogger(AssignmentServiceImplementation.class);
 
@@ -123,13 +125,7 @@ public class AssignmentServiceImplementation extends Subject implements Assignme
         return executeWithLogging(() -> {
             Submission savedSubmission = submissionRepository.save(submission);
             assignment.getSubmissions().add(savedSubmission);
-
-            notifyObservers("USER_SUBMISSION", "The student " + submission.getStudent().getName() +
-                    " added a new submission in the assignment " + assignment.getTitle(), assignment.getCourse().getTeacher().getEmail());
-
-            notificationService.sendNotificationToUser(assignment.getCourse().getTeacher(), "The student " + submission.getStudent().getName() +
-                    " added a new submission in the assignment " + assignment.getTitle());
-
+            sendNotificationForSubmission(assignment, submission);
             return submissionMapper.convertToDTO(savedSubmission);
         }, "Error adding submission to assignment ID: " + assignmentId);
     }
@@ -154,8 +150,12 @@ public class AssignmentServiceImplementation extends Subject implements Assignme
     // --------------- MÉTODOS AUXILIARES -----------------
 
     private <T> T getEntityById(Long id, JpaRepository<T, Long> repository, String entityName) {
-        return repository.findById(id)
+        return findEntityById(id, repository)
                 .orElseThrow(() -> new ResourceNotFoundException(entityName, id));
+    }
+
+    private <T> Optional<T> findEntityById(Long id, JpaRepository<T, Long> repository) {
+        return repository.findById(id);
     }
 
     private void updateAssignmentFields(Assignment existingAssignment, AssignmentDTO assignmentDTO) {
@@ -169,9 +169,24 @@ public class AssignmentServiceImplementation extends Subject implements Assignme
     private <T> T executeWithLogging(Supplier<T> action, String errorMessage) {
         try {
             return action.get();
+        } catch (ResourceNotFoundException e) {
+            logger.warn("{}: {}", errorMessage, e.getMessage());
+            throw e;
         } catch (Exception e) {
             logger.error("{}: {}", errorMessage, e.getMessage());
             throw new ServiceException(errorMessage, e);
+        }
+    }
+
+    @Async("taskExecutor")
+    protected void sendNotificationForSubmission(Assignment assignment, Submission submission) {
+        String message = "The student " + submission.getStudent().getName() +
+                " added a new submission in the assignment " + assignment.getTitle();
+        try {
+            notifyObservers("USER_SUBMISSION", message, assignment.getCourse().getTeacher().getEmail());
+            notificationService.sendNotificationToUser(assignment.getCourse().getTeacher(), message);
+        } catch (Exception e) {
+            logger.error("Error notifying teacher {}: {}", assignment.getCourse().getTeacher().getEmail(), e.getMessage());
         }
     }
 }
