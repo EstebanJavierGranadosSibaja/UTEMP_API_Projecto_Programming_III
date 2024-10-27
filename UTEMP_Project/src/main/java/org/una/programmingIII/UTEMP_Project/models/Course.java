@@ -49,6 +49,7 @@ public class Course implements Identifiable{
     @Builder.Default
     private List<Enrollment> enrollments = new ArrayList<>();
 
+    @NotNull(message = "State must not be null")
     @Enumerated(EnumType.STRING)
     @Column(name = "state", nullable = false)
     @ColumnDefault("'ACTIVE'")
