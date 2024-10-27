@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.una.programmingIII.UTEMP_Project.dtos.SubmissionDTO;
@@ -16,10 +17,12 @@ import org.una.programmingIII.UTEMP_Project.models.Assignment;
 import org.una.programmingIII.UTEMP_Project.models.FileMetadatum;
 import org.una.programmingIII.UTEMP_Project.models.Grade;
 import org.una.programmingIII.UTEMP_Project.models.Submission;
+import org.una.programmingIII.UTEMP_Project.observers.Subject;
 import org.una.programmingIII.UTEMP_Project.repositories.AssignmentRepository;
 import org.una.programmingIII.UTEMP_Project.repositories.FileMetadatumRepository;
 import org.una.programmingIII.UTEMP_Project.repositories.GradeRepository;
 import org.una.programmingIII.UTEMP_Project.repositories.SubmissionRepository;
+import org.una.programmingIII.UTEMP_Project.services.NotificationServices.NotificationService;
 import org.una.programmingIII.UTEMP_Project.transformers.mappers.GenericMapper;
 import org.una.programmingIII.UTEMP_Project.transformers.mappers.GenericMapperFactory;
 
@@ -30,21 +33,20 @@ import java.util.function.Supplier;
 
 @Service
 @Transactional
-public class SubmissionServiceImplementation implements SubmissionService {
+public class SubmissionServiceImplementation extends Subject implements SubmissionService {
 
     private static final Logger logger = LoggerFactory.getLogger(SubmissionServiceImplementation.class);
 
     @Autowired
     private SubmissionRepository submissionRepository;
-
     @Autowired
     private AssignmentRepository assignmentRepository;
-
     @Autowired
     private FileMetadatumRepository fileMetadatumRepository;
-
     @Autowired
     private GradeRepository gradeRepository;
+    @Autowired
+    private NotificationService notificationService;
 
     private final GenericMapper<Submission, SubmissionDTO> submissionMapper;
     private final GenericMapper<FileMetadatum, FileMetadatumDTO> fileMetadatumMapper;
@@ -137,6 +139,7 @@ public class SubmissionServiceImplementation implements SubmissionService {
         return executeWithLogging(() -> {
             Grade savedGrade = gradeRepository.save(grade);
             submission.getGrades().add(savedGrade);
+            sendNotificationForGrade(grade, submission);
             return gradeMapper.convertToDTO(savedGrade);
         }, "Error adding grade to submission ID: " + submissionId);
     }
@@ -178,8 +181,12 @@ public class SubmissionServiceImplementation implements SubmissionService {
     // --------------- MÉTODOS AUXILIARES -----------------
 
     private <T> T getEntityById(Long id, JpaRepository<T, Long> repository, String entityName) {
-        return repository.findById(id)
+        return findEntityById(id, repository)
                 .orElseThrow(() -> new ResourceNotFoundException(entityName, id));
+    }
+
+    private <T> Optional<T> findEntityById(Long id, JpaRepository<T, Long> repository) {
+        return repository.findById(id);
     }
 
     private void updateSubmissionFields(Submission existingSubmission, SubmissionDTO submissionDTO) {
@@ -196,6 +203,19 @@ public class SubmissionServiceImplementation implements SubmissionService {
         } catch (Exception e) {
             logger.error("{}: {}", errorMessage, e.getMessage());
             throw new ServiceException(errorMessage, e);
+        }
+    }
+
+    @Async("taskExecutor")
+    protected void sendNotificationForGrade(Grade grade, Submission submission) {
+        String message = "The grade of the assigment '" +
+                submission.getAssignment().getTitle() + "' was " + grade.getGrade();
+        try {
+            notifyObservers("SUBMISSION_GRADED", message, submission.getStudent().getEmail());
+            notificationService.sendNotificationToUser(submission.getStudent(), message);
+
+        } catch (Exception e) {
+            logger.error("Error notifying student {}: {}", submission.getStudent().getEmail(), e.getMessage());
         }
     }
 }

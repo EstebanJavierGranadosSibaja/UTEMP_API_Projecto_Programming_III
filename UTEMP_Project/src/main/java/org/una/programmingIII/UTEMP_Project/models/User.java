@@ -77,6 +77,7 @@ public class User implements Identifiable  {
     @Column(name = "permissions", nullable = false)
     @Builder.Default
     private List<UserPermission> permissions = new ArrayList<>();
+
     @Transient
     public Collection<? extends GrantedAuthority> getAuthorities() {
         List<GrantedAuthority> authorities = new ArrayList<>();

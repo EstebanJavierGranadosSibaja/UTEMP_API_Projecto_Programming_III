@@ -1,6 +1,7 @@
 package org.una.programmingIII.UTEMP_Project.services.course;
 
 import jakarta.validation.Valid;
+import org.una.programmingIII.UTEMP_Project.dtos.AssignmentDTO;
 import org.una.programmingIII.UTEMP_Project.dtos.CourseDTO;
 
 import java.util.List;
@@ -14,4 +15,6 @@ public interface CourseService {
     void deleteCourse(Long id);
     List<CourseDTO> getCoursesByTeacherId(Long teacherId);
     List<CourseDTO> getCoursesByDepartmentId(Long departmentId);
+    void addAssignmentToCourse(Long courseId, AssignmentDTO assignmentDTO);
+    void removeAssignmentFromCourse(Long courseId, Long assignmentId);
     }

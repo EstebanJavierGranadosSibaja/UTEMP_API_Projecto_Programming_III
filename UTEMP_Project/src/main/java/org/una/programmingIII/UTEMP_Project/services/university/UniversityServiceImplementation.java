@@ -125,14 +125,20 @@ public class UniversityServiceImplementation implements UniversityService {
                 facultyRepository.delete(faculty);
                 return null;
             }, "Error removing faculty from university");
+        } else {
+            throw new ResourceNotFoundException("Faculty not found in this university", universityId);
         }
     }
 
     // --------------- MÉTODOS AUXILIARES -----------------
 
     private <T> T getEntityById(Long id, JpaRepository<T, Long> repository, String entityName) {
-        return repository.findById(id)
+        return findEntityById(id, repository)
                 .orElseThrow(() -> new ResourceNotFoundException(entityName, id));
+    }
+
+    private <T> Optional<T> findEntityById(Long id, JpaRepository<T, Long> repository) {
+        return repository.findById(id);
     }
 
     private void updateUniversityFields(University existingUniversity, UniversityDTO universityDTO) {

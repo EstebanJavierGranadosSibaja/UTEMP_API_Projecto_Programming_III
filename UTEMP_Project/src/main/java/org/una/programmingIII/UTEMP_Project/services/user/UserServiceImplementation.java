@@ -1,4 +1,4 @@
-package org.una.programmingIII.UTEMP_Project.services.user;
+package org.una.programmingIII.UTEMP_Project.services.UserServices;
 
 import jakarta.validation.Valid;
 import org.hibernate.service.spi.ServiceException;
@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.una.programmingIII.UTEMP_Project.dtos.*;
@@ -15,11 +16,13 @@ import org.una.programmingIII.UTEMP_Project.exceptions.InvalidDataException;
 import org.una.programmingIII.UTEMP_Project.exceptions.ResourceAlreadyExistsException;
 import org.una.programmingIII.UTEMP_Project.exceptions.ResourceNotFoundException;
 import org.una.programmingIII.UTEMP_Project.models.*;
+import org.una.programmingIII.UTEMP_Project.observers.Subject;
 import org.una.programmingIII.UTEMP_Project.repositories.CourseRepository;
 import org.una.programmingIII.UTEMP_Project.repositories.EnrollmentRepository;
-import org.una.programmingIII.UTEMP_Project.repositories.NotificationRepository;
 import org.una.programmingIII.UTEMP_Project.repositories.UserRepository;
-import org.una.programmingIII.UTEMP_Project.services.passwordEncryption.PasswordEncryptionService;
+import org.una.programmingIII.UTEMP_Project.services.EmailNotificationObserver;
+import org.una.programmingIII.UTEMP_Project.services.NotificationServices.NotificationService;
+import org.una.programmingIII.UTEMP_Project.services.PasswordEncryptionServices.PasswordEncryptionService;
 import org.una.programmingIII.UTEMP_Project.transformers.mappers.GenericMapper;
 import org.una.programmingIII.UTEMP_Project.transformers.mappers.GenericMapperFactory;
 import org.una.programmingIII.UTEMP_Project.validators.UserValidator;
@@ -27,18 +30,19 @@ import org.una.programmingIII.UTEMP_Project.validators.UserValidator;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
 @Service
 @Transactional
-public class UserServiceImplementation implements UserService {
+public class UserServiceImplementation extends Subject<EmailNotificationObserver> implements UserService {
 
     private static final Logger logger = LoggerFactory.getLogger(UserServiceImplementation.class);
 
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
     private final CourseRepository courseRepository;
-    private final NotificationRepository notificationRepository;
     private final EnrollmentRepository enrollmentRepository;
     private final PasswordEncryptionService passwordEncryptionService;
     private final UserValidator userValidator;
@@ -50,7 +54,9 @@ public class UserServiceImplementation implements UserService {
     private final GenericMapper<Submission, SubmissionDTO> submissionMapper;
 
     @Autowired
-    public UserServiceImplementation(GenericMapperFactory mapperFactory, UserRepository userRepository, CourseRepository courseRepository, NotificationRepository notificationRepository, EnrollmentRepository enrollmentRepository, PasswordEncryptionService passwordEncryptionService, UserValidator userValidator) {
+    public UserServiceImplementation(GenericMapperFactory mapperFactory, UserRepository userRepository, CourseRepository courseRepository,
+                                     EnrollmentRepository enrollmentRepository, PasswordEncryptionService passwordEncryptionService,
+                                     UserValidator userValidator, NotificationService notificationService) {
         this.userMapper = mapperFactory.createMapper(User.class, UserDTO.class);
         this.notificationMapper = mapperFactory.createMapper(Notification.class, NotificationDTO.class);
         this.enrollmentMapper = mapperFactory.createMapper(Enrollment.class, EnrollmentDTO.class);
@@ -58,9 +64,9 @@ public class UserServiceImplementation implements UserService {
         this.submissionMapper = mapperFactory.createMapper(Submission.class, SubmissionDTO.class);
         this.userRepository = userRepository;
         this.courseRepository = courseRepository;
-        this.notificationRepository = notificationRepository;
         this.enrollmentRepository = enrollmentRepository;
         this.passwordEncryptionService = passwordEncryptionService;
+        this.notificationService = notificationService;
         this.userValidator = userValidator;
     }
 
@@ -210,6 +216,7 @@ public class UserServiceImplementation implements UserService {
 
         executeWithLogging(() -> {
             enrollmentRepository.save(enrollment);
+            notifyUserAndProfessor(user, course);
             return null;
         }, "Error enrolling user to course");
     }
@@ -229,45 +236,6 @@ public class UserServiceImplementation implements UserService {
         }, "Error unrolling user from course");
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<NotificationDTO> getUserNotifications(Long userId) {
-        return executeWithLogging(() -> notificationMapper.convertToDTOList(notificationRepository.findByUserId(userId)),
-                "Error fetching user notifications");
-    }
-
-    @Override
-    @Transactional
-    public void addNotificationToUser(Long userId, NotificationDTO notificationDTO) {
-        User user = getEntityById(userId, userRepository, "User");
-
-        Notification notification = notificationMapper.convertToEntity(notificationDTO);
-
-        notification.setUser(user);
-        user.getNotifications().add(notification);
-
-        executeWithLogging(() -> {
-            notificationRepository.save(notification);
-            return null;
-        }, "Error adding notification to user");
-    }
-
-    @Override
-    @Transactional
-    public void removeNotificationFromUser(Long userId, Long notificationId) {
-        User user = getEntityById(userId, userRepository, "User");
-        Notification notification = getEntityById(notificationId, notificationRepository, "Notification");
-
-        if (user.getNotifications().contains(notification)) {
-            user.getNotifications().remove(notification);
-
-            executeWithLogging(() -> {
-                notificationRepository.delete(notification);
-                return null;
-            }, "Error removing notification from user");
-        }
-    }
-
     // --------------- MÉTODOS AUXILIARES -----------------
 
     private void validateUser(UserDTO userDTO) {
@@ -284,8 +252,12 @@ public class UserServiceImplementation implements UserService {
 
     //TODO que es ?
     private <T> T getEntityById(Long id, JpaRepository<T, Long> repository, String entityName) {
-        return repository.findById(id)
+        return findEntityById(id, repository)
                 .orElseThrow(() -> new ResourceNotFoundException(entityName, id));
+    }
+
+    private <T> Optional<T> findEntityById(Long id, JpaRepository<T, Long> repository) {
+        return repository.findById(id);
     }
 
     private <T> void updateFieldIfChanged(BiConsumer<User, T> setter, Optional<T> newValueOpt, T existingValue, User user) {
@@ -345,12 +317,30 @@ public class UserServiceImplementation implements UserService {
     private void suspendUser(User user) {
         user.setState(UserState.SUSPENDED);
         executeWithLogging(() -> userRepository.save(user), "Error suspending user");
+        logger.info("User suspended: {}", user.getId());
     }
 
     private void permanentDeleteUser(User user) {
         executeWithLogging(() -> {
             userRepository.delete(user);
+            logger.info("User permanently deleted: {}", user.getId());
             return null;
         }, "Error permanently deleting user");
+    }
+
+    @Async
+    public CompletableFuture<Void> notifyUserAndProfessor(User user, Course course) {
+        String userMessage = "The user " + user.getName() + " has been enrolled in the course " + course.getName();
+        String professorMessage = "The student " + user.getName() + " has been enrolled in your course " + course.getName();
+
+        notifyObservers("USER_ENROLLED", userMessage, user.getEmail());
+        notifyObservers("PROFESSOR_NOTIFICATION", professorMessage, course.getTeacher().getEmail());
+
+        notificationService.sendNotificationToUser(user, userMessage);
+        notificationService.sendNotificationToUser(course.getTeacher(), professorMessage);
+
+        logger.info("Notifying user {} and professor about enrollment in course {}", user.getId(), course.getId());
+
+        return CompletableFuture.completedFuture(null);
     }
 }

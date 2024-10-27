@@ -28,15 +28,15 @@ services:
     ports:
       - "8070:80"
     volumes:
-      - pgadmin_data:/var/lib/pgadmin  # Añadir el volumen aquí
+      - pgadmin_data:/var/lib/pgadmin
     networks:
       - backend
 
 volumes:
   postgres_data: # Volumen para almacenar datos de PostgreSQL
-    name: postgres
+    name: postgres_utemp
   pgadmin_data: # Volumen para almacenar datos de pgAdmin
-    name: pgadmin
+    name: pgadmin_utemp
 
 networks:
-  backend: # Definición de la red backend
+  backend:

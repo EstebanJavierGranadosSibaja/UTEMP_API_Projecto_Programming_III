@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.una.programmingIII.UTEMP_Project.dtos.NotificationDTO;
+import org.una.programmingIII.UTEMP_Project.dtos.UserDTO;
 import org.una.programmingIII.UTEMP_Project.exceptions.ResourceNotFoundException;
 import org.una.programmingIII.UTEMP_Project.models.Notification;
 import org.una.programmingIII.UTEMP_Project.models.User;
@@ -36,10 +37,12 @@ public class NotificationServiceImplementation implements NotificationService {
     private UserRepository userRepository;
 
     private final GenericMapper<Notification, NotificationDTO> notificationMapper;
+    private final GenericMapper<User, UserDTO> userMapper;
 
     @Autowired
     public NotificationServiceImplementation(GenericMapperFactory mapperFactory) {
         this.notificationMapper = mapperFactory.createMapper(Notification.class, NotificationDTO.class);
+        this.userMapper = mapperFactory.createMapper(User.class, UserDTO.class);
     }
 
     @Override
@@ -99,6 +102,38 @@ public class NotificationServiceImplementation implements NotificationService {
 
     @Override
     @Transactional
+    public void addNotificationToUser(Long userId, NotificationDTO notificationDTO) {
+        User user = getEntityById(userId, userRepository, "User");
+
+        Notification notification = notificationMapper.convertToEntity(notificationDTO);
+
+        notification.setUser(user);
+        user.getNotifications().add(notification);
+
+        executeWithLogging(() -> {
+            notificationRepository.save(notification);
+            return null;
+        }, "Error adding notification to user");
+    }
+
+    @Override
+    @Transactional
+    public void removeNotificationFromUser(Long userId, Long notificationId) {
+        User user = getEntityById(userId, userRepository, "User");
+        Notification notification = getEntityById(notificationId, notificationRepository, "Notification");
+
+        if (user.getNotifications().contains(notification)) {
+            user.getNotifications().remove(notification);
+
+            executeWithLogging(() -> {
+                notificationRepository.delete(notification);
+                return null;
+            }, "Error removing notification from user");
+        }
+    }
+
+    @Override
+    @Transactional
     public void markAsRead(Long notificationId) {
         Notification notification = getEntityById(notificationId, notificationRepository, "Notification");
         notification.setStatus(NotificationStatus.READ);
@@ -106,11 +141,25 @@ public class NotificationServiceImplementation implements NotificationService {
         executeWithLogging(() -> notificationRepository.save(notification), "Error marking notification as read");
     }
 
+    @Transactional
+    @Override
+    public void sendNotificationToUser(User user, String message) {
+        NotificationDTO notification = new NotificationDTO();
+        notification.setUser(userMapper.convertToDTO(user));
+        notification.setMessage(message);
+        notification.setStatus(NotificationStatus.UNREAD);
+        addNotificationToUser(user.getId(), notification);
+    }
+
     // --------------- MÉTODOS AUXILIARES -----------------
 
     private <T> T getEntityById(Long id, JpaRepository<T, Long> repository, String entityName) {
-        return repository.findById(id)
+        return findEntityById(id, repository)
                 .orElseThrow(() -> new ResourceNotFoundException(entityName, id));
+    }
+
+    private <T> Optional<T> findEntityById(Long id, JpaRepository<T, Long> repository) {
+        return repository.findById(id);
     }
 
     private void updateNotificationFields(Notification existingNotification, NotificationDTO notificationDTO) {

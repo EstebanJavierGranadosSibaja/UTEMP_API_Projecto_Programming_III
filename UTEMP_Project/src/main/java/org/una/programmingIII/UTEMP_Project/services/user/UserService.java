@@ -5,14 +5,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.una.programmingIII.UTEMP_Project.dtos.CourseDTO;
 import org.una.programmingIII.UTEMP_Project.dtos.EnrollmentDTO;
-import org.una.programmingIII.UTEMP_Project.dtos.NotificationDTO;
 import org.una.programmingIII.UTEMP_Project.dtos.UserDTO;
 
 import java.util.List;
 import java.util.Optional;
 
 public interface UserService {
-
 
     //CRUD
     UserDTO createUser(@Valid UserDTO userDTO);
@@ -41,14 +39,5 @@ public interface UserService {
     void enrollUserToCourse(Long userId, Long courseId);
 
     void unrollUserFromCourse(Long userId, Long courseId);
-
-    //notificacioens ?
-    List<NotificationDTO> getUserNotifications(Long userId);
-
-    //que caso?
-    void addNotificationToUser(Long userId, NotificationDTO notificationDTO);
-
-    // no se usa
-    void removeNotificationFromUser(Long userId, Long notificationId);
 
 }
