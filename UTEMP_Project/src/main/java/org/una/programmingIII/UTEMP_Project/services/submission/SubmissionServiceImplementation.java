@@ -5,6 +5,8 @@ import org.hibernate.service.spi.ServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -59,11 +61,14 @@ public class SubmissionServiceImplementation extends Subject implements Submissi
         this.gradeMapper = mapperFactory.createMapper(Grade.class, GradeDTO.class);
     }
 
+
     @Override
     @Transactional(readOnly = true)
-    public List<SubmissionDTO> getAllSubmissions() {
-        return executeWithLogging(() -> submissionMapper.convertToDTOList(submissionRepository.findAll()),
-                "Error fetching all submissions");
+    public Page<SubmissionDTO> getAllSubmissions(Pageable pageable) {
+        return executeWithLogging(() -> {
+            Page<Submission> submissionPage = submissionRepository.findAll(pageable);
+            return submissionPage.map(submissionMapper::convertToDTO);
+        }, "Error fetching all submissions");
     }
 
     @Override
@@ -104,16 +109,6 @@ public class SubmissionServiceImplementation extends Subject implements Submissi
             return null;
         }, "Error deleting submission");
     }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<SubmissionDTO> getSubmissionsByAssignmentId(Long assignmentId) {
-        Assignment assignment = getEntityById(assignmentId, assignmentRepository, "Assignment");
-        return executeWithLogging(() -> submissionMapper.convertToDTOList(submissionRepository.findByAssignment(assignment)),
-                "Error fetching submissions by assignment ID");
-    }
-
-    // Métodos adicionales para manejar las listas de FileMetadatum y Grade
 
     @Override
     @Transactional
