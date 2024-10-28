@@ -2,13 +2,14 @@ package org.una.programmingIII.UTEMP_Project.services.file;
 
 import jakarta.validation.Valid;
 import org.apache.tomcat.util.http.fileupload.FileUploadException;
+import org.springframework.data.domain.Page;
 import org.una.programmingIII.UTEMP_Project.dtos.FileMetadatumDTO;
 
 import java.util.List;
 import java.util.Optional;
 
 public interface FileService {
-    List<FileMetadatumDTO> getAllFileMetadata();
+    Page<FileMetadatumDTO> getAllFileMetadata(int page, int size);
 
     Optional<FileMetadatumDTO> getFileMetadatumById(Long id);
 

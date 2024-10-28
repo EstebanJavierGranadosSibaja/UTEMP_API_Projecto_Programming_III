@@ -6,6 +6,9 @@ import org.hibernate.service.spi.ServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -119,9 +122,12 @@ public class FileServiceImplementation implements FileService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<FileMetadatumDTO> getAllFileMetadata() {
-        return executeWithLogging(() -> fileMetadatumMapper.convertToDTOList(fileMetadatumRepository.findAll()),
-                "Error fetching all file metadata");
+    public Page<FileMetadatumDTO> getAllFileMetadata(int page, int size) {
+        return executeWithLogging(() -> {
+            Pageable pageable = PageRequest.of(page, size);
+            Page<FileMetadatum> fileMetadataPage = fileMetadatumRepository.findAll(pageable);
+            return fileMetadataPage.map(fileMetadatumMapper::convertToDTO);
+        }, "Error fetching paginated file metadata");
     }
 
     @Override
