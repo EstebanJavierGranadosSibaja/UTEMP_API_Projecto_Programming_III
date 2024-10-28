@@ -5,7 +5,10 @@ import org.hibernate.service.spi.ServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.una.programmingIII.UTEMP_Project.dtos.UniversityDTO;
@@ -46,8 +49,9 @@ public class UniversityServiceImplementation implements UniversityService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<UniversityDTO> getAllUniversities() {
-        return executeWithLogging(() -> universityMapper.convertToDTOList(universityRepository.findAll()),
+    public Page<UniversityDTO> getAllUniversities(@PageableDefault(size = 10, page = 0) Pageable pageable) {
+        return executeWithLogging(() -> universityRepository.findAll(pageable)
+                        .map(universityMapper::convertToDTO),
                 "Error fetching all universities");
     }
 
@@ -91,9 +95,10 @@ public class UniversityServiceImplementation implements UniversityService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<FacultyDTO> getFacultiesByUniversityId(Long universityId) {
+    public Page<FacultyDTO> getFacultiesByUniversityId(Long universityId, @PageableDefault(size = 10, page = 0) Pageable pageable) {
         University university = getEntityById(universityId, universityRepository, "University");
-        return executeWithLogging(() -> facultyMapper.convertToDTOList(university.getFaculties()),
+        return executeWithLogging(() ->
+                        facultyRepository.findByUniversityId(universityId, pageable).map(facultyMapper::convertToDTO),
                 "Error fetching faculties by university ID");
     }
 
