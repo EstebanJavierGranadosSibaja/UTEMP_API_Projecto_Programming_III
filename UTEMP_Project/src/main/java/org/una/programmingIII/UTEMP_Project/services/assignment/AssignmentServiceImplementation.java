@@ -5,6 +5,8 @@ import org.hibernate.service.spi.ServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,7 @@ import org.una.programmingIII.UTEMP_Project.repositories.AssignmentRepository;
 import org.una.programmingIII.UTEMP_Project.repositories.CourseRepository;
 import org.una.programmingIII.UTEMP_Project.repositories.SubmissionRepository;
 import org.una.programmingIII.UTEMP_Project.services.EmailNotificationObserver;
+import org.una.programmingIII.UTEMP_Project.services.autoReview.AutoReviewService;
 import org.una.programmingIII.UTEMP_Project.services.notification.NotificationService;
 import org.una.programmingIII.UTEMP_Project.transformers.mappers.GenericMapper;
 import org.una.programmingIII.UTEMP_Project.transformers.mappers.GenericMapperFactory;
@@ -43,6 +46,8 @@ public class AssignmentServiceImplementation extends Subject<EmailNotificationOb
     private SubmissionRepository submissionRepository;
     @Autowired
     private NotificationService notificationService;
+    @Autowired
+    private AutoReviewService autoReviewService;
 
     private final GenericMapper<Assignment, AssignmentDTO> assignmentMapper;
     private final GenericMapper<Submission, SubmissionDTO> submissionMapper;
@@ -55,8 +60,11 @@ public class AssignmentServiceImplementation extends Subject<EmailNotificationOb
 
     @Override
     @Transactional(readOnly = true)
-    public List<AssignmentDTO> getAllAssignments() {
-        return executeWithLogging(() -> assignmentMapper.convertToDTOList(assignmentRepository.findAll()),
+    public Page<AssignmentDTO> getAllAssignments(Pageable pageable) {
+        return executeWithLogging(() -> {
+                    Page<Assignment> assignments = assignmentRepository.findAll(pageable);
+                    return assignments.map(assignmentMapper::convertToDTO);
+                },
                 "Error fetching all assignments");
     }
 
@@ -101,17 +109,23 @@ public class AssignmentServiceImplementation extends Subject<EmailNotificationOb
 
     @Override
     @Transactional(readOnly = true)
-    public List<AssignmentDTO> getAssignmentsByCourseId(Long courseId) {
+    public Page<AssignmentDTO> getAssignmentsByCourseId(Long courseId, Pageable pageable) {
         Course course = getEntityById(courseId, courseRepository, "Course");
-        return executeWithLogging(() -> assignmentMapper.convertToDTOList(assignmentRepository.findByCourse(course)),
+        return executeWithLogging(() -> {
+                    Page<Assignment> assignments = assignmentRepository.findByCourse(course, pageable);
+                    return assignments.map(assignmentMapper::convertToDTO);
+                },
                 "Error fetching assignments by course ID");
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<SubmissionDTO> getSubmissionsByAssignmentId(Long assignmentId) {
+    public Page<SubmissionDTO> getSubmissionsByAssignmentId(Long assignmentId, Pageable pageable) {
         Assignment assignment = getEntityById(assignmentId, assignmentRepository, "Assignment");
-        return executeWithLogging(() -> submissionMapper.convertToDTOList(assignment.getSubmissions()),
+        return executeWithLogging(() -> {
+                    Page<Submission> submissions = submissionRepository.findByAssignment(assignment, pageable);
+                    return submissions.map(submissionMapper::convertToDTO);
+                },
                 "Error fetching submissions for assignment ID: " + assignmentId);
     }
 
@@ -125,6 +139,7 @@ public class AssignmentServiceImplementation extends Subject<EmailNotificationOb
         return executeWithLogging(() -> {
             Submission savedSubmission = submissionRepository.save(submission);
             assignment.getSubmissions().add(savedSubmission);
+            autoReviewService.autoReviewSubmission(savedSubmission.getId());
             sendNotificationForSubmission(assignment, submission);
             return submissionMapper.convertToDTO(savedSubmission);
         }, "Error adding submission to assignment ID: " + assignmentId);
