@@ -5,6 +5,8 @@ import org.hibernate.service.spi.ServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,7 +20,6 @@ import org.una.programmingIII.UTEMP_Project.transformers.mappers.GenericMapper;
 import org.una.programmingIII.UTEMP_Project.transformers.mappers.GenericMapperFactory;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -43,8 +44,9 @@ public class GradeServiceImplementation implements GradeService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<GradeDTO> getAllGrades() {
-        return executeWithLogging(() -> gradeMapper.convertToDTOList(gradeRepository.findAll()),
+    public Page<GradeDTO> getAllGrades(Pageable pageable) {
+        return executeWithLogging(() -> gradeRepository.findAll(pageable)
+                        .map(gradeMapper::convertToDTO),
                 "Error fetching all grades");
     }
 
@@ -89,9 +91,10 @@ public class GradeServiceImplementation implements GradeService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<GradeDTO> getGradesBySubmissionId(Long submissionId) {
+    public Page<GradeDTO> getGradesBySubmissionId(Long submissionId, Pageable pageable) {
         Submission submission = getEntityById(submissionId, submissionRepository, "Submission");
-        return executeWithLogging(() -> gradeMapper.convertToDTOList(gradeRepository.findBySubmission(submission)),
+        return executeWithLogging(() -> gradeRepository.findBySubmission(submission, pageable)
+                        .map(gradeMapper::convertToDTO),
                 "Error fetching grades by submission ID");
     }
 
