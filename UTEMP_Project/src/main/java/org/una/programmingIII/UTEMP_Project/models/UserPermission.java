@@ -28,7 +28,6 @@ public enum UserPermission {
     MANAGE_USERS,
 
     //TODO?
-    VIEW_REPORTS
-    //for all
-
+    VIEW_REPORTS,
+    VIEW_COURSES
 }
