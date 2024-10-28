@@ -5,6 +5,8 @@ import org.hibernate.service.spi.ServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,7 +22,6 @@ import org.una.programmingIII.UTEMP_Project.transformers.mappers.GenericMapper;
 import org.una.programmingIII.UTEMP_Project.transformers.mappers.GenericMapperFactory;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -50,8 +51,9 @@ public class DepartmentServiceImplementation implements DepartmentService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<DepartmentDTO> getAllDepartments() {
-        return executeWithLogging(() -> departmentMapper.convertToDTOList(departmentRepository.findAll()),
+    public Page<DepartmentDTO> getAllDepartments(Pageable pageable) {
+        return executeWithLogging(() -> departmentRepository.findAll(pageable)
+                        .map(departmentMapper::convertToDTO),
                 "Error fetching all departments");
     }
 
@@ -96,9 +98,10 @@ public class DepartmentServiceImplementation implements DepartmentService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<CourseDTO> getCoursesByDepartmentId(Long departmentId) {
+    public Page<CourseDTO> getCoursesByDepartmentId(Long departmentId, Pageable pageable) {
         Department department = getEntityById(departmentId, departmentRepository, "Department");
-        return executeWithLogging(() -> courseMapper.convertToDTOList(department.getCourses()),
+        return executeWithLogging(() ->
+                        courseRepository.findByDepartmentId(departmentId, pageable).map(courseMapper::convertToDTO),
                 "Error fetching courses by department ID");
     }
 
