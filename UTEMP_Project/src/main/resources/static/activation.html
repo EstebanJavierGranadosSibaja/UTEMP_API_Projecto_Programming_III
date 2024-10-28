@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Activación de Cuenta</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #f2f2f2;
+    }
+    .container {
+      max-width: 400px;
+      padding: 20px;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+    h2 {
+      color: #333;
+    }
+    p {
+      font-size: 16px;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+<div class="container" id="message">
+  <h2>Activando cuenta...</h2>
+  <p>Por favor, espera unos momentos.</p>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const urlParams = new URLSearchParams(window.location.search);
+    const userId = urlParams.get("id");
+    if (!userId) {
+      document.getElementById("message").innerHTML = "<h2>Error</h2><p>No se encontró el ID del usuario.</p>";
+      return;
+    }
+
+    fetch(`http://localhost:8080/api/usuarios/activar/${userId}`, {
+      method: "PUT"
+    })
+            .then(response => {
+              if (response.ok) {
+                document.getElementById("message").innerHTML = "<h2>Cuenta Activada</h2><p>Tu cuenta ha sido activada correctamente. Ya puedes iniciar sesión.</p>";
+              } else {
+                document.getElementById("message").innerHTML = "<h2>Error</h2><p>Hubo un problema al activar la cuenta. Inténtalo más tarde.</p>";
+              }
+            })
+            .catch(error => {
+              console.error("Error:", error);
+              document.getElementById("message").innerHTML = "<h2>Error</h2><p>Hubo un problema al activar la cuenta. Inténtalo más tarde.</p>";
+            });
+  });
+</script>
+</body>
+</html>
