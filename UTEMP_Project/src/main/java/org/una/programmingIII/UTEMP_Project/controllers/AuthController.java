@@ -12,8 +12,13 @@ import org.springframework.web.bind.annotation.RestController;
 import org.una.programmingIII.UTEMP_Project.configurations.security.utils.JwtTokenProvider;
 import org.una.programmingIII.UTEMP_Project.controllers.request.AuthRequest;
 import org.una.programmingIII.UTEMP_Project.controllers.responses.ApiResponse;
+import org.una.programmingIII.UTEMP_Project.controllers.responses.TokenResponse;
+import org.una.programmingIII.UTEMP_Project.dtos.UserDTO;
 import org.una.programmingIII.UTEMP_Project.services.user.CustomUserDetails;
 import org.una.programmingIII.UTEMP_Project.services.user.CustomUserDetailsService;
+import org.una.programmingIII.UTEMP_Project.services.user.UserService;
+
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/utemp/auth")
@@ -22,15 +27,17 @@ public class AuthController {
     private final JwtTokenProvider jwtTokenProvider;
     private final CustomUserDetailsService userDetailsService;
     private final AuthenticationManager authenticationManager;
+    private final UserService userService;
 
-    public AuthController(AuthenticationManager authenticationManager, JwtTokenProvider jwtTokenProvider, CustomUserDetailsService userDetailsService) {
+    public AuthController(AuthenticationManager authenticationManager, JwtTokenProvider jwtTokenProvider, CustomUserDetailsService userDetailsService, UserService userService) {
         this.authenticationManager = authenticationManager;
         this.jwtTokenProvider = jwtTokenProvider;
         this.userDetailsService = userDetailsService;
+        this.userService = userService;
     }
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<String>> createAuthenticationToken(@Valid @RequestBody AuthRequest authRequest) {
+    public ResponseEntity<ApiResponse<TokenResponse>> createAuthenticationToken(@Valid @RequestBody AuthRequest authRequest) {
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(authRequest.getIdentificationNumber(), authRequest.getPassword())
@@ -44,7 +51,16 @@ public class AuthController {
             }
 
             final String jwt = jwtTokenProvider.generateAccessToken(userDetails.getUser());
-            return ResponseEntity.ok(new ApiResponse<>(jwt));
+            Long id = jwtTokenProvider.getIdFromToken(jwt);
+            Optional<UserDTO> user = userService.getUserById(id);
+            user.orElseThrow(() -> new RuntimeException("User not found"));
+
+            TokenResponse tokenResponse = TokenResponse.builder()
+                    .token(jwt)
+                    .tokenType("Bearer")
+                    .user(user.get())
+                    .build();
+            return ResponseEntity.ok(new ApiResponse<>());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new ApiResponse<>(HttpStatus.UNAUTHORIZED.value(), "Invalid credentials"));
