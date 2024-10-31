@@ -16,7 +16,7 @@ import org.una.programmingIII.UTEMP_Project.services.user.CustomUserDetails;
 import org.una.programmingIII.UTEMP_Project.services.user.CustomUserDetailsService;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/utemp/auth")
 public class AuthController {
 
     private final JwtTokenProvider jwtTokenProvider;

@@ -5,7 +5,10 @@ import org.hibernate.service.spi.ServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.una.programmingIII.UTEMP_Project.dtos.FacultyDTO;
@@ -20,7 +23,6 @@ import org.una.programmingIII.UTEMP_Project.transformers.mappers.GenericMapper;
 import org.una.programmingIII.UTEMP_Project.transformers.mappers.GenericMapperFactory;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -50,8 +52,9 @@ public class FacultyServiceImplementation implements FacultyService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<FacultyDTO> getAllFaculties() {
-        return executeWithLogging(() -> facultyMapper.convertToDTOList(facultyRepository.findAll()),
+    public Page<FacultyDTO> getAllFaculties(@PageableDefault(size = 10, page = 0) Pageable pageable) {
+        return executeWithLogging(() -> facultyRepository.findAll(pageable)
+                        .map(facultyMapper::convertToDTO),
                 "Error fetching all faculties");
     }
 
@@ -96,9 +99,10 @@ public class FacultyServiceImplementation implements FacultyService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<DepartmentDTO> getDepartmentsByFacultyId(Long facultyId) {
+    public Page<DepartmentDTO> getDepartmentsByFacultyId(Long facultyId, @PageableDefault(size = 10, page = 0) Pageable pageable) {
         Faculty faculty = getEntityById(facultyId, facultyRepository, "Faculty");
-        return executeWithLogging(() -> departmentMapper.convertToDTOList(faculty.getDepartments()),
+        return executeWithLogging(() ->
+                        departmentRepository.findByFacultyId(facultyId, pageable).map(departmentMapper::convertToDTO),
                 "Error fetching departments by faculty ID");
     }
 
@@ -144,13 +148,13 @@ public class FacultyServiceImplementation implements FacultyService {
         return repository.findById(id);
     }
 
-    private void updateFacultyFields (Faculty existingFaculty, FacultyDTO facultyDTO){
+    private void updateFacultyFields(Faculty existingFaculty, FacultyDTO facultyDTO) {
         existingFaculty.setName(facultyDTO.getName());
         existingFaculty.setUniversity(getEntityById(facultyDTO.getUniversity().getId(), universityRepository, "University"));
         existingFaculty.setLastUpdate(LocalDateTime.now());
     }
 
-    private <T > T executeWithLogging(Supplier< T > action, String errorMessage) {
+    private <T> T executeWithLogging(Supplier<T> action, String errorMessage) {
         try {
             return action.get();
         } catch (Exception e) {

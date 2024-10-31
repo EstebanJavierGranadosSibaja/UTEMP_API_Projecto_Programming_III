@@ -23,9 +23,8 @@ import org.una.programmingIII.UTEMP_Project.services.user.UserService;
 import java.util.List;
 import java.util.Optional;
 
-//Backend
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/utemp/users")
 public class UserController {
 
     private final UserService userService;

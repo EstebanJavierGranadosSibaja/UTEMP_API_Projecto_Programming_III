@@ -5,6 +5,8 @@ import org.hibernate.service.spi.ServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,9 +49,10 @@ public class NotificationServiceImplementation implements NotificationService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<NotificationDTO> getAllNotifications() {
-        return executeWithLogging(() -> notificationMapper.convertToDTOList(notificationRepository.findAll()),
-                "Error fetching all notifications");
+    public Page<NotificationDTO> getAllNotifications(Pageable pageable) {
+        return executeWithLogging(() -> {
+            return notificationRepository.findAll(pageable).map(notificationMapper::convertToDTO);
+        }, "Error fetching all notifications");
     }
 
     @Override
@@ -94,10 +97,11 @@ public class NotificationServiceImplementation implements NotificationService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<NotificationDTO> getNotificationsByUserId(Long userId) {
+    public Page<NotificationDTO> getNotificationsByUserId(Long userId, Pageable pageable) {
         User user = getEntityById(userId, userRepository, "User");
-        return executeWithLogging(() -> notificationMapper.convertToDTOList(notificationRepository.findByUser(user)),
-                "Error fetching notifications by user ID");
+        return executeWithLogging(() -> {
+            return notificationRepository.findByUser(user, pageable).map(notificationMapper::convertToDTO);
+        }, "Error fetching notifications by user ID");
     }
 
     @Override

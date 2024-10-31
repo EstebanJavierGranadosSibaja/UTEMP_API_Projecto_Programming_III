@@ -328,7 +328,7 @@ public class UserServiceImplementation extends Subject<EmailNotificationObserver
         }, "Error permanently deleting user");
     }
 
-    @Async
+    @Async("taskExecutor")
     public CompletableFuture<Void> notifyUserAndProfessor(User user, Course course) {
         String userMessage = "The user " + user.getName() + " has been enrolled in the course " + course.getName();
         String professorMessage = "The student " + user.getName() + " has been enrolled in your course " + course.getName();

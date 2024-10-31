@@ -1,4 +1,4 @@
-package org.una.programmingIII.UTEMP_Project.services.manualReviewServices;
+package org.una.programmingIII.UTEMP_Project.services.manualReview;
 
 import org.una.programmingIII.UTEMP_Project.models.Grade;
 import java.util.Optional;

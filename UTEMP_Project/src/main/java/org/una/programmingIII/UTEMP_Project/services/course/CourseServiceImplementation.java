@@ -5,6 +5,8 @@ import org.hibernate.service.spi.ServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -57,9 +59,10 @@ public class CourseServiceImplementation extends Subject<EmailNotificationObserv
 
     @Override
     @Transactional(readOnly = true)
-    public List<CourseDTO> getAllCourses() {
-        return executeWithLogging(() -> courseMapper.convertToDTOList(courseRepository.findAll()),
-                "Error fetching all courses");
+    public Page<CourseDTO> getAllCourses(Pageable pageable) {
+        return executeWithLogging(() -> {
+            return courseRepository.findAll(pageable).map(courseMapper::convertToDTO);
+        }, "Error fetching all courses");
     }
 
     @Override
@@ -105,18 +108,21 @@ public class CourseServiceImplementation extends Subject<EmailNotificationObserv
 
     @Override
     @Transactional(readOnly = true)
-    public List<CourseDTO> getCoursesByTeacherId(Long teacherId) {
+    public Page<CourseDTO> getCoursesByTeacherId(Long teacherId, Pageable pageable) {
         User teacher = getEntityById(teacherId, userRepository, "Teacher");
-        return executeWithLogging(() -> courseMapper.convertToDTOList(courseRepository.findByTeacher(teacher)),
-                "Error fetching courses by teacher ID");
+        return executeWithLogging(() -> {
+            return courseRepository.findByTeacher(teacher, pageable).map(courseMapper::convertToDTO);
+        }, "Error fetching courses by teacher ID");
     }
+
 
     @Override
     @Transactional(readOnly = true)
-    public List<CourseDTO> getCoursesByDepartmentId(Long departmentId) {
+    public Page<CourseDTO> getCoursesByDepartmentId(Long departmentId, Pageable pageable) {
         Department department = getEntityById(departmentId, departmentRepository, "Department");
-        return executeWithLogging(() -> courseMapper.convertToDTOList(courseRepository.findByDepartment(department)),
-                "Error fetching courses by department ID");
+        return executeWithLogging(() -> {
+            return courseRepository.findByDepartment(department, pageable).map(courseMapper::convertToDTO);
+        }, "Error fetching courses by department ID");
     }
 
     @Override

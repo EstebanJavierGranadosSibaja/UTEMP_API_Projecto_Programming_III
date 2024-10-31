@@ -67,7 +67,7 @@ public class User implements Identifiable  {
     @Column(name = "state", nullable = false)
     @ColumnDefault("'ACTIVE'")
     @Builder.Default
-    private UserState state = UserState.ACTIVE;
+    private UserState state = UserState.INACTIVE;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false)
