@@ -1,24 +1,29 @@
 package org.una.programmingIII.UTEMP_Project.services.file;
 
-import jakarta.validation.Valid;
-import org.apache.tomcat.util.http.fileupload.FileUploadException;
 import org.una.programmingIII.UTEMP_Project.dtos.FileMetadatumDTO;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
 public interface FileService {
-    List<FileMetadatumDTO> getAllFileMetadata();
 
+    // Métodos de Consulta
     Optional<FileMetadatumDTO> getFileMetadatumById(Long id);
 
-    FileMetadatumDTO createFileMetadatum(@Valid FileMetadatumDTO fileMetadatumDTO);
+    // Métodos de Actualización
+    FileMetadatumDTO updateFileMetadatum(Long id, FileMetadatumDTO fileChunkDTO) throws IOException;
 
-    Optional<FileMetadatumDTO> updateFileMetadatum(Long id, @Valid FileMetadatumDTO fileMetadatumDTO);
+    // Métodos de Recepción y Finalización
+    void receiveFileChunk(FileMetadatumDTO fileChunkDTO) throws IOException;
 
+    // Métodos de Eliminación
     void deleteFileMetadatum(Long id);
 
-    void finalizeFileUpload(Long fileId, FileMetadatumDTO fileDTO) throws FileUploadException;
+    public List<FileMetadatumDTO> downloadFileInChunks(Long fileId) throws IOException;
 
-    void receiveFileChunk(FileMetadatumDTO fileChunkDTO) throws FileUploadException;
 }
+//    void finalizeFileUpload(Long fileId, FileMetadatumDTO fileDTO) throws IOException;
+
+// Métodos de Validación
+//    void validateStoragePath(String path) throws IOException;
