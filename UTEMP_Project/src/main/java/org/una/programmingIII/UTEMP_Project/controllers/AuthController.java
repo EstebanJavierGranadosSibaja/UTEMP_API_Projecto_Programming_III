@@ -44,7 +44,7 @@ public class AuthController {
             }
 
             final String jwt = jwtTokenProvider.generateAccessToken(userDetails.getUser());
-            return ResponseEntity.ok(new ApiResponse<>("Bearer " + jwt));//TODO de bearer
+            return ResponseEntity.ok(new ApiResponse<>(jwt));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new ApiResponse<>(HttpStatus.UNAUTHORIZED.value(), "Invalid credentials"));
