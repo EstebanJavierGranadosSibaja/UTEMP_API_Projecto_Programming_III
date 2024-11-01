@@ -1,48 +1,55 @@
 package org.una.programmingIII.UTEMP_Project.controllers;
 
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.una.programmingIII.UTEMP_Project.dtos.FacultyDTO;
 import org.una.programmingIII.UTEMP_Project.dtos.DepartmentDTO;
-import org.una.programmingIII.UTEMP_Project.services.faculty.FacultyService;
-import org.una.programmingIII.UTEMP_Project.exceptions.ResourceNotFoundException;
 import org.una.programmingIII.UTEMP_Project.exceptions.InvalidDataException;
-
-import java.util.Optional;
+import org.una.programmingIII.UTEMP_Project.exceptions.ResourceNotFoundException;
+import org.una.programmingIII.UTEMP_Project.services.faculty.FacultyService;
 
 @RestController
 @RequestMapping("/utemp/faculties")
 public class FacultyController {
 
+    private final FacultyService facultyService;
+    private static final Logger logger = LoggerFactory.getLogger(FacultyController.class);
+
     @Autowired
-    private FacultyService facultyService;
+    public FacultyController(FacultyService facultyService) {
+        this.facultyService = facultyService;
+    }
 
     @GetMapping
-    public ResponseEntity<Page<FacultyDTO>> getAllFaculties(
-            @PageableDefault(size = 10, page = 0) Pageable pageable) {
+    public ResponseEntity<Page<FacultyDTO>> getAllFaculties(Pageable pageable) {
         try {
-            return ResponseEntity.ok(facultyService.getAllFaculties(pageable));
+            Page<FacultyDTO> faculties = facultyService.getAllFaculties(pageable);
+            return new ResponseEntity<>(faculties, HttpStatus.OK);
         } catch (Exception e) {
-            throw new InvalidDataException("Error retrieving faculties: " + e.getMessage());
+            logger.error("Error retrieving faculties: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<FacultyDTO> getFacultyById(@PathVariable Long id) {
         try {
-            Optional<FacultyDTO> faculty = facultyService.getFacultyById(id);
-            return faculty.map(ResponseEntity::ok)
-                    .orElseThrow(() -> new ResourceNotFoundException("Faculty not found with id: " , id));
-        } catch (ResourceNotFoundException e) {
-            throw e;
+            return facultyService.getFacultyById(id)
+                    .map(faculty -> new ResponseEntity<>(faculty, HttpStatus.OK))
+                    .orElseGet(() -> {
+                        logger.warn("Faculty not found with id: {}", id);
+                        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+                    });
         } catch (Exception e) {
-            throw new InvalidDataException("Error retrieving faculty: " + e.getMessage());
+            logger.error("Error retrieving faculty with id {}: {}", id, e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -50,22 +57,32 @@ public class FacultyController {
     public ResponseEntity<FacultyDTO> createFaculty(@Valid @RequestBody FacultyDTO facultyDTO) {
         try {
             FacultyDTO createdFaculty = facultyService.createFaculty(facultyDTO);
-            return ResponseEntity.status(HttpStatus.CREATED).body(createdFaculty);
+            return new ResponseEntity<>(createdFaculty, HttpStatus.CREATED);
+        } catch (InvalidDataException e) {
+            logger.error("Invalid data while creating faculty: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         } catch (Exception e) {
-            throw new InvalidDataException("Error creating faculty: " + e.getMessage());
+            logger.error("Error creating faculty: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<FacultyDTO> updateFaculty(@PathVariable Long id, @Valid @RequestBody FacultyDTO facultyDTO) {
+    public ResponseEntity<FacultyDTO> updateFaculty(@PathVariable Long id,
+                                                    @Valid @RequestBody FacultyDTO facultyDTO) {
         try {
-            Optional<FacultyDTO> updatedFaculty = facultyService.updateFaculty(id, facultyDTO);
-            return updatedFaculty.map(ResponseEntity::ok)
-                    .orElseThrow(() -> new ResourceNotFoundException("Faculty not found with id: " , id));
-        } catch (ResourceNotFoundException e) {
-            throw e;
+            return facultyService.updateFaculty(id, facultyDTO)
+                    .map(updatedFaculty -> new ResponseEntity<>(updatedFaculty, HttpStatus.OK))
+                    .orElseGet(() -> {
+                        logger.warn("Faculty not found for update with id: {}", id);
+                        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+                    });
+        } catch (InvalidDataException e) {
+            logger.error("Invalid data while updating faculty: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         } catch (Exception e) {
-            throw new InvalidDataException("Error updating faculty: " + e.getMessage());
+            logger.error("Error updating faculty with id {}: {}", id, e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -73,44 +90,55 @@ public class FacultyController {
     public ResponseEntity<Void> deleteFaculty(@PathVariable Long id) {
         try {
             facultyService.deleteFaculty(id);
-            return ResponseEntity.noContent().build();
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (ResourceNotFoundException e) {
-            throw e;
+            logger.warn("Faculty not found for deletion with id: {}", id);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         } catch (Exception e) {
-            throw new InvalidDataException("Error deleting faculty: " + e.getMessage());
+            logger.error("Error deleting faculty with id {}: {}", id, e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
-    @GetMapping("/{facultyId}/departments")
-    public ResponseEntity<Page<DepartmentDTO>> getDepartmentsByFacultyId(
-            @PathVariable Long facultyId,
-            @PageableDefault(size = 10, page = 0) Pageable pageable) {
+    @GetMapping("/university/{universityId}")
+    public ResponseEntity<Page<FacultyDTO>> getFacultiesByUniversityId(@PathVariable Long universityId,
+                                                                       Pageable pageable) {
         try {
-            return ResponseEntity.ok(facultyService.getDepartmentsByFacultyId(facultyId, pageable));
+            Page<FacultyDTO> faculties = facultyService.getFacultiesByUniversityId(universityId, pageable);
+            return new ResponseEntity<>(faculties, HttpStatus.OK);
         } catch (Exception e) {
-            throw new InvalidDataException("Error retrieving departments for faculty: " + e.getMessage());
+            logger.error("Error retrieving faculties for university {}: {}", universityId, e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 
     @PostMapping("/{facultyId}/departments")
-    public ResponseEntity<Void> addDepartmentToFaculty(
-            @PathVariable Long facultyId, @Valid @RequestBody DepartmentDTO departmentDTO) {
+    public ResponseEntity<Void> addDepartmentToFaculty(@PathVariable Long facultyId,
+                                                       @Valid @RequestBody DepartmentDTO departmentDTO) {
         try {
             facultyService.addDepartmentToFaculty(facultyId, departmentDTO);
-            return ResponseEntity.status(HttpStatus.CREATED).build();
+            return new ResponseEntity<>(HttpStatus.CREATED);
+        } catch (InvalidDataException e) {
+            logger.error("Invalid data while adding department to faculty: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         } catch (Exception e) {
-            throw new InvalidDataException("Error adding department to faculty: " + e.getMessage());
+            logger.error("Error adding department to faculty with id {}: {}", facultyId, e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
     @DeleteMapping("/{facultyId}/departments/{departmentId}")
-    public ResponseEntity<Void> removeDepartmentFromFaculty(
-            @PathVariable Long facultyId, @PathVariable Long departmentId) {
+    public ResponseEntity<Void> removeDepartmentFromFaculty(@PathVariable Long facultyId,
+                                                            @PathVariable Long departmentId) {
         try {
             facultyService.removeDepartmentFromFaculty(facultyId, departmentId);
-            return ResponseEntity.noContent().build();
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        } catch (ResourceNotFoundException e) {
+            logger.warn("Department not found for removal from faculty with id: {} and departmentId: {}", facultyId, departmentId);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         } catch (Exception e) {
-            throw new InvalidDataException("Error removing department from faculty: " + e.getMessage());
+            logger.error("Error removing department from faculty with id {}: {}", facultyId, e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 }

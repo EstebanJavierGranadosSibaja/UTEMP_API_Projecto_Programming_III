@@ -5,6 +5,7 @@ import org.hibernate.service.spi.ServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.una.programmingIII.UTEMP_Project.dtos.FacultyDTO;
 import org.una.programmingIII.UTEMP_Project.dtos.DepartmentDTO;
+import org.una.programmingIII.UTEMP_Project.exceptions.InvalidDataException;
 import org.una.programmingIII.UTEMP_Project.exceptions.ResourceNotFoundException;
 import org.una.programmingIII.UTEMP_Project.models.Faculty;
 import org.una.programmingIII.UTEMP_Project.models.Department;
@@ -32,108 +34,183 @@ public class FacultyServiceImplementation implements FacultyService {
 
     private static final Logger logger = LoggerFactory.getLogger(FacultyServiceImplementation.class);
 
-    @Autowired
-    private FacultyRepository facultyRepository;
-
-    @Autowired
-    private UniversityRepository universityRepository;
-
-    @Autowired
-    private DepartmentRepository departmentRepository;
+    private final FacultyRepository facultyRepository;
+    private final UniversityRepository universityRepository;
+    private final DepartmentRepository departmentRepository;
 
     private final GenericMapper<Faculty, FacultyDTO> facultyMapper;
     private final GenericMapper<Department, DepartmentDTO> departmentMapper;
 
     @Autowired
-    public FacultyServiceImplementation(GenericMapperFactory mapperFactory) {
+    public FacultyServiceImplementation(
+            FacultyRepository facultyRepository,
+            UniversityRepository universityRepository,
+            DepartmentRepository departmentRepository,
+            GenericMapperFactory mapperFactory) {
+
+        this.facultyRepository = facultyRepository;
+        this.universityRepository = universityRepository;
+        this.departmentRepository = departmentRepository;
         this.facultyMapper = mapperFactory.createMapper(Faculty.class, FacultyDTO.class);
         this.departmentMapper = mapperFactory.createMapper(Department.class, DepartmentDTO.class);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Page<FacultyDTO> getAllFaculties(@PageableDefault(size = 10, page = 0) Pageable pageable) {
-        return executeWithLogging(() -> facultyRepository.findAll(pageable)
-                        .map(facultyMapper::convertToDTO),
-                "Error fetching all faculties");
+    public Page<FacultyDTO> getAllFaculties(Pageable pageable) {
+        try {
+            return executeWithLogging(() -> {
+                Page<Faculty> facultyPage = facultyRepository.findAll(pageable);
+                return facultyPage.map(facultyMapper::convertToDTO);
+            }, "Error fetching all faculties");
+        } catch (DataAccessException e) {
+            logger.error("Database access error occurred while fetching faculties: {}", e.getMessage());
+            throw new InvalidDataException("Error fetching faculties from the database");
+        } catch (Exception e) {
+            logger.error("Unexpected error occurred while fetching faculties: {}", e.getMessage());
+            throw new InvalidDataException("Error fetching faculties");
+        }
     }
 
     @Override
     @Transactional(readOnly = true)
     public Optional<FacultyDTO> getFacultyById(Long id) {
-        return executeWithLogging(() -> {
-            Faculty faculty = getEntityById(id, facultyRepository, "Faculty");
-            return Optional.of(facultyMapper.convertToDTO(faculty));
-        }, "Error fetching faculty by ID");
+        try {
+            return executeWithLogging(() -> {
+                Faculty faculty = getEntityById(id, facultyRepository, "Faculty");
+                return Optional.of(facultyMapper.convertToDTO(faculty));
+            }, "Error fetching faculty by ID");
+        } catch (ResourceNotFoundException e) {
+            logger.warn("Failed to fetch faculty: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            logger.error("Error fetching faculty by ID: {}", e.getMessage());
+            throw new ServiceException("Error fetching faculty by ID", e);
+        }
     }
 
     @Override
     @Transactional
     public FacultyDTO createFaculty(FacultyDTO facultyDTO) {
-        Faculty faculty = facultyMapper.convertToEntity(facultyDTO);
-        faculty.setUniversity(getEntityById(facultyDTO.getUniversity().getId(), universityRepository, "University"));
-        return executeWithLogging(() -> facultyMapper.convertToDTO(facultyRepository.save(faculty)),
-                "Error creating faculty");
+        try {
+            Faculty faculty = facultyMapper.convertToEntity(facultyDTO);
+            faculty.setUniversity(getEntityById(facultyDTO.getUniversity().getId(), universityRepository, "University"));
+
+            return executeWithLogging(() ->
+                            facultyMapper.convertToDTO(facultyRepository.save(faculty)),
+                    "Error creating faculty"
+            );
+        } catch (ResourceNotFoundException e) {
+            logger.warn("Failed to create faculty: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            logger.error("Error creating faculty: {}", e.getMessage());
+            throw new ServiceException("Error creating faculty", e);
+        }
     }
 
     @Override
     @Transactional
     public Optional<FacultyDTO> updateFaculty(Long id, @Valid FacultyDTO facultyDTO) {
-        Optional<Faculty> optionalFaculty = facultyRepository.findById(id);
-        Faculty existingFaculty = optionalFaculty.orElseThrow(() -> new ResourceNotFoundException("Faculty", id));
+        try {
+            Optional<Faculty> optionalFaculty = facultyRepository.findById(id);
+            Faculty existingFaculty = optionalFaculty.orElseThrow(() -> new ResourceNotFoundException("Faculty", id));
 
-        updateFacultyFields(existingFaculty, facultyDTO);
-        return executeWithLogging(() -> Optional.of(facultyMapper.convertToDTO(facultyRepository.save(existingFaculty))),
-                "Error updating faculty");
+            updateFacultyFields(existingFaculty, facultyDTO);
+            return executeWithLogging(() ->
+                            Optional.of(facultyMapper.convertToDTO(facultyRepository.save(existingFaculty))),
+                    "Error updating faculty"
+            );
+        } catch (ResourceNotFoundException e) {
+            logger.warn("Failed to update faculty: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            logger.error("Error updating faculty: {}", e.getMessage());
+            throw new ServiceException("Error updating faculty", e);
+        }
     }
 
     @Override
     @Transactional
     public void deleteFaculty(Long id) {
-        Faculty faculty = getEntityById(id, facultyRepository, "Faculty");
-        executeWithLogging(() -> {
-            facultyRepository.delete(faculty);
-            return null;
-        }, "Error deleting faculty");
+        try {
+            Faculty faculty = getEntityById(id, facultyRepository, "Faculty");
+            executeWithLogging(() -> {
+                facultyRepository.delete(faculty);
+                return null;
+            }, "Error deleting faculty");
+        } catch (ResourceNotFoundException e) {
+            logger.warn("Failed to delete faculty: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            logger.error("Error deleting faculty: {}", e.getMessage());
+            throw new ServiceException("Error deleting faculty", e);
+        }
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Page<DepartmentDTO> getDepartmentsByFacultyId(Long facultyId, @PageableDefault(size = 10, page = 0) Pageable pageable) {
-        Faculty faculty = getEntityById(facultyId, facultyRepository, "Faculty");
-        return executeWithLogging(() ->
-                        departmentRepository.findByFacultyId(facultyId, pageable).map(departmentMapper::convertToDTO),
-                "Error fetching departments by faculty ID");
+    public Page<FacultyDTO> getFacultiesByUniversityId(Long universityId, Pageable pageable) {
+        try {
+            return executeWithLogging(() -> {
+                Page<Faculty> facultyPage = facultyRepository.findByUniversityId(universityId, pageable);
+                return facultyPage.map(facultyMapper::convertToDTO);
+            }, "Error fetching faculties by university ID");
+        } catch (DataAccessException e) {
+            logger.error("Database access error occurred while fetching faculties by university ID: {}", e.getMessage());
+            throw new InvalidDataException("Error fetching faculties from the database");
+        } catch (Exception e) {
+            logger.error("Unexpected error occurred while fetching faculties by university ID: {}", e.getMessage());
+            throw new InvalidDataException("Error fetching faculties by university ID");
+        }
     }
 
     @Override
     @Transactional
     public void addDepartmentToFaculty(Long facultyId, DepartmentDTO departmentDTO) {
-        Faculty faculty = getEntityById(facultyId, facultyRepository, "Faculty");
-        Department department = departmentMapper.convertToEntity(departmentDTO);
+        try {
+            Faculty faculty = getEntityById(facultyId, facultyRepository, "Faculty");
+            Department department = departmentMapper.convertToEntity(departmentDTO);
 
-        department.setFaculty(faculty);
-        faculty.getDepartments().add(department);
+            department.setFaculty(faculty);
+            faculty.getDepartments().add(department);
 
-        executeWithLogging(() -> {
-            departmentRepository.save(department);
-            return null;
-        }, "Error adding department to faculty");
+            executeWithLogging(() -> {
+                departmentRepository.save(department);
+                return null;
+            }, "Error adding department to faculty");
+        } catch (ResourceNotFoundException e) {
+            logger.warn("Failed to add department to faculty: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            logger.error("Error adding department to faculty: {}", e.getMessage());
+            throw new ServiceException("Error adding department to faculty", e);
+        }
     }
 
     @Override
     @Transactional
     public void removeDepartmentFromFaculty(Long facultyId, Long departmentId) {
-        Faculty faculty = getEntityById(facultyId, facultyRepository, "Faculty");
-        Department department = getEntityById(departmentId, departmentRepository, "Department");
+        try {
+            Faculty faculty = getEntityById(facultyId, facultyRepository, "Faculty");
+            Department department = getEntityById(departmentId, departmentRepository, "Department");
 
-        if (faculty.getDepartments().contains(department)) {
-            faculty.getDepartments().remove(department);
+            if (faculty.getDepartments().contains(department)) {
+                faculty.getDepartments().remove(department);
 
-            executeWithLogging(() -> {
-                departmentRepository.delete(department);
-                return null;
-            }, "Error removing department from faculty");
+                executeWithLogging(() -> {
+                    departmentRepository.delete(department);
+                    return null;
+                }, "Error removing department from faculty");
+            } else {
+                throw new ResourceNotFoundException("Department not found in this faculty", departmentId);
+            }
+        } catch (ResourceNotFoundException e) {
+            logger.warn("Failed to remove department from faculty: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            logger.error("Error removing department from faculty: {}", e.getMessage());
+            throw new ServiceException("Error removing department from faculty", e);
         }
     }
 
