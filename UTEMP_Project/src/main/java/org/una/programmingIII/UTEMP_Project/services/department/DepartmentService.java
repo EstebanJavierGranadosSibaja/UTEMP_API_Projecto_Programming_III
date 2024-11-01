@@ -3,6 +3,7 @@ package org.una.programmingIII.UTEMP_Project.services.department;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.una.programmingIII.UTEMP_Project.dtos.CourseDTO;
 import org.una.programmingIII.UTEMP_Project.dtos.DepartmentDTO;
 
@@ -15,7 +16,7 @@ public interface DepartmentService {
     DepartmentDTO createDepartment(DepartmentDTO departmentDTO);
     Optional<DepartmentDTO> updateDepartment(Long id, @Valid DepartmentDTO departmentDTO);
     void deleteDepartment(Long id);
-    Page<CourseDTO> getCoursesByDepartmentId(Long departmentId, Pageable pageable);
+    Page<DepartmentDTO> getDepartmentsByFacultyId(Long facultyId, Pageable pageable) ;
     void addCourseToDepartment(Long departmentId, CourseDTO courseDTO);
     void removeCourseFromDepartment(Long departmentId, Long courseId);
 }
