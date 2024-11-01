@@ -1,10 +1,12 @@
 package org.una.programmingIII.UTEMP_Project.services.submission;
 
 import jakarta.validation.Valid;
+import jakarta.validation.ValidationException;
 import org.hibernate.service.spi.ServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -14,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.una.programmingIII.UTEMP_Project.dtos.SubmissionDTO;
 import org.una.programmingIII.UTEMP_Project.dtos.FileMetadatumDTO;
 import org.una.programmingIII.UTEMP_Project.dtos.GradeDTO;
+import org.una.programmingIII.UTEMP_Project.exceptions.InvalidDataException;
 import org.una.programmingIII.UTEMP_Project.exceptions.ResourceNotFoundException;
 import org.una.programmingIII.UTEMP_Project.models.Assignment;
 import org.una.programmingIII.UTEMP_Project.models.FileMetadatum;
@@ -39,23 +42,26 @@ public class SubmissionServiceImplementation extends Subject implements Submissi
 
     private static final Logger logger = LoggerFactory.getLogger(SubmissionServiceImplementation.class);
 
-    @Autowired
-    private SubmissionRepository submissionRepository;
-    @Autowired
-    private AssignmentRepository assignmentRepository;
-    @Autowired
-    private FileMetadatumRepository fileMetadatumRepository;
-    @Autowired
-    private GradeRepository gradeRepository;
-    @Autowired
-    private NotificationService notificationService;
+    private final SubmissionRepository submissionRepository;
+    private final AssignmentRepository assignmentRepository;
+    private final FileMetadatumRepository fileMetadatumRepository;
+    private final GradeRepository gradeRepository;
+    private final NotificationService notificationService;
 
     private final GenericMapper<Submission, SubmissionDTO> submissionMapper;
     private final GenericMapper<FileMetadatum, FileMetadatumDTO> fileMetadatumMapper;
     private final GenericMapper<Grade, GradeDTO> gradeMapper;
 
     @Autowired
-    public SubmissionServiceImplementation(GenericMapperFactory mapperFactory) {
+    public SubmissionServiceImplementation(SubmissionRepository submissionRepository, AssignmentRepository assignmentRepository,
+            FileMetadatumRepository fileMetadatumRepository, GradeRepository gradeRepository, NotificationService notificationService,
+            GenericMapperFactory mapperFactory) {
+
+        this.submissionRepository = submissionRepository;
+        this.assignmentRepository = assignmentRepository;
+        this.fileMetadatumRepository = fileMetadatumRepository;
+        this.gradeRepository = gradeRepository;
+        this.notificationService = notificationService;
         this.submissionMapper = mapperFactory.createMapper(Submission.class, SubmissionDTO.class);
         this.fileMetadatumMapper = mapperFactory.createMapper(FileMetadatum.class, FileMetadatumDTO.class);
         this.gradeMapper = mapperFactory.createMapper(Grade.class, GradeDTO.class);
@@ -65,112 +71,206 @@ public class SubmissionServiceImplementation extends Subject implements Submissi
     @Override
     @Transactional(readOnly = true)
     public Page<SubmissionDTO> getAllSubmissions(Pageable pageable) {
-        return executeWithLogging(() -> {
-            Page<Submission> submissionPage = submissionRepository.findAll(pageable);
-            return submissionPage.map(submissionMapper::convertToDTO);
-        }, "Error fetching all submissions");
+        try {
+            return executeWithLogging(() -> {
+                Page<Submission> submissionPage = submissionRepository.findAll(pageable);
+                return submissionPage.map(submissionMapper::convertToDTO);
+            }, "Error fetching all submissions");
+        } catch (DataAccessException e) {
+            logger.error("Database access error occurred while fetching all submissions: {}", e.getMessage());
+            throw new InvalidDataException("Error fetching submissions from the database");
+        } catch (Exception e) {
+            logger.error("Unexpected error occurred while fetching all submissions: {}", e.getMessage());
+            throw new InvalidDataException("Error fetching all submissions");
+        }
     }
 
     @Override
     @Transactional(readOnly = true)
     public Optional<SubmissionDTO> getSubmissionById(Long id) {
-        return executeWithLogging(() -> {
-            Submission submission = getEntityById(id, submissionRepository, "Submission");
-            return Optional.of(submissionMapper.convertToDTO(submission));
-        }, "Error fetching submission by ID");
+        try {
+            return executeWithLogging(() -> {
+                Submission submission = getEntityById(id, submissionRepository, "Submission");
+                return Optional.of(submissionMapper.convertToDTO(submission));
+            }, "Error fetching submission by ID");
+        } catch (ResourceNotFoundException e) {
+            logger.warn("Submission not found with ID {}: {}", id, e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            logger.error("Error fetching submission with ID {}: {}", id, e.getMessage());
+            throw new ServiceException("Error fetching submission", e);
+        }
     }
 
     @Override
     @Transactional
     public SubmissionDTO createSubmission(@Valid SubmissionDTO submissionDTO) {
-        Submission submission = submissionMapper.convertToEntity(submissionDTO);
-        submission.setAssignment(getEntityById(submissionDTO.getAssignment().getId(), assignmentRepository, "Assignment"));
-        return executeWithLogging(() -> submissionMapper.convertToDTO(submissionRepository.save(submission)),
-                "Error creating submission");
+        try {
+            Submission submission = submissionMapper.convertToEntity(submissionDTO);
+            submission.setAssignment(getEntityById(submissionDTO.getAssignment().getId(), assignmentRepository, "Assignment"));
+            return executeWithLogging(() -> submissionMapper.convertToDTO(submissionRepository.save(submission)),
+                    "Error creating submission");
+        } catch (ResourceNotFoundException e) {
+            logger.warn("Failed to create submission: Assignment not found with ID {}: {}", submissionDTO.getAssignment().getId(), e.getMessage());
+            throw e;
+        } catch (ValidationException e) {
+            logger.warn("Validation error while creating submission: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            logger.error("Error creating submission: {}", e.getMessage());
+            throw new ServiceException("Error creating submission", e);
+        }
     }
 
     @Override
     @Transactional
     public Optional<SubmissionDTO> updateSubmission(Long id, @Valid SubmissionDTO submissionDTO) {
-        Optional<Submission> optionalSubmission = submissionRepository.findById(id);
-        Submission existingSubmission = optionalSubmission.orElseThrow(() -> new ResourceNotFoundException("Submission", id));
-
-        updateSubmissionFields(existingSubmission, submissionDTO);
-        return executeWithLogging(() -> Optional.of(submissionMapper.convertToDTO(submissionRepository.save(existingSubmission))),
-                "Error updating submission");
+        try {
+            Optional<Submission> optionalSubmission = submissionRepository.findById(id);
+            Submission existingSubmission = optionalSubmission.orElseThrow(() -> new ResourceNotFoundException("Submission", id));
+            updateSubmissionFields(existingSubmission, submissionDTO);
+            return executeWithLogging(() -> Optional.of(submissionMapper.convertToDTO(submissionRepository.save(existingSubmission))),
+                    "Error updating submission");
+        } catch (ResourceNotFoundException e) {
+            logger.warn("Failed to update submission: Submission not found with ID {}: {}", id, e.getMessage());
+            throw e;
+        } catch (ValidationException e) {
+            logger.warn("Validation error while updating submission: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            logger.error("Error updating submission: {}", e.getMessage());
+            throw new ServiceException("Error updating submission", e);
+        }
     }
 
     @Override
     @Transactional
     public void deleteSubmission(Long id) {
-        Submission submission = getEntityById(id, submissionRepository, "Submission");
-        executeWithLogging(() -> {
-            submissionRepository.delete(submission);
-            return null;
-        }, "Error deleting submission");
+        try {
+            Submission submission = getEntityById(id, submissionRepository, "Submission");
+            executeWithLogging(() -> {
+                submissionRepository.delete(submission);
+                return null;
+            }, "Error deleting submission");
+
+        } catch (ResourceNotFoundException e) {
+            logger.warn("Failed to delete submission: Submission not found with ID {}: {}", id, e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            logger.error("Error deleting submission: {}", e.getMessage());
+            throw new ServiceException("Error deleting submission", e);
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<SubmissionDTO> getSubmissionsByAssignmentId(Long assignmentId, Pageable pageable) {
+        try {
+            if (!assignmentRepository.existsById(assignmentId)) {
+                throw new ResourceNotFoundException("Assignment", assignmentId);
+            }
+            return executeWithLogging(() -> {
+                Page<Submission> submissions = submissionRepository.findByAssignmentId(assignmentId, pageable);
+                return submissions.map(submissionMapper::convertToDTO);
+            }, "Error fetching submissions for assignment ID: " + assignmentId);
+        } catch (ResourceNotFoundException e) {
+            logger.warn("Failed to fetch submissions: Assignment not found with ID {}: {}", assignmentId, e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            logger.error("Error fetching submissions for assignment ID {}: {}", assignmentId, e.getMessage());
+            throw new ServiceException("Error fetching submissions", e);
+        }
     }
 
     @Override
     @Transactional
     public FileMetadatumDTO addFileMetadatumToSubmission(Long submissionId, @Valid FileMetadatumDTO fileMetadatumDTO) {
-        Submission submission = getEntityById(submissionId, submissionRepository, "Submission");
-        FileMetadatum fileMetadatum = fileMetadatumMapper.convertToEntity(fileMetadatumDTO);
-        fileMetadatum.setSubmission(submission);
+        try {
+            Submission submission = getEntityById(submissionId, submissionRepository, "Submission");
+            FileMetadatum fileMetadatum = fileMetadatumMapper.convertToEntity(fileMetadatumDTO);
+            fileMetadatum.setSubmission(submission); // Establecer la relación
 
-        return executeWithLogging(() -> {
-            FileMetadatum savedFileMetadatum = fileMetadatumRepository.save(fileMetadatum);
-            submission.getFileMetadata().add(savedFileMetadatum);
-            return fileMetadatumMapper.convertToDTO(savedFileMetadatum);
-        }, "Error adding file metadata to submission ID: " + submissionId);
+            return executeWithLogging(() -> {
+                FileMetadatum savedFileMetadatum = fileMetadatumRepository.save(fileMetadatum);
+                submission.getFileMetadata().add(savedFileMetadatum);
+                return fileMetadatumMapper.convertToDTO(savedFileMetadatum);
+            }, "Error adding file metadata to submission ID: " + submissionId);
+        } catch (ResourceNotFoundException e) {
+            logger.warn("Failed to add file metadata: Submission not found with ID {}: {}", submissionId, e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            logger.error("Error adding file metadata to submission ID {}: {}", submissionId, e.getMessage());
+            throw new ServiceException("Error adding file metadata", e);
+        }
     }
 
     @Override
     @Transactional
     public GradeDTO addGradeToSubmission(Long submissionId, @Valid GradeDTO gradeDTO) {
-        Submission submission = getEntityById(submissionId, submissionRepository, "Submission");
-        Grade grade = gradeMapper.convertToEntity(gradeDTO);
-        grade.setSubmission(submission);
-
-        return executeWithLogging(() -> {
-            Grade savedGrade = gradeRepository.save(grade);
-            submission.getGrades().add(savedGrade);
-            sendNotificationForGrade(grade, submission);
-            return gradeMapper.convertToDTO(savedGrade);
-        }, "Error adding grade to submission ID: " + submissionId);
+        try {
+            Submission submission = getEntityById(submissionId, submissionRepository, "Submission");
+            Grade grade = gradeMapper.convertToEntity(gradeDTO);
+            grade.setSubmission(submission);
+            return executeWithLogging(() -> {
+                Grade savedGrade = gradeRepository.save(grade);
+                submission.getGrades().add(savedGrade);
+                sendNotificationForGrade(savedGrade, submission);
+                return gradeMapper.convertToDTO(savedGrade);
+            }, "Error adding grade to submission ID: " + submissionId);
+        } catch (ResourceNotFoundException e) {
+            logger.warn("Failed to add grade: Submission not found with ID {}: {}", submissionId, e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            logger.error("Error adding grade to submission ID {}: {}", submissionId, e.getMessage());
+            throw new ServiceException("Error adding grade to submission", e);
+        }
     }
 
     @Override
     @Transactional
     public void removeFileMetadatumFromSubmission(Long submissionId, Long fileMetadatumId) {
-        Submission submission = getEntityById(submissionId, submissionRepository, "Submission");
-        FileMetadatum fileMetadatum = getEntityById(fileMetadatumId, fileMetadatumRepository, "FileMetadatum");
-
-        if (!submission.getFileMetadata().contains(fileMetadatum)) {
-            throw new ResourceNotFoundException("File metadata not found in this submission", submissionId);
+        try {
+            Submission submission = getEntityById(submissionId, submissionRepository, "Submission");
+            FileMetadatum fileMetadatum = getEntityById(fileMetadatumId, fileMetadatumRepository, "FileMetadatum");
+            if (!submission.getFileMetadata().contains(fileMetadatum)) {
+                throw new ResourceNotFoundException("File metadata not found in this submission", fileMetadatumId);
+            }
+            executeWithLogging(() -> {
+                submission.getFileMetadata().remove(fileMetadatum);
+                fileMetadatumRepository.delete(fileMetadatum);
+                return null;
+            }, "Error removing file metadata from submission ID: " + submissionId);
+        } catch (ResourceNotFoundException e) {
+            logger.warn("Failed to remove file metadata: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            logger.error("Error removing file metadata from submission ID {}: {}", submissionId, e.getMessage());
+            throw new ServiceException("Error removing file metadata from submission", e);
         }
-
-        executeWithLogging(() -> {
-            submission.getFileMetadata().remove(fileMetadatum);
-            fileMetadatumRepository.delete(fileMetadatum);
-            return null;
-        }, "Error removing file metadata from submission ID: " + submissionId);
     }
 
     @Override
     @Transactional
     public void removeGradeFromSubmission(Long submissionId, Long gradeId) {
-        Submission submission = getEntityById(submissionId, submissionRepository, "Submission");
-        Grade grade = getEntityById(gradeId, gradeRepository, "Grade");
+        try {
+            Submission submission = getEntityById(submissionId, submissionRepository, "Submission");
+            Grade grade = getEntityById(gradeId, gradeRepository, "Grade");
 
-        if (!submission.getGrades().contains(grade)) {
-            throw new ResourceNotFoundException("Grade not found in this submission", submissionId);
+            if (!submission.getGrades().contains(grade)) {
+                throw new ResourceNotFoundException("Grade not found in this submission", gradeId);
+            }
+            executeWithLogging(() -> {
+                submission.getGrades().remove(grade);
+                gradeRepository.delete(grade);
+                return null;
+            }, "Error removing grade from submission ID: " + submissionId);
+        } catch (ResourceNotFoundException e) {
+            logger.warn("Failed to remove grade: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            logger.error("Error removing grade from submission ID {}: {}", submissionId, e.getMessage());
+            throw new ServiceException("Error removing grade from submission", e);
         }
-
-        executeWithLogging(() -> {
-            submission.getGrades().remove(grade);
-            gradeRepository.delete(grade);
-            return null;
-        }, "Error removing grade from submission ID: " + submissionId);
     }
 
     // --------------- MÉTODOS AUXILIARES -----------------
@@ -207,7 +307,7 @@ public class SubmissionServiceImplementation extends Subject implements Submissi
                 submission.getAssignment().getTitle() + "' was " + grade.getGrade();
         try {
             notifyObservers("SUBMISSION_GRADED", message, submission.getStudent().getEmail());
-            notificationService.sendNotificationToUser(submission.getStudent(), message);
+            notificationService.sendNotificationToUser(submission.getStudent().getId(), message);
 
         } catch (Exception e) {
             logger.error("Error notifying student {}: {}", submission.getStudent().getEmail(), e.getMessage());

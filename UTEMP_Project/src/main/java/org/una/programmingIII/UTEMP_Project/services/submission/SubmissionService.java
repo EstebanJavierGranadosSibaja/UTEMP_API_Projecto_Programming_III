@@ -16,6 +16,7 @@ public interface SubmissionService {
     SubmissionDTO createSubmission(@Valid SubmissionDTO submissionDTO);
     Optional<SubmissionDTO> updateSubmission(Long id, @Valid SubmissionDTO submissionDTO);
     void deleteSubmission(Long id);
+    Page<SubmissionDTO> getSubmissionsByAssignmentId(Long assignmentId, Pageable pageable);
     FileMetadatumDTO addFileMetadatumToSubmission(Long submissionId, @Valid FileMetadatumDTO fileMetadatumDTO);
     GradeDTO addGradeToSubmission(Long submissionId, @Valid GradeDTO gradeDTO);
     void removeFileMetadatumFromSubmission(Long submissionId, Long fileMetadatumId);
