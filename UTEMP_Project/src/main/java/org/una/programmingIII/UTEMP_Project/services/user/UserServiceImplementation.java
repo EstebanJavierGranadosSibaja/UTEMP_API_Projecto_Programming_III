@@ -5,6 +5,7 @@ import org.hibernate.service.spi.ServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -21,6 +22,7 @@ import org.una.programmingIII.UTEMP_Project.repositories.CourseRepository;
 import org.una.programmingIII.UTEMP_Project.repositories.EnrollmentRepository;
 import org.una.programmingIII.UTEMP_Project.repositories.UserRepository;
 import org.una.programmingIII.UTEMP_Project.services.EmailNotificationObserver;
+import org.una.programmingIII.UTEMP_Project.services.enrollment.EnrollmentService;
 import org.una.programmingIII.UTEMP_Project.services.notification.NotificationService;
 import org.una.programmingIII.UTEMP_Project.services.passwordEncryption.PasswordEncryptionService;
 import org.una.programmingIII.UTEMP_Project.transformers.mappers.GenericMapper;
@@ -54,9 +56,15 @@ public class UserServiceImplementation extends Subject<EmailNotificationObserver
     private final GenericMapper<Submission, SubmissionDTO> submissionMapper;
 
     @Autowired
-    public UserServiceImplementation(GenericMapperFactory mapperFactory, UserRepository userRepository, CourseRepository courseRepository,
-                                     EnrollmentRepository enrollmentRepository, PasswordEncryptionService passwordEncryptionService,
-                                     UserValidator userValidator, NotificationService notificationService) {
+    public UserServiceImplementation(
+            GenericMapperFactory mapperFactory,
+            UserRepository userRepository,
+            CourseRepository courseRepository,
+            EnrollmentRepository enrollmentRepository,
+            PasswordEncryptionService passwordEncryptionService,
+            UserValidator userValidator,
+            NotificationService notificationService) {
+
         this.userMapper = mapperFactory.createMapper(User.class, UserDTO.class);
         this.notificationMapper = mapperFactory.createMapper(Notification.class, NotificationDTO.class);
         this.enrollmentMapper = mapperFactory.createMapper(Enrollment.class, EnrollmentDTO.class);
@@ -79,39 +87,72 @@ public class UserServiceImplementation extends Subject<EmailNotificationObserver
         User user = userMapper.convertToEntity(userDTO);
         user.setPassword(passwordEncryptionService.encryptPassword(userDTO.getPassword()));
 
-        return executeWithLogging(() -> userMapper.convertToDTO(userRepository.save(user)),
-                "Error creating user");
+        try {
+            return executeWithLogging(() -> {
+                User savedUser = userRepository.save(user);
+                return userMapper.convertToDTO(savedUser);
+            }, "Error creating user");
+        } catch (ResourceAlreadyExistsException e) {
+            logger.error("User already exists: {}", e.getMessage());
+            throw e;
+        } catch (InvalidDataException e) {
+            logger.error("Invalid data provided: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            logger.error("Unexpected error occurred while creating user: {}", e.getMessage());
+            throw new InvalidDataException("Error creating user");
+        }
     }
 
-    //GetsBY()
     @Override
     @Transactional(readOnly = true)
     public Optional<UserDTO> getUserById(Long id) {
-        return executeWithLogging(() -> {
-            User user = getEntityById(id, userRepository, "User");
-            return Optional.of(userMapper.convertToDTO(user));
-        }, "Error fetching user by ID");
+        try {
+            return executeWithLogging(() -> {
+                User user = getEntityById(id, userRepository, "User");
+                return Optional.of(userMapper.convertToDTO(user));
+            }, "Error fetching user by ID");
+        } catch (ResourceNotFoundException e) {
+            logger.error("User not found with ID {}: {}", id, e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            logger.error("Unexpected error occurred while fetching user by ID {}: {}", id, e.getMessage());
+            throw new InvalidDataException("Error fetching user by ID");
+        }
     }
 
     @Override
     @Transactional(readOnly = true)
     public Optional<UserDTO> getUserByIdentificationNumber(String identificationNumber) {
-        return executeWithLogging(() -> {
-            User user = userRepository.findByIdentificationNumber(identificationNumber);
-            if (user == null) {
-                return Optional.empty();
-            }
-            return Optional.of(userMapper.convertToDTO(user));
-        }, "Error fetching user by identification number");
+        try {
+            return executeWithLogging(() -> {
+                User user = userRepository.findByIdentificationNumber(identificationNumber);
+                return Optional.ofNullable(user).map(userMapper::convertToDTO);
+            }, "Error fetching user by identification number");
+        } catch (ResourceNotFoundException e) {
+            logger.error("User not found with identification number {}: {}", identificationNumber, e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            logger.error("Unexpected error occurred while fetching user by identification number {}: {}", identificationNumber, e.getMessage());
+            throw new InvalidDataException("Error fetching user by identification number");
+        }
     }
 
     @Override
     @Transactional(readOnly = true)
     public Page<UserDTO> getAllUsers(Pageable pageable) {
-        return executeWithLogging(() -> {
-            Page<User> userPage = userRepository.findAll(pageable);
-            return userPage.map(userMapper::convertToDTO);
-        }, "Error fetching all users");
+        try {
+            return executeWithLogging(() -> {
+                Page<User> userPage = userRepository.findAll(pageable);
+                return userPage.map(userMapper::convertToDTO);
+            }, "Error fetching all users");
+        } catch (DataAccessException e) {
+            logger.error("Database access error occurred while fetching all users: {}", e.getMessage());
+            throw new InvalidDataException("Error fetching users from the database");
+        } catch (Exception e) {
+            logger.error("Unexpected error occurred while fetching all users: {}", e.getMessage());
+            throw new InvalidDataException("Error fetching all users");
+        }
     }
 
     @Override
@@ -145,13 +186,21 @@ public class UserServiceImplementation extends Subject<EmailNotificationObserver
         return true;
     }
 
-    //user elements
     @Override
     @Transactional(readOnly = true)
-    public List<CourseDTO> getCoursesTeachingByUserId(Long userId) {
-        User user = getEntityById(userId, userRepository, "User");
-        return executeWithLogging(() -> courseMapper.convertToDTOList(user.getCoursesTeaching()),
-                "Error fetching courses teaching by user ID");
+    public Page<CourseDTO> getCoursesTeachingByUserId(Long teacherId, Pageable pageable) {
+        try {
+            return executeWithLogging(() -> {
+                Page<Course> coursePage = courseRepository.findByTeacherId(teacherId, pageable);
+                return coursePage.map(courseMapper::convertToDTO);
+            }, "Error fetching courses teaching by user ID");
+        } catch (DataAccessException e) {
+            logger.error("Database access error occurred while fetching courses for teacher ID {}: {}", teacherId, e.getMessage());
+            throw new InvalidDataException("Error fetching courses from the database");
+        } catch (Exception e) {
+            logger.error("Unexpected error occurred while fetching courses for teacher ID {}: {}", teacherId, e.getMessage());
+            throw new InvalidDataException("Error fetching courses teaching by user ID");
+        }
     }
 
     @Override
@@ -190,10 +239,19 @@ public class UserServiceImplementation extends Subject<EmailNotificationObserver
 
     @Override
     @Transactional(readOnly = true)
-    public List<EnrollmentDTO> getEnrollmentsByUserId(Long userId) {
-        User user = getEntityById(userId, userRepository, "User");
-        return executeWithLogging(() -> enrollmentMapper.convertToDTOList(user.getUserEnrollments()),
-                "Error fetching enrollments by user ID");
+    public Page<EnrollmentDTO> getEnrollmentsByStudentId(Long studentId, Pageable pageable) {
+        try {
+            return executeWithLogging(() -> {
+                Page<Enrollment> enrollmentPage = enrollmentRepository.findByStudentId(studentId, pageable);
+                return enrollmentPage.map(enrollmentMapper::convertToDTO);
+            }, "Error fetching enrollments by student ID");
+        } catch (DataAccessException e) {
+            logger.error("Database access error occurred while fetching enrollments for student ID {}: {}", studentId, e.getMessage());
+            throw new InvalidDataException("Error fetching enrollments from the database");
+        } catch (Exception e) {
+            logger.error("Unexpected error occurred while fetching enrollments for student ID {}: {}", studentId, e.getMessage());
+            throw new InvalidDataException("Error fetching enrollments by student ID");
+        }
     }
 
     @Override
@@ -336,8 +394,8 @@ public class UserServiceImplementation extends Subject<EmailNotificationObserver
         notifyObservers("USER_ENROLLED", userMessage, user.getEmail());
         notifyObservers("PROFESSOR_NOTIFICATION", professorMessage, course.getTeacher().getEmail());
 
-        notificationService.sendNotificationToUser(user, userMessage);
-        notificationService.sendNotificationToUser(course.getTeacher(), professorMessage);
+        notificationService.sendNotificationToUser(user.getId(), userMessage);
+        notificationService.sendNotificationToUser(course.getTeacher().getId(), professorMessage);
 
         logger.info("Notifying user {} and professor about enrollment in course {}", user.getId(), course.getId());
 
