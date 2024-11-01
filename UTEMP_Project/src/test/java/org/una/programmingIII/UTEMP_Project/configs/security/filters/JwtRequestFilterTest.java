@@ -1,4 +1,4 @@
-package org.una.programmingIII.UTEMP_Project.configurations.security.filters;
+package org.una.programmingIII.UTEMP_Project.configs.security.filters;
 
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.SignatureException;
@@ -10,13 +10,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.una.programmingIII.UTEMP_Project.models.User;
 import org.una.programmingIII.UTEMP_Project.models.UserPermission;
+import org.una.programmingIII.UTEMP_Project.security.filters.JwtRequestFilter;
 import org.una.programmingIII.UTEMP_Project.services.jwtTokenProvider.JwtTokenProviderService;
 import org.una.programmingIII.UTEMP_Project.services.user.CustomUserDetails;
 import org.una.programmingIII.UTEMP_Project.services.user.CustomUserDetailsService;

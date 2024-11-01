@@ -1,4 +1,4 @@
-package org.una.programmingIII.UTEMP_Project.configurations;
+package org.una.programmingIII.UTEMP_Project.configs;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

@@ -1,4 +1,4 @@
-package org.una.programmingIII.UTEMP_Project.configurations.security.utils;
+package org.una.programmingIII.UTEMP_Project.security.utils;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

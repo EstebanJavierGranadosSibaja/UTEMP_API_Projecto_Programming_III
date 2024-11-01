@@ -1,4 +1,4 @@
-package org.una.programmingIII.UTEMP_Project.configurations.security;
+package org.una.programmingIII.UTEMP_Project.configs;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -15,9 +15,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.una.programmingIII.UTEMP_Project.configurations.security.utils.CustomAccessDeniedHandler;
-import org.una.programmingIII.UTEMP_Project.configurations.security.utils.CustomAuthenticationEntryPoint;
-import org.una.programmingIII.UTEMP_Project.configurations.security.filters.JwtRequestFilter;
+import org.una.programmingIII.UTEMP_Project.security.utils.CustomAccessDeniedHandler;
+import org.una.programmingIII.UTEMP_Project.security.utils.CustomAuthenticationEntryPoint;
+import org.una.programmingIII.UTEMP_Project.security.filters.JwtRequestFilter;
 import org.una.programmingIII.UTEMP_Project.services.jwtTokenProvider.JwtTokenProviderService;
 import org.una.programmingIII.UTEMP_Project.services.user.CustomUserDetailsService;
 
@@ -45,7 +45,8 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(authorizeRequests ->
                         authorizeRequests
-                                .requestMatchers("/api/auth/login").permitAll()
+                                .requestMatchers("/utemp/auth/login", "/swagger-ui/**", "/v3/api-docs/**")
+                                .permitAll()
                                 .anyRequest().authenticated()
                 )
                 .csrf(AbstractHttpConfigurer::disable)

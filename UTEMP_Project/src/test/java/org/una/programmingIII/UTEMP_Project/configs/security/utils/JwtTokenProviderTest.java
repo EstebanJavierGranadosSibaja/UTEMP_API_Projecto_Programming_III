@@ -1,4 +1,4 @@
-package org.una.programmingIII.UTEMP_Project.configurations.security.utils;
+package org.una.programmingIII.UTEMP_Project.configs.security.utils;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -14,6 +14,7 @@ import org.una.programmingIII.UTEMP_Project.exceptions.TokenExpiredException;
 import org.una.programmingIII.UTEMP_Project.models.User;
 import org.una.programmingIII.UTEMP_Project.models.UserPermission;
 import org.una.programmingIII.UTEMP_Project.repositories.UserRepository;
+import org.una.programmingIII.UTEMP_Project.security.utils.JwtTokenProvider;
 
 import java.util.ArrayList;
 import java.util.Date;

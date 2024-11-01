@@ -1,6 +1,7 @@
-package org.una.programmingIII.UTEMP_Project.configurations;
+package org.una.programmingIII.UTEMP_Project.configs;
 
-import org.springframework.beans.factory.annotation.Value;
+import jakarta.mail.MessagingException;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -15,17 +16,13 @@ public class MailConfig {
 
     private static final Logger logger = LoggerFactory.getLogger(MailConfig.class);
 
-    @Value("${spring.mail.host}")
-    private String host;
+    private final String host = "smtp.gmail.com";
 
-    @Value("${spring.mail.port}")
-    private int port;
+    private final int port = 587;
 
-    @Value("${spring.mail.username}")
-    private String username;
+    private final String username = "utempjen@gmail.com";
 
-    @Value("${spring.mail.password}")
-    private String password;
+    private final String password = "thvv gzop hjna apba";
 
     @Bean
     public JavaMailSender mailSender() {
@@ -37,21 +34,24 @@ public class MailConfig {
         mailSender.setUsername(username);
         mailSender.setPassword(password);
 
+        return getJavaMailSender(mailSender, logger);
+    }
+
+    @NotNull
+    public static JavaMailSender getJavaMailSender(JavaMailSenderImpl mailSender, Logger logger) {
         Properties props = mailSender.getJavaMailProperties();
-        props.put("mail.smtp.ssl.trust", host);
         props.put("mail.smtp.auth", "true");
         props.put("mail.smtp.starttls.enable", "true");
-        props.put("mail.smtp.ssl.enable", "true");
+        props.put("mail.smtp.ssl.trust", "smtp.gmail.com");
+        props.put("mail.smtp.ssl.protocols", "TLSv1.2");
         props.put("mail.debug", "true");
-        props.put("mail.smtp.connectiontimeout", "5000");
-        props.put("mail.smtp.timeout", "5000");
-        props.put("mail.smtp.writetimeout", "5000");
 
         try {
             mailSender.testConnection();
             logger.info("Mail sender configured successfully.");
-        } catch (Exception e) {
-            logger.error("Error configuring mail sender: {}", e.getMessage());
+        } catch (MessagingException e) {
+            logger.error("Error testing mail connection: {}", e.getMessage());
+            throw new RuntimeException("Mail configuration failed.", e);
         }
 
         return mailSender;

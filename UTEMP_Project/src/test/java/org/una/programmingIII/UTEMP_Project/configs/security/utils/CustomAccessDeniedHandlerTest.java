@@ -1,10 +1,11 @@
-package org.una.programmingIII.UTEMP_Project.configurations.security.utils;
+package org.una.programmingIII.UTEMP_Project.configs.security.utils;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.access.AccessDeniedException;
+import org.una.programmingIII.UTEMP_Project.security.utils.CustomAccessDeniedHandler;
 
 import java.io.IOException;
 

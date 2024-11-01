@@ -1,4 +1,4 @@
-package org.una.programmingIII.UTEMP_Project.configurations.security.filters;
+package org.una.programmingIII.UTEMP_Project.security.filters;
 
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.SignatureException;
@@ -37,9 +37,9 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(@NonNull HttpServletRequest request,
-                                    @NonNull HttpServletResponse response,
-                                    @NonNull FilterChain filterChain)
+    public void doFilterInternal(@NonNull HttpServletRequest request,
+                                 @NonNull HttpServletResponse response,
+                                 @NonNull FilterChain filterChain)
             throws ServletException, IOException {
 
         String token = extractToken(request);

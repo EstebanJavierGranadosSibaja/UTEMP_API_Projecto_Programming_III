@@ -1,4 +1,4 @@
-package org.una.programmingIII.UTEMP_Project.configurations;
+package org.una.programmingIII.UTEMP_Project.configs;
 
 import org.una.programmingIII.UTEMP_Project.services.EmailNotificationObserver;
 import org.springframework.beans.factory.annotation.Autowired;

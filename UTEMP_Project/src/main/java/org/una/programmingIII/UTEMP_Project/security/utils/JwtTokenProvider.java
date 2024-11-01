@@ -1,4 +1,4 @@
-package org.una.programmingIII.UTEMP_Project.configurations.security.utils;
+package org.una.programmingIII.UTEMP_Project.security.utils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
