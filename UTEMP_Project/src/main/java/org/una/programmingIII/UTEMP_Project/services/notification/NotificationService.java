@@ -19,5 +19,5 @@ public interface NotificationService {
     void addNotificationToUser(Long userId, NotificationDTO notificationDTO);
     void removeNotificationFromUser(Long userId, Long notificationId);
     void markAsRead(Long notificationId);
-    void sendNotificationToUser(User user, String message);
+    void sendNotificationToUser(Long userId, String message);
 }
