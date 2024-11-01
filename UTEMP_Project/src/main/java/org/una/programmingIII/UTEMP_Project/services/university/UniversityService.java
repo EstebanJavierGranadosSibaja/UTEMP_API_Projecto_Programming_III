@@ -16,9 +16,6 @@ public interface UniversityService {
     UniversityDTO createUniversity(UniversityDTO universityDTO);
     Optional<UniversityDTO> updateUniversity(Long id, @Valid UniversityDTO universityDTO);
     void deleteUniversity(Long id);
-    Page<FacultyDTO> getFacultiesByUniversityId(Long universityId, @PageableDefault(size = 10, page = 0) Pageable pageable);
     void addFacultyToUniversity(Long universityId, FacultyDTO facultyDTO);
     void removeFacultyFromUniversity(Long universityId, Long facultyId);
-
-
-    }
+}
