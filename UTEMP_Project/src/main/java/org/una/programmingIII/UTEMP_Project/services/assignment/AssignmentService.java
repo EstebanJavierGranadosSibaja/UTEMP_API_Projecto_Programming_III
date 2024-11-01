@@ -16,7 +16,6 @@ public interface AssignmentService {
     Optional<AssignmentDTO> updateAssignment(Long id, @Valid AssignmentDTO assignmentDTO);
     void deleteAssignment(Long id);
     Page<AssignmentDTO> getAssignmentsByCourseId(Long courseId, Pageable pageable);
-    Page<SubmissionDTO> getSubmissionsByAssignmentId(Long assignmentId, Pageable pageable);
     SubmissionDTO addSubmissionToAssignment(Long assignmentId, @Valid SubmissionDTO submissionDTO);
     void deleteSubmissionFromAssignment(Long assignmentId, Long submissionId);
 }
