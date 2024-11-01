@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.una.programmingIII.UTEMP_Project.configurations.security.utils.JwtTokenProvider;
+import org.una.programmingIII.UTEMP_Project.security.utils.JwtTokenProvider;
 import org.una.programmingIII.UTEMP_Project.controllers.request.AuthRequest;
 import org.una.programmingIII.UTEMP_Project.controllers.responses.ApiResponse;
 import org.una.programmingIII.UTEMP_Project.controllers.responses.TokenResponse;
