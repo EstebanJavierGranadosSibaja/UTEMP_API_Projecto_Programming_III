@@ -1,16 +1,18 @@
 package org.una.programmingIII.UTEMP_Project.controllers;
 
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.una.programmingIII.UTEMP_Project.dtos.EnrollmentDTO;
-import org.una.programmingIII.UTEMP_Project.services.enrollment.EnrollmentService;
-import org.una.programmingIII.UTEMP_Project.exceptions.ResourceNotFoundException;
 import org.una.programmingIII.UTEMP_Project.exceptions.InvalidDataException;
-import org.una.programmingIII.UTEMP_Project.exceptions.ResourceAlreadyExistsException;
+import org.una.programmingIII.UTEMP_Project.exceptions.ResourceNotFoundException;
+import org.una.programmingIII.UTEMP_Project.services.enrollment.EnrollmentService;
 
 import java.util.Optional;
 
@@ -18,55 +20,61 @@ import java.util.Optional;
 @RequestMapping("/utemp/enrollments")
 public class EnrollmentController {
 
+    private final EnrollmentService enrollmentService;
+    private static final Logger logger = LoggerFactory.getLogger(EnrollmentController.class);
+
     @Autowired
-    private EnrollmentService enrollmentService;
+    public EnrollmentController(EnrollmentService enrollmentService) {
+        this.enrollmentService = enrollmentService;
+    }
 
     @GetMapping
-    public ResponseEntity<Page<EnrollmentDTO>> getAllEnrollments(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+    public ResponseEntity<Page<EnrollmentDTO>> getAllEnrollments(Pageable pageable) {
         try {
-            Page<EnrollmentDTO> enrollments = enrollmentService.getAllEnrollments(page, size);
-            return new ResponseEntity<>(enrollments, HttpStatus.OK);
+            Page<EnrollmentDTO> enrollments = enrollmentService.getAllEnrollments(pageable);
+            return ResponseEntity.ok(enrollments);
         } catch (Exception e) {
-            throw new InvalidDataException("Error retrieving enrollments: " + e.getMessage());
+            logger.error("Error retrieving enrollments: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 
     @GetMapping("/course/{courseId}")
     public ResponseEntity<Page<EnrollmentDTO>> getEnrollmentsByCourseId(@PathVariable Long courseId,
-                                                                        @RequestParam(defaultValue = "0") int page,
-                                                                        @RequestParam(defaultValue = "10") int size) {
+                                                                        Pageable pageable) {
         try {
-            Page<EnrollmentDTO> enrollments = enrollmentService.getEnrollmentsByCourseId(courseId, page, size);
-            return new ResponseEntity<>(enrollments, HttpStatus.OK);
+            Page<EnrollmentDTO> enrollments = enrollmentService.getEnrollmentsByCourseId(courseId, pageable);
+            return ResponseEntity.ok(enrollments);
         } catch (Exception e) {
-            throw new InvalidDataException("Error retrieving enrollments for course: " + e.getMessage());
+            logger.error("Error retrieving enrollments for course {}: {}", courseId, e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 
     @GetMapping("/student/{studentId}")
     public ResponseEntity<Page<EnrollmentDTO>> getEnrollmentsByStudentId(@PathVariable Long studentId,
-                                                                         @RequestParam(defaultValue = "0") int page,
-                                                                         @RequestParam(defaultValue = "10") int size) {
+                                                                         Pageable pageable) {
         try {
-            Page<EnrollmentDTO> enrollments = enrollmentService.getEnrollmentsByStudentId(studentId, page, size);
-            return new ResponseEntity<>(enrollments, HttpStatus.OK);
+            Page<EnrollmentDTO> enrollments = enrollmentService.getEnrollmentsByStudentId(studentId, pageable);
+            return ResponseEntity.ok(enrollments);
         } catch (Exception e) {
-            throw new InvalidDataException("Error retrieving enrollments for student: " + e.getMessage());
+            logger.error("Error retrieving enrollments for student {}: {}", studentId, e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<EnrollmentDTO> getEnrollmentById(@PathVariable Long id) {
         try {
-            Optional<EnrollmentDTO> enrollment = enrollmentService.getEnrollmentById(id);
-            return enrollment.map(ResponseEntity::ok)
-                    .orElseThrow(() -> new ResourceNotFoundException("Enrollment not found with id: " , id));
-        } catch (ResourceNotFoundException e) {
-            throw e;
+            Optional<EnrollmentDTO> enrollmentDTO = enrollmentService.getEnrollmentById(id);
+            return enrollmentDTO.map(ResponseEntity::ok)
+                    .orElseGet(() -> {
+                        logger.warn("Enrollment not found with id: {}", id);
+                        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+                    });
         } catch (Exception e) {
-            throw new InvalidDataException("Error retrieving enrollment: " + e.getMessage());
+            logger.error("Error retrieving enrollment with id {}: {}", id, e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -74,26 +82,32 @@ public class EnrollmentController {
     public ResponseEntity<EnrollmentDTO> createEnrollment(@Valid @RequestBody EnrollmentDTO enrollmentDTO) {
         try {
             EnrollmentDTO createdEnrollment = enrollmentService.createEnrollment(enrollmentDTO);
-            return new ResponseEntity<>(createdEnrollment, HttpStatus.CREATED);
-        } catch (ResourceAlreadyExistsException e) {
-            throw e;
+            return ResponseEntity.status(HttpStatus.CREATED).body(createdEnrollment);
+        } catch (InvalidDataException e) {
+            logger.error("Invalid data while creating enrollment: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         } catch (Exception e) {
-            throw new InvalidDataException("Error creating enrollment: " + e.getMessage());
+            logger.error("Error creating enrollment: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<EnrollmentDTO> updateEnrollment(
-            @PathVariable Long id,
-            @Valid @RequestBody EnrollmentDTO enrollmentDTO) {
+    public ResponseEntity<EnrollmentDTO> updateEnrollment(@PathVariable Long id,
+                                                          @Valid @RequestBody EnrollmentDTO enrollmentDTO) {
         try {
             Optional<EnrollmentDTO> updatedEnrollment = enrollmentService.updateEnrollment(id, enrollmentDTO);
             return updatedEnrollment.map(ResponseEntity::ok)
-                    .orElseThrow(() -> new ResourceNotFoundException("Enrollment not found with id: " , id));
-        } catch (ResourceNotFoundException e) {
-            throw e;
+                    .orElseGet(() -> {
+                        logger.warn("Enrollment not found for update with id: {}", id);
+                        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+                    });
+        } catch (InvalidDataException e) {
+            logger.error("Invalid data while updating enrollment: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         } catch (Exception e) {
-            throw new InvalidDataException("Error updating enrollment: " + e.getMessage());
+            logger.error("Error updating enrollment with id {}: {}", id, e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -103,9 +117,11 @@ public class EnrollmentController {
             enrollmentService.deleteEnrollment(id);
             return ResponseEntity.noContent().build();
         } catch (ResourceNotFoundException e) {
-            throw e;
+            logger.warn("Enrollment not found for deletion with id: {}", id);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         } catch (Exception e) {
-            throw new InvalidDataException("Error deleting enrollment: " + e.getMessage());
+            logger.error("Error deleting enrollment with id {}: {}", id, e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 }

@@ -5,6 +5,8 @@ import org.hibernate.service.spi.ServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -12,6 +14,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.una.programmingIII.UTEMP_Project.dtos.EnrollmentDTO;
+import org.una.programmingIII.UTEMP_Project.exceptions.InvalidDataException;
 import org.una.programmingIII.UTEMP_Project.exceptions.ResourceNotFoundException;
 import org.una.programmingIII.UTEMP_Project.models.Enrollment;
 import org.una.programmingIII.UTEMP_Project.repositories.EnrollmentRepository;
@@ -30,57 +33,76 @@ public class EnrollmentServiceImplementation implements EnrollmentService {
 
     private static final Logger logger = LoggerFactory.getLogger(EnrollmentServiceImplementation.class);
 
-    @Autowired
-    private EnrollmentRepository enrollmentRepository;
-
-    @Autowired
-    private CourseRepository courseRepository;
-
-    @Autowired
-    private UserRepository userRepository;
+    private final EnrollmentRepository enrollmentRepository;
+    private final CourseRepository courseRepository;
+    private final UserRepository userRepository;
 
     private final GenericMapper<Enrollment, EnrollmentDTO> enrollmentMapper;
 
     @Autowired
-    public EnrollmentServiceImplementation(GenericMapperFactory mapperFactory) {
+    public EnrollmentServiceImplementation(
+            EnrollmentRepository enrollmentRepository,
+            CourseRepository courseRepository,
+            UserRepository userRepository,
+            GenericMapperFactory mapperFactory) {
+
+        this.enrollmentRepository = enrollmentRepository;
+        this.courseRepository = courseRepository;
+        this.userRepository = userRepository;
         this.enrollmentMapper = mapperFactory.createMapper(Enrollment.class, EnrollmentDTO.class);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Page<EnrollmentDTO> getAllEnrollments(int page, int size) {
+    public Page<EnrollmentDTO> getAllEnrollments(Pageable pageable) {
         try {
-            Pageable pageable = PageRequest.of(page, size);
-            return enrollmentRepository.findAll(pageable).map(enrollmentMapper::convertToDTO);
+            return executeWithLogging(() -> {
+                Page<Enrollment> enrollmentPage = enrollmentRepository.findAll(pageable);
+                return enrollmentPage.map(enrollmentMapper::convertToDTO);
+            }, "Error fetching all enrollments");
+        } catch (DataAccessException e) {
+            logger.error("Database access error occurred while fetching all enrollments: {}", e.getMessage());
+            throw new InvalidDataException("Error fetching enrollments from the database");
         } catch (Exception e) {
-            logger.error("Error fetching all enrollments");
-            throw new ServiceException("Error fetching all enrollments", e);
+            logger.error("Unexpected error occurred while fetching all enrollments: {}", e.getMessage());
+            throw new InvalidDataException("Error fetching enrollments");
         }
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Page<EnrollmentDTO> getEnrollmentsByCourseId(Long courseId, int page, int size) {
+    public Page<EnrollmentDTO> getEnrollmentsByCourseId(Long courseId, Pageable pageable) {
         try {
-            Pageable pageable = PageRequest.of(page, size);
-            return enrollmentRepository.findByCourseId(courseId, pageable).map(enrollmentMapper::convertToDTO);
+            return executeWithLogging(() -> {
+                Page<Enrollment> enrollmentPage = enrollmentRepository.findByCourseId(courseId, pageable);
+                return enrollmentPage.map(enrollmentMapper::convertToDTO);
+            }, "Error fetching enrollments by course ID");
+        } catch (DataAccessException e) {
+            logger.error("Database access error occurred while fetching enrollments for course ID {}: {}", courseId, e.getMessage());
+            throw new InvalidDataException("Error fetching enrollments from the database for course ID: " + courseId);
         } catch (Exception e) {
-            logger.error("Error fetching enrollments by course ID {}: {}", courseId, e.getMessage());
-            throw new ServiceException("Error fetching enrollments by course ID", e);
+            logger.error("Unexpected error occurred while fetching enrollments for course ID {}: {}", courseId, e.getMessage());
+            throw new InvalidDataException("Error fetching enrollments for course ID: " + courseId);
         }
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Page<EnrollmentDTO> getEnrollmentsByStudentId(Long studentId, int page, int size) {
+    public Page<EnrollmentDTO> getEnrollmentsByStudentId(Long studentId, Pageable pageable) {
         try {
-            Pageable pageable = PageRequest.of(page, size);
-            return enrollmentRepository.findByStudentId(studentId, pageable).map(enrollmentMapper::convertToDTO);
+            return executeWithLogging(() -> {
+                Page<Enrollment> enrollmentPage = enrollmentRepository.findByStudentId(studentId, pageable);
+                return enrollmentPage.map(enrollmentMapper::convertToDTO);
+            }, "Error fetching enrollments by student ID");
+        } catch (DataAccessException e) {
+            logger.error("Database access error occurred while fetching enrollments for student ID {}: {}", studentId, e.getMessage());
+            throw new InvalidDataException("Error fetching enrollments from the database for student ID: " + studentId);
         } catch (Exception e) {
-            logger.error("Error fetching enrollments by student ID {}: {}", studentId, e.getMessage());
-            throw new ServiceException("Error fetching enrollments by student ID", e);
+            logger.error("Unexpected error occurred while fetching enrollments for student ID {}: {}", studentId, e.getMessage());
+            throw new InvalidDataException("Error fetching enrollments for student ID: " + studentId);
         }
     }
+
 
     @Override
     @Transactional(readOnly = true)
@@ -102,17 +124,24 @@ public class EnrollmentServiceImplementation implements EnrollmentService {
     public EnrollmentDTO createEnrollment(@Valid EnrollmentDTO enrollmentDTO) {
         try {
             Enrollment enrollment = enrollmentMapper.convertToEntity(enrollmentDTO);
+
             enrollment.setCourse(getEntityById(enrollmentDTO.getCourse().getId(), courseRepository, "Course"));
             enrollment.setStudent(getEntityById(enrollmentDTO.getStudent().getId(), userRepository, "User"));
-            return enrollmentMapper.convertToDTO(enrollmentRepository.save(enrollment));
+            Enrollment savedEnrollment = enrollmentRepository.save(enrollment);
+
+            return enrollmentMapper.convertToDTO(savedEnrollment);
         } catch (ResourceNotFoundException e) {
             logger.warn("Failed to create enrollment: {}", e.getMessage());
-            throw e; // Re-throwing to let the global exception handler handle this
+            throw e;
+        } catch (DataIntegrityViolationException e) {
+            logger.error("Data integrity violation while creating enrollment: {}", e.getMessage());
+            throw new ServiceException("Enrollment data is invalid or already exists", e);
         } catch (Exception e) {
             logger.error("Error creating enrollment: {}", e.getMessage());
             throw new ServiceException("Error creating enrollment", e);
         }
     }
+
 
     @Override
     @Transactional
@@ -125,7 +154,7 @@ public class EnrollmentServiceImplementation implements EnrollmentService {
             return Optional.of(enrollmentMapper.convertToDTO(enrollmentRepository.save(existingEnrollment)));
         } catch (ResourceNotFoundException e) {
             logger.warn("Failed to update enrollment: {}", e.getMessage());
-            throw e; // Re-throwing to let the global exception handler handle this
+            throw e;
         } catch (Exception e) {
             logger.error("Error updating enrollment ID {}: {}", id, e.getMessage());
             throw new ServiceException("Error updating enrollment", e);
@@ -140,7 +169,7 @@ public class EnrollmentServiceImplementation implements EnrollmentService {
             enrollmentRepository.delete(enrollment);
         } catch (ResourceNotFoundException e) {
             logger.warn("Failed to delete enrollment: {}", e.getMessage());
-            throw e; // Re-throwing to let the global exception handler handle this
+            throw e;
         } catch (Exception e) {
             logger.error("Error deleting enrollment ID {}: {}", id, e.getMessage());
             throw new ServiceException("Error deleting enrollment", e);
