@@ -1,5 +1,6 @@
 package org.una.programmingIII.UTEMP_Project.services.autoReview;
 
+import jakarta.mail.MessagingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
@@ -12,7 +13,9 @@ import org.una.programmingIII.UTEMP_Project.exceptions.ResourceNotFoundException
 import io.krakens.grok.api.Grok;
 import io.krakens.grok.api.GrokCompiler;
 import io.krakens.grok.api.Match;
+import org.una.programmingIII.UTEMP_Project.observers.Subject;
 import org.una.programmingIII.UTEMP_Project.repositories.SubmissionRepository;
+import org.una.programmingIII.UTEMP_Project.services.EmailNotificationObserver;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -21,7 +24,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
-public class AutoReviewServiceImplementation implements AutoReviewService  {
+public class AutoReviewServiceImplementation extends Subject<EmailNotificationObserver> implements AutoReviewService  {
 
     private static final Logger logger = LoggerFactory.getLogger(AutoReviewServiceImplementation.class);
 
@@ -49,7 +52,9 @@ public class AutoReviewServiceImplementation implements AutoReviewService  {
     private final SubmissionRepository submissionRepository;
     private final Grok grok;
 
-    public AutoReviewServiceImplementation(SubmissionRepository submissionRepository) {
+    public AutoReviewServiceImplementation(
+            SubmissionRepository submissionRepository) {
+
         this.submissionRepository = submissionRepository;
         this.grok = initializeGrok();
     }
@@ -90,9 +95,16 @@ public class AutoReviewServiceImplementation implements AutoReviewService  {
     }
 
     private String generateComment(double grade) {
+        if (grade < 0) {
+            throw new InvalidDataException("Grade cannot be negative.");
+        }
+
         String message = commentsMap.getOrDefault(grade, "Comment not found.");
         String logMessage = grade + " : " + message;
 
+        if ("Comment not found.".equals(message)) {
+            logger.warn("No comment found for grade: {}", grade);
+        }
         return extractMessageWithGrok(logMessage);
     }
 
@@ -119,14 +131,25 @@ public class AutoReviewServiceImplementation implements AutoReviewService  {
 
     private Submission validateSubmission(Long submissionId) {
         if (submissionId == null || submissionId <= 0) {
-            throw new InvalidDataException("The submission ID is not valid. Ensure it is not null or empty.");
+            throw new InvalidDataException("Submission ID must be a positive number.");
         }
 
-        Optional<Submission> optionalSubmission = submissionRepository.findById(submissionId);
-        if (optionalSubmission.isPresent()) {
-            return optionalSubmission.get();
-        } else {
-            throw new ResourceNotFoundException("Submission with ID " + submissionId + " not found.", submissionId);
+        return submissionRepository.findById(submissionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Submission with ID " + submissionId + " not found.", submissionId));
+    }
+
+
+    @Async("taskExecutor")
+    protected void sendNotificationForGrade(Grade grade, Submission submission) {
+        String message = "The grade of the assignment '" +
+                submission.getAssignment().getTitle() + "' was " + grade.getGrade();
+        try {
+            notifyObservers("SUBMISSION_GRADED", message, submission.getStudent().getEmail());
+            // notificationService.sendNotificationToUser(submission.getStudent(), message);
+
+        } catch (Exception e) {
+            logger.error("Error notifying student {}: {}", submission.getStudent().getEmail(), e.getMessage(), e);
         }
     }
+
 }

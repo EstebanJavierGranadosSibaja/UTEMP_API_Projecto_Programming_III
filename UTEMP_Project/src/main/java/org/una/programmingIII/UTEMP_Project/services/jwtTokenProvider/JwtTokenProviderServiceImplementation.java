@@ -8,20 +8,23 @@ import org.una.programmingIII.UTEMP_Project.dtos.TokenDTOs.TokenResponseDTO;
 import org.una.programmingIII.UTEMP_Project.exceptions.CustomServiceException;
 import org.una.programmingIII.UTEMP_Project.models.User;
 import org.una.programmingIII.UTEMP_Project.repositories.UserRepository;
-import org.una.programmingIII.UTEMP_Project.configurations.security.utils.JwtTokenProvider;
+import org.una.programmingIII.UTEMP_Project.security.utils.JwtTokenProvider;
 
 import java.util.Objects;
 
 @Service
 public class JwtTokenProviderServiceImplementation implements JwtTokenProviderService {
 
+    private static final Logger logger = LoggerFactory.getLogger(JwtTokenProviderServiceImplementation.class);
+
     private final JwtTokenProvider jwtTokenProvider;
     private final UserRepository userRepository;
 
-    private static final Logger logger = LoggerFactory.getLogger(JwtTokenProviderServiceImplementation.class);
-
     @Autowired
-    public JwtTokenProviderServiceImplementation(JwtTokenProvider jwtTokenProvider, UserRepository userRepository) {
+    public JwtTokenProviderServiceImplementation(
+            JwtTokenProvider jwtTokenProvider,
+            UserRepository userRepository) {
+
         this.jwtTokenProvider = jwtTokenProvider;
         this.userRepository = userRepository;
     }

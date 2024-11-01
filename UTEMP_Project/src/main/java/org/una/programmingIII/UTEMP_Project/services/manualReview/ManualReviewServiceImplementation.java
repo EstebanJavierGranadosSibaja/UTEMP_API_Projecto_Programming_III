@@ -16,10 +16,13 @@ import java.util.Optional;
 public class ManualReviewServiceImplementation implements ManualReviewService {
 
     private static final Logger logger = LoggerFactory.getLogger(ManualReviewServiceImplementation.class);
+
     private final GradeRepository gradeRepository;
 
     @Autowired
-    public ManualReviewServiceImplementation(GradeRepository gradeRepository) {
+    public ManualReviewServiceImplementation(
+            GradeRepository gradeRepository) {
+
         this.gradeRepository = gradeRepository;
     }
 

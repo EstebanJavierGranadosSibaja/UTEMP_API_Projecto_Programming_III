@@ -13,29 +13,13 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/files")
+@RequestMapping("/utemp/files")
 public class FileController {
 
     private final FileService fileService;
 
     public FileController(FileService fileService) {
         this.fileService = fileService;
-    }
-
-    @PostMapping("/upload")
-    @PreAuthorize("hasAuthority('LOAD_FILE')")
-    public ResponseEntity<String> uploadFileChunk(@RequestBody FileMetadatumDTO fileChunkDTO) {
-        try {
-            // Extraer el ID del DTO y pasar el DTO al servicio
-            fileService.receiveFileChunk(fileChunkDTO);
-            return ResponseEntity.ok("File chunk uploaded successfully.");
-        } catch (FileUploadException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     @GetMapping("/download/{id}")
@@ -55,6 +39,21 @@ public class FileController {
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 
+    @PostMapping("/upload")
+    @PreAuthorize("hasAuthority('LOAD_FILE')")
+    public ResponseEntity<String> uploadFileChunk(@RequestBody FileMetadatumDTO fileChunkDTO) {
+        try {
+            fileService.receiveFileChunk(fileChunkDTO);
+            return ResponseEntity.ok("File chunk uploaded successfully.");
+        } catch (FileUploadException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('DELETE_FILE')")
     public ResponseEntity<String> deleteFile(@PathVariable Long id) {
@@ -70,7 +69,6 @@ public class FileController {
     @PreAuthorize("hasAuthority('UPDATE_FILE')")
     public ResponseEntity<FileMetadatumDTO> updateFile(@RequestBody FileMetadatumDTO fileChunkDTO) {
         try {
-            // Usar el ID del DTO para la actualización
             FileMetadatumDTO updatedFile = fileService.updateFileMetadatum(fileChunkDTO.getId(), fileChunkDTO);
             return ResponseEntity.ok(updatedFile);
         } catch (IOException e) {
@@ -79,5 +77,4 @@ public class FileController {
             return ResponseEntity.badRequest().body(null);
         }
     }
-
 }

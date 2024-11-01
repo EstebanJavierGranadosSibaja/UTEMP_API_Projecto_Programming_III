@@ -10,7 +10,9 @@ public class PasswordEncryptionServiceImplementation implements PasswordEncrypti
     private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public PasswordEncryptionServiceImplementation(PasswordEncoder passwordEncoder) {
+    public PasswordEncryptionServiceImplementation(
+            PasswordEncoder passwordEncoder) {
+
         this.passwordEncoder = passwordEncoder;
     }
     
