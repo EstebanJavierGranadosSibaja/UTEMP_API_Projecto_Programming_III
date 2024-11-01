@@ -1,6 +1,7 @@
 package org.una.programmingIII.UTEMP_Project.controllers;
 
-import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -9,38 +10,53 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.una.programmingIII.UTEMP_Project.dtos.GradeDTO;
 import org.una.programmingIII.UTEMP_Project.services.grade.GradeService;
-import org.una.programmingIII.UTEMP_Project.exceptions.ResourceNotFoundException;
 import org.una.programmingIII.UTEMP_Project.exceptions.InvalidDataException;
+import org.una.programmingIII.UTEMP_Project.exceptions.ResourceNotFoundException;
 
-import java.util.Optional;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/utemp/grades")
 public class GradeController {
 
+    private final GradeService gradeService;
+    private static final Logger logger = LoggerFactory.getLogger(GradeController.class);
+
     @Autowired
-    private GradeService gradeService;
+    public GradeController(GradeService gradeService) {
+        this.gradeService = gradeService;
+    }
 
     @GetMapping
     public ResponseEntity<Page<GradeDTO>> getAllGrades(Pageable pageable) {
         try {
             Page<GradeDTO> grades = gradeService.getAllGrades(pageable);
-            return new ResponseEntity<>(grades, HttpStatus.OK);
+            logger.info("Fetched all grades successfully.");
+            return ResponseEntity.ok(grades);
+        } catch (InvalidDataException e) {
+            logger.error("Invalid data while fetching grades: {}", e.getMessage());
+            return ResponseEntity.badRequest().build();
         } catch (Exception e) {
-            throw new InvalidDataException("Error retrieving grades: " + e.getMessage());
+            logger.error("Error while fetching grades: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<GradeDTO> getGradeById(@PathVariable Long id) {
         try {
-            Optional<GradeDTO> gradeDTO = gradeService.getGradeById(id);
-            return gradeDTO.map(grade -> new ResponseEntity<>(grade, HttpStatus.OK))
-                    .orElseThrow(() -> new ResourceNotFoundException("Grade not found with id: " , id));
-        } catch (ResourceNotFoundException e) {
-            throw e;
+            return gradeService.getGradeById(id)
+                    .map(gradeDTO -> {
+                        logger.info("Fetched grade with ID: {}", id);
+                        return ResponseEntity.ok(gradeDTO);
+                    })
+                    .orElseGet(() -> {
+                        logger.warn("Grade with ID: {} not found.", id);
+                        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+                    });
         } catch (Exception e) {
-            throw new InvalidDataException("Error retrieving grade: " + e.getMessage());
+            logger.error("Error while fetching grade with ID {}: {}", id, e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -48,22 +64,39 @@ public class GradeController {
     public ResponseEntity<GradeDTO> createGrade(@Valid @RequestBody GradeDTO gradeDTO) {
         try {
             GradeDTO createdGrade = gradeService.createGrade(gradeDTO);
-            return new ResponseEntity<>(createdGrade, HttpStatus.CREATED);
+            logger.info("Created new grade: {}", createdGrade);
+            return ResponseEntity.status(HttpStatus.CREATED).body(createdGrade);
+        } catch (InvalidDataException e) {
+            logger.error("Invalid data while creating grade: {}", e.getMessage());
+            return ResponseEntity.badRequest().build();
         } catch (Exception e) {
-            throw new InvalidDataException("Error creating grade: " + e.getMessage());
+            logger.error("Error while creating grade: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<GradeDTO> updateGrade(@PathVariable Long id, @Valid @RequestBody GradeDTO gradeDTO) {
+    public ResponseEntity<GradeDTO> updateGrade(@PathVariable Long id,
+                                                @Valid @RequestBody GradeDTO gradeDTO) {
         try {
-            Optional<GradeDTO> updatedGrade = gradeService.updateGrade(id, gradeDTO);
-            return updatedGrade.map(grade -> new ResponseEntity<>(grade, HttpStatus.OK))
-                    .orElseThrow(() -> new ResourceNotFoundException("Grade not found with id: " , id));
+            return gradeService.updateGrade(id, gradeDTO)
+                    .map(updatedGrade -> {
+                        logger.info("Updated grade with ID: {}", id);
+                        return ResponseEntity.ok(updatedGrade);
+                    })
+                    .orElseGet(() -> {
+                        logger.warn("Grade with ID: {} not found for update.", id);
+                        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+                    });
+        } catch (InvalidDataException e) {
+            logger.error("Invalid data while updating grade with ID {}: {}", id, e.getMessage());
+            return ResponseEntity.badRequest().build();
         } catch (ResourceNotFoundException e) {
-            throw e;
+            logger.warn("Grade with ID: {} not found for update.", id);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         } catch (Exception e) {
-            throw new InvalidDataException("Error updating grade: " + e.getMessage());
+            logger.error("Error while updating grade with ID {}: {}", id, e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -71,21 +104,30 @@ public class GradeController {
     public ResponseEntity<Void> deleteGrade(@PathVariable Long id) {
         try {
             gradeService.deleteGrade(id);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            logger.info("Deleted grade with ID: {}", id);
+            return ResponseEntity.noContent().build();
         } catch (ResourceNotFoundException e) {
-            throw e;
+            logger.warn("Grade with ID: {} not found for deletion.", id);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         } catch (Exception e) {
-            throw new InvalidDataException("Error deleting grade: " + e.getMessage());
+            logger.error("Error while deleting grade with ID {}: {}", id, e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
-    @GetMapping("/submission/{submissionId}")
-    public ResponseEntity<Page<GradeDTO>> getGradesBySubmissionId(@PathVariable Long submissionId, Pageable pageable) {
+    @GetMapping("/submissions/{submissionId}")
+    public ResponseEntity<Page<GradeDTO>> getGradesBySubmissionId(@PathVariable Long submissionId,
+                                                                  Pageable pageable) {
         try {
             Page<GradeDTO> grades = gradeService.getGradesBySubmissionId(submissionId, pageable);
-            return new ResponseEntity<>(grades, HttpStatus.OK);
+            logger.info("Fetched grades for submission ID: {}", submissionId);
+            return ResponseEntity.ok(grades);
+        } catch (InvalidDataException e) {
+            logger.error("Invalid data while fetching grades for submission ID {}: {}", submissionId, e.getMessage());
+            return ResponseEntity.badRequest().build();
         } catch (Exception e) {
-            throw new InvalidDataException("Error retrieving grades for submission: " + e.getMessage());
+            logger.error("Error while fetching grades for submission ID {}: {}", submissionId, e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 }
