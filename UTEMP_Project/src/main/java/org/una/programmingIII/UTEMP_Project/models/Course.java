@@ -43,7 +43,7 @@ public class Course implements Identifiable{
 
     @OneToMany(mappedBy = "course")
     @Builder.Default
-    private List<Assignment> assignment = new ArrayList<>();
+    private List<Assignment> assignments = new ArrayList<>();
 
     @OneToMany(mappedBy = "course")
     @Builder.Default
