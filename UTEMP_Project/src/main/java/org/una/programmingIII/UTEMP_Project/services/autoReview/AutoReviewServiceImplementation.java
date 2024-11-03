@@ -1,40 +1,34 @@
 package org.una.programmingIII.UTEMP_Project.services.autoReview;
 
-import jakarta.mail.MessagingException;
+import io.krakens.grok.api.Grok;
+import io.krakens.grok.api.GrokCompiler;
+import io.krakens.grok.api.Match;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.una.programmingIII.UTEMP_Project.exceptions.InvalidDataException;
+import org.una.programmingIII.UTEMP_Project.exceptions.ResourceNotFoundException;
 import org.una.programmingIII.UTEMP_Project.models.Grade;
 import org.una.programmingIII.UTEMP_Project.models.GradeState;
 import org.una.programmingIII.UTEMP_Project.models.Submission;
-import org.una.programmingIII.UTEMP_Project.exceptions.InvalidDataException;
-import org.una.programmingIII.UTEMP_Project.exceptions.ResourceNotFoundException;
-import io.krakens.grok.api.Grok;
-import io.krakens.grok.api.GrokCompiler;
-import io.krakens.grok.api.Match;
 import org.una.programmingIII.UTEMP_Project.observers.Subject;
 import org.una.programmingIII.UTEMP_Project.repositories.SubmissionRepository;
 import org.una.programmingIII.UTEMP_Project.services.EmailNotificationObserver;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
-public class AutoReviewServiceImplementation extends Subject<EmailNotificationObserver> implements AutoReviewService  {
+public class AutoReviewServiceImplementation extends Subject<EmailNotificationObserver> implements AutoReviewService {
 
     private static final Logger logger = LoggerFactory.getLogger(AutoReviewServiceImplementation.class);
 
     private static final String COMMENT_PATTERN = "%{NUMBER:grade} : %{GREEDYDATA:message}";
     private static final double MAX_GRADE = 10.0;
     private static final double MIN_GRADE = 0.0;
-
-    private final Map<String, Double> fileGrades = new ConcurrentHashMap<>();
-    private final Map<String, String> fileComments = new ConcurrentHashMap<>();
-
     private static final Map<Double, String> commentsMap = new HashMap<>() {{
         put(0.0, "You have much to improve in your work.");
         put(1.0, "You need to try harder.");
@@ -48,7 +42,8 @@ public class AutoReviewServiceImplementation extends Subject<EmailNotificationOb
         put(9.0, "Excellent work.");
         put(10.0, "Excellent, very good work.");
     }};
-
+    private final Map<String, Double> fileGrades = new ConcurrentHashMap<>();
+    private final Map<String, String> fileComments = new ConcurrentHashMap<>();
     private final SubmissionRepository submissionRepository;
     private final Grok grok;
 

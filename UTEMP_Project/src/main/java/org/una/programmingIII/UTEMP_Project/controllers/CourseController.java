@@ -1,13 +1,13 @@
 package org.una.programmingIII.UTEMP_Project.controllers;
 
-import io.swagger.v3.oas.annotations.media.ExampleObject;
-import jakarta.validation.Valid;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,13 +40,13 @@ public class CourseController {
     @Operation(
             summary = "Get all courses",
             description = """
-        Retrieve a paginated list of all courses.
-        This endpoint provides a way to access all courses
-        available in the system, supporting pagination to
-        handle large datasets. The client can specify
-        the page number and size in the request to
-        retrieve a subset of the complete list.
-        """
+                    Retrieve a paginated list of all courses.
+                    This endpoint provides a way to access all courses
+                    available in the system, supporting pagination to
+                    handle large datasets. The client can specify
+                    the page number and size in the request to
+                    retrieve a subset of the complete list.
+                    """
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -64,11 +64,11 @@ public class CourseController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                                {
-                                  "message": "Internal server error",
-                                  "details": "An unexpected error occurred while fetching courses"
-                                }
-                                """
+                                            {
+                                              "message": "Internal server error",
+                                              "details": "An unexpected error occurred while fetching courses"
+                                            }
+                                            """
                             )
                     )
             )
@@ -88,15 +88,15 @@ public class CourseController {
     @Operation(
             summary = "Get course by ID",
             description = """
-        Retrieve a course by its ID.
-        This endpoint allows clients to request details of a
-        specific course using its unique identifier. If the course
-        is found, a 200 OK response will be returned along with
-        the course details. If the course does not exist, a
-        404 Not Found error will be returned.
-        Any unexpected errors will result in a 500 Internal
-        Server Error response.
-        """
+                    Retrieve a course by its ID.
+                    This endpoint allows clients to request details of a
+                    specific course using its unique identifier. If the course
+                    is found, a 200 OK response will be returned along with
+                    the course details. If the course does not exist, a
+                    404 Not Found error will be returned.
+                    Any unexpected errors will result in a 500 Internal
+                    Server Error response.
+                    """
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -114,11 +114,11 @@ public class CourseController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                                {
-                                  "message": "Course not found",
-                                  "details": "No course exists with ID 123"
-                                }
-                                """
+                                            {
+                                              "message": "Course not found",
+                                              "details": "No course exists with ID 123"
+                                            }
+                                            """
                             )
                     )
             ),
@@ -129,11 +129,11 @@ public class CourseController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                                {
-                                  "message": "Internal server error",
-                                  "details": "An unexpected error occurred while trying to retrieve the course"
-                                }
-                                """
+                                            {
+                                              "message": "Internal server error",
+                                              "details": "An unexpected error occurred while trying to retrieve the course"
+                                            }
+                                            """
                             )
                     )
             )
@@ -158,16 +158,16 @@ public class CourseController {
     @Operation(
             summary = "Create course",
             description = """
-        Create a new course.
-        This endpoint allows clients to submit details for a
-        new course to be added to the system. The required
-        course information must be provided in the request body.
-        Upon successful creation, a 201 Created response will be
-        returned along with the created course data. If the data
-        provided is invalid, a 400 Bad Request error will be returned.
-        Additionally, for any unexpected errors, a 500 Internal
-        Server Error response will be issued.
-        """
+                    Create a new course.
+                    This endpoint allows clients to submit details for a
+                    new course to be added to the system. The required
+                    course information must be provided in the request body.
+                    Upon successful creation, a 201 Created response will be
+                    returned along with the created course data. If the data
+                    provided is invalid, a 400 Bad Request error will be returned.
+                    Additionally, for any unexpected errors, a 500 Internal
+                    Server Error response will be issued.
+                    """
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -185,11 +185,11 @@ public class CourseController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                                {
-                                  "message": "Invalid course data",
-                                  "details": "Course title is required"
-                                }
-                                """
+                                            {
+                                              "message": "Invalid course data",
+                                              "details": "Course title is required"
+                                            }
+                                            """
                             )
                     )
             ),
@@ -200,11 +200,11 @@ public class CourseController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                                {
-                                  "message": "Internal server error",
-                                  "details": "An unexpected error occurred while trying to create the course"
-                                }
-                                """
+                                            {
+                                              "message": "Internal server error",
+                                              "details": "An unexpected error occurred while trying to create the course"
+                                            }
+                                            """
                             )
                     )
             )
@@ -227,17 +227,17 @@ public class CourseController {
     @Operation(
             summary = "Update course",
             description = """
-        Update an existing course by ID.
-        This endpoint allows clients to modify the details of a
-        specific course using its unique identifier. The updated
-        course information must be provided in the request body.
-        On success, a 200 OK response will be returned along with
-        the updated course data. If the course does not exist, a
-        404 Not Found error will be issued. Additionally, if the
-        provided data is invalid, a 400 Bad Request error will be returned,
-        and for any unexpected errors, a 500 Internal Server Error response
-        will be issued.
-        """
+                    Update an existing course by ID.
+                    This endpoint allows clients to modify the details of a
+                    specific course using its unique identifier. The updated
+                    course information must be provided in the request body.
+                    On success, a 200 OK response will be returned along with
+                    the updated course data. If the course does not exist, a
+                    404 Not Found error will be issued. Additionally, if the
+                    provided data is invalid, a 400 Bad Request error will be returned,
+                    and for any unexpected errors, a 500 Internal Server Error response
+                    will be issued.
+                    """
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -255,11 +255,11 @@ public class CourseController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                                {
-                                  "message": "Course not found",
-                                  "details": "No course found with ID 10"
-                                }
-                                """
+                                            {
+                                              "message": "Course not found",
+                                              "details": "No course found with ID 10"
+                                            }
+                                            """
                             )
                     )
             ),
@@ -270,11 +270,11 @@ public class CourseController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                                {
-                                  "message": "Invalid course data",
-                                  "details": "Title cannot be empty"
-                                }
-                                """
+                                            {
+                                              "message": "Invalid course data",
+                                              "details": "Title cannot be empty"
+                                            }
+                                            """
                             )
                     )
             ),
@@ -285,11 +285,11 @@ public class CourseController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                                {
-                                  "message": "Internal server error",
-                                  "details": "An unexpected error occurred while trying to update the course"
-                                }
-                                """
+                                            {
+                                              "message": "Internal server error",
+                                              "details": "An unexpected error occurred while trying to update the course"
+                                            }
+                                            """
                             )
                     )
             )
@@ -324,14 +324,14 @@ public class CourseController {
     @Operation(
             summary = "Delete course",
             description = """
-        Delete a course by ID.
-        This endpoint allows clients to remove a course from the system
-        using its unique identifier. If the specified course is successfully
-        deleted, a 204 No Content response will be returned.
-        If the course does not exist, a 404 Not Found error will be issued.
-        Additionally, if there is an unexpected error during the deletion process,
-        a 500 Internal Server Error response will be provided.
-        """
+                    Delete a course by ID.
+                    This endpoint allows clients to remove a course from the system
+                    using its unique identifier. If the specified course is successfully
+                    deleted, a 204 No Content response will be returned.
+                    If the course does not exist, a 404 Not Found error will be issued.
+                    Additionally, if there is an unexpected error during the deletion process,
+                    a 500 Internal Server Error response will be provided.
+                    """
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -345,11 +345,11 @@ public class CourseController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                                {
-                                  "message": "Course not found",
-                                  "details": "No course found with ID 100"
-                                }
-                                """
+                                            {
+                                              "message": "Course not found",
+                                              "details": "No course found with ID 100"
+                                            }
+                                            """
                             )
                     )
             ),
@@ -360,11 +360,11 @@ public class CourseController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                                {
-                                  "message": "Internal server error",
-                                  "details": "An unexpected error occurred while trying to delete the course"
-                                }
-                                """
+                                            {
+                                              "message": "Internal server error",
+                                              "details": "An unexpected error occurred while trying to delete the course"
+                                            }
+                                            """
                             )
                     )
             )
@@ -394,14 +394,14 @@ public class CourseController {
     @Operation(
             summary = "Get courses by teacher ID",
             description = """
-        Retrieve a paginated list of courses taught by a specific teacher.
-        This endpoint allows clients to fetch all courses associated with
-        a given teacher ID. The response will include pagination details
-        to facilitate navigation through potentially large datasets.
-        If the specified teacher does not exist, a 404 Not Found error
-        will be returned. Additionally, if the request contains invalid
-        teacher ID data, appropriate error responses will be issued.
-        """
+                    Retrieve a paginated list of courses taught by a specific teacher.
+                    This endpoint allows clients to fetch all courses associated with
+                    a given teacher ID. The response will include pagination details
+                    to facilitate navigation through potentially large datasets.
+                    If the specified teacher does not exist, a 404 Not Found error
+                    will be returned. Additionally, if the request contains invalid
+                    teacher ID data, appropriate error responses will be issued.
+                    """
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -412,45 +412,45 @@ public class CourseController {
                             schema = @Schema(implementation = Page.class), // Cambia a Page si es un Page<CourseDTO>
                             examples = @ExampleObject(
                                     value = """
-                                {
-                                  "content": [
-                                    {
-                                      "id": 1,
-                                      "title": "Course Title 1",
-                                      "description": "Description of Course 1.",
-                                      "teacherId": 5,
-                                      "credits": 3
-                                    },
-                                    {
-                                      "id": 2,
-                                      "title": "Course Title 2",
-                                      "description": "Description of Course 2.",
-                                      "teacherId": 5,
-                                      "credits": 4
-                                    }
-                                  ],
-                                  "pageable": {
-                                    "sort": {
-                                      "sorted": true,
-                                      "unsorted": false,
-                                      "empty": false
-                                    },
-                                    "offset": 0,
-                                    "pageNumber": 0,
-                                    "pageSize": 10,
-                                    "unpaged": false,
-                                    "paged": true
-                                  },
-                                  "totalElements": 2,
-                                  "totalPages": 1,
-                                  "size": 10,
-                                  "number": 0,
-                                  "numberOfElements": 2,
-                                  "first": true,
-                                  "last": true,
-                                  "empty": false
-                                }
-                                """
+                                            {
+                                              "content": [
+                                                {
+                                                  "id": 1,
+                                                  "title": "Course Title 1",
+                                                  "description": "Description of Course 1.",
+                                                  "teacherId": 5,
+                                                  "credits": 3
+                                                },
+                                                {
+                                                  "id": 2,
+                                                  "title": "Course Title 2",
+                                                  "description": "Description of Course 2.",
+                                                  "teacherId": 5,
+                                                  "credits": 4
+                                                }
+                                              ],
+                                              "pageable": {
+                                                "sort": {
+                                                  "sorted": true,
+                                                  "unsorted": false,
+                                                  "empty": false
+                                                },
+                                                "offset": 0,
+                                                "pageNumber": 0,
+                                                "pageSize": 10,
+                                                "unpaged": false,
+                                                "paged": true
+                                              },
+                                              "totalElements": 2,
+                                              "totalPages": 1,
+                                              "size": 10,
+                                              "number": 0,
+                                              "numberOfElements": 2,
+                                              "first": true,
+                                              "last": true,
+                                              "empty": false
+                                            }
+                                            """
                             )
                     )
             ),
@@ -461,11 +461,11 @@ public class CourseController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                                {
-                                  "message": "Teacher not found",
-                                  "details": "No teacher found with ID 100"
-                                }
-                                """
+                                            {
+                                              "message": "Teacher not found",
+                                              "details": "No teacher found with ID 100"
+                                            }
+                                            """
                             )
                     )
             ),
@@ -476,11 +476,11 @@ public class CourseController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                                {
-                                  "message": "Invalid teacher ID",
-                                  "details": "Teacher ID must be a positive integer"
-                                }
-                                """
+                                            {
+                                              "message": "Invalid teacher ID",
+                                              "details": "Teacher ID must be a positive integer"
+                                            }
+                                            """
                             )
                     )
             ),
@@ -491,11 +491,11 @@ public class CourseController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                                {
-                                  "message": "Internal server error",
-                                  "details": "An unexpected error occurred"
-                                }
-                                """
+                                            {
+                                              "message": "Internal server error",
+                                              "details": "An unexpected error occurred"
+                                            }
+                                            """
                             )
                     )
             )
@@ -528,14 +528,14 @@ public class CourseController {
     @Operation(
             summary = "Get courses by department ID",
             description = """
-        Retrieve a paginated list of courses in a specific department.
-        This endpoint allows clients to fetch all courses associated with
-        a given department ID. The response will include pagination details
-        to help clients navigate through potentially large datasets.
-        If the specified department does not exist, a 404 Not Found error
-        will be returned. In case of invalid department ID format or
-        other internal errors, appropriate error responses will be issued.
-        """
+                    Retrieve a paginated list of courses in a specific department.
+                    This endpoint allows clients to fetch all courses associated with
+                    a given department ID. The response will include pagination details
+                    to help clients navigate through potentially large datasets.
+                    If the specified department does not exist, a 404 Not Found error
+                    will be returned. In case of invalid department ID format or
+                    other internal errors, appropriate error responses will be issued.
+                    """
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -546,45 +546,45 @@ public class CourseController {
                             schema = @Schema(implementation = Page.class), // Cambia a Page si es un Page<CourseDTO>
                             examples = @ExampleObject(
                                     value = """
-                                {
-                                  "content": [
-                                    {
-                                      "id": 1,
-                                      "title": "Course Title 1",
-                                      "description": "Description of Course 1.",
-                                      "departmentId": 10,
-                                      "credits": 3
-                                    },
-                                    {
-                                      "id": 2,
-                                      "title": "Course Title 2",
-                                      "description": "Description of Course 2.",
-                                      "departmentId": 10,
-                                      "credits": 4
-                                    }
-                                  ],
-                                  "pageable": {
-                                    "sort": {
-                                      "sorted": true,
-                                      "unsorted": false,
-                                      "empty": false
-                                    },
-                                    "offset": 0,
-                                    "pageNumber": 0,
-                                    "pageSize": 10,
-                                    "unpaged": false,
-                                    "paged": true
-                                  },
-                                  "totalElements": 2,
-                                  "totalPages": 1,
-                                  "size": 10,
-                                  "number": 0,
-                                  "numberOfElements": 2,
-                                  "first": true,
-                                  "last": true,
-                                  "empty": false
-                                }
-                                """
+                                            {
+                                              "content": [
+                                                {
+                                                  "id": 1,
+                                                  "title": "Course Title 1",
+                                                  "description": "Description of Course 1.",
+                                                  "departmentId": 10,
+                                                  "credits": 3
+                                                },
+                                                {
+                                                  "id": 2,
+                                                  "title": "Course Title 2",
+                                                  "description": "Description of Course 2.",
+                                                  "departmentId": 10,
+                                                  "credits": 4
+                                                }
+                                              ],
+                                              "pageable": {
+                                                "sort": {
+                                                  "sorted": true,
+                                                  "unsorted": false,
+                                                  "empty": false
+                                                },
+                                                "offset": 0,
+                                                "pageNumber": 0,
+                                                "pageSize": 10,
+                                                "unpaged": false,
+                                                "paged": true
+                                              },
+                                              "totalElements": 2,
+                                              "totalPages": 1,
+                                              "size": 10,
+                                              "number": 0,
+                                              "numberOfElements": 2,
+                                              "first": true,
+                                              "last": true,
+                                              "empty": false
+                                            }
+                                            """
                             )
                     )
             ),
@@ -595,11 +595,11 @@ public class CourseController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                                {
-                                  "message": "Department not found",
-                                  "details": "No department found with ID 100"
-                                }
-                                """
+                                            {
+                                              "message": "Department not found",
+                                              "details": "No department found with ID 100"
+                                            }
+                                            """
                             )
                     )
             ),
@@ -610,11 +610,11 @@ public class CourseController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                                {
-                                  "message": "Invalid department ID",
-                                  "details": "Department ID must be a positive integer"
-                                }
-                                """
+                                            {
+                                              "message": "Invalid department ID",
+                                              "details": "Department ID must be a positive integer"
+                                            }
+                                            """
                             )
                     )
             ),
@@ -625,11 +625,11 @@ public class CourseController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                                {
-                                  "message": "Internal server error",
-                                  "details": "An unexpected error occurred"
-                                }
-                                """
+                                            {
+                                              "message": "Internal server error",
+                                              "details": "An unexpected error occurred"
+                                            }
+                                            """
                             )
                     )
             )

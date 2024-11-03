@@ -30,7 +30,6 @@ import org.una.programmingIII.UTEMP_Project.transformers.mappers.GenericMapper;
 import org.una.programmingIII.UTEMP_Project.transformers.mappers.GenericMapperFactory;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -66,6 +65,7 @@ public class AssignmentServiceImplementation extends Subject<EmailNotificationOb
         this.assignmentMapper = mapperFactory.createMapper(Assignment.class, AssignmentDTO.class);
         this.submissionMapper = mapperFactory.createMapper(Submission.class, SubmissionDTO.class);
     }
+
     @Override
     @Transactional(readOnly = true)
     public Page<AssignmentDTO> getAllAssignments(Pageable pageable) {

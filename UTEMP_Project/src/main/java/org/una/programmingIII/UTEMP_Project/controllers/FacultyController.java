@@ -1,9 +1,12 @@
 package org.una.programmingIII.UTEMP_Project.controllers;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,21 +17,18 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import org.una.programmingIII.UTEMP_Project.dtos.FacultyDTO;
 import org.una.programmingIII.UTEMP_Project.dtos.DepartmentDTO;
+import org.una.programmingIII.UTEMP_Project.dtos.FacultyDTO;
 import org.una.programmingIII.UTEMP_Project.exceptions.InvalidDataException;
 import org.una.programmingIII.UTEMP_Project.exceptions.ResourceNotFoundException;
 import org.una.programmingIII.UTEMP_Project.services.faculty.FacultyService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 
 @RestController
 @RequestMapping("/utemp/faculties")
 public class FacultyController {
 
-    private final FacultyService facultyService;
     private static final Logger logger = LoggerFactory.getLogger(FacultyController.class);
+    private final FacultyService facultyService;
 
     @Autowired
     public FacultyController(FacultyService facultyService) {
@@ -38,11 +38,11 @@ public class FacultyController {
     @Operation(
             summary = "Get all faculties",
             description = """
-    Retrieve a paginated list of faculties.
-    This endpoint allows clients to obtain a comprehensive list of all faculties available in the system,
-    along with their associated universities and departments,
-    and supports pagination to manage large datasets effectively.
-    """
+                    Retrieve a paginated list of faculties.
+                    This endpoint allows clients to obtain a comprehensive list of all faculties available in the system,
+                    along with their associated universities and departments,
+                    and supports pagination to manage large datasets effectively.
+                    """
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -60,11 +60,11 @@ public class FacultyController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                {
-                  "message": "Internal server error",
-                  "details": "An unexpected error occurred while processing the request."
-                }
-                """
+                                            {
+                                              "message": "Internal server error",
+                                              "details": "An unexpected error occurred while processing the request."
+                                            }
+                                            """
                             )
                     )
             )
@@ -84,11 +84,11 @@ public class FacultyController {
     @Operation(
             summary = "Get faculty by ID",
             description = """
-        Retrieve a faculty by its unique identifier.
-        This endpoint allows clients to obtain detailed information about a specific faculty,
-        including its name, associated university, and departments.
-        If the faculty is not found, a 404 Not Found response is returned.
-        """
+                    Retrieve a faculty by its unique identifier.
+                    This endpoint allows clients to obtain detailed information about a specific faculty,
+                    including its name, associated university, and departments.
+                    If the faculty is not found, a 404 Not Found response is returned.
+                    """
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -106,11 +106,11 @@ public class FacultyController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                                {
-                                  "message": "Faculty not found",
-                                  "details": "No faculty record exists with the specified ID."
-                                }
-                                """
+                                            {
+                                              "message": "Faculty not found",
+                                              "details": "No faculty record exists with the specified ID."
+                                            }
+                                            """
                             )
                     )
             ),
@@ -121,11 +121,11 @@ public class FacultyController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                                {
-                                  "message": "Internal server error",
-                                  "details": "An unexpected error occurred while processing the request."
-                                }
-                                """
+                                            {
+                                              "message": "Internal server error",
+                                              "details": "An unexpected error occurred while processing the request."
+                                            }
+                                            """
                             )
                     )
             )
@@ -149,10 +149,10 @@ public class FacultyController {
     @Operation(
             summary = "Create a new faculty",
             description = """
-        Create a new faculty with the provided details.
-        This endpoint allows for adding a new faculty to the system.
-        Ensure that all required fields are included in the request body to avoid validation errors.
-        """
+                    Create a new faculty with the provided details.
+                    This endpoint allows for adding a new faculty to the system.
+                    Ensure that all required fields are included in the request body to avoid validation errors.
+                    """
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -170,11 +170,11 @@ public class FacultyController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                                {
-                                  "message": "Invalid data",
-                                  "details": "The faculty information provided is not valid."
-                                }
-                                """
+                                            {
+                                              "message": "Invalid data",
+                                              "details": "The faculty information provided is not valid."
+                                            }
+                                            """
                             )
                     )
             ),
@@ -185,11 +185,11 @@ public class FacultyController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                                {
-                                  "message": "Internal server error",
-                                  "details": "An unexpected error occurred while processing the request."
-                                }
-                                """
+                                            {
+                                              "message": "Internal server error",
+                                              "details": "An unexpected error occurred while processing the request."
+                                            }
+                                            """
                             )
                     )
             )
@@ -212,10 +212,10 @@ public class FacultyController {
     @Operation(
             summary = "Update an existing faculty",
             description = """
-        Update the details of an existing faculty.
-        This endpoint allows for modifying faculty information by its ID.
-        Ensure that the faculty ID is valid and that the request body contains all necessary details for the update.
-        """
+                    Update the details of an existing faculty.
+                    This endpoint allows for modifying faculty information by its ID.
+                    Ensure that the faculty ID is valid and that the request body contains all necessary details for the update.
+                    """
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -233,11 +233,11 @@ public class FacultyController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                                {
-                                  "message": "Invalid data",
-                                  "details": "The faculty information provided is not valid."
-                                }
-                                """
+                                            {
+                                              "message": "Invalid data",
+                                              "details": "The faculty information provided is not valid."
+                                            }
+                                            """
                             )
                     )
             ),
@@ -248,11 +248,11 @@ public class FacultyController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                                {
-                                  "message": "Resource not found",
-                                  "details": "Faculty with id {id} does not exist."
-                                }
-                                """
+                                            {
+                                              "message": "Resource not found",
+                                              "details": "Faculty with id {id} does not exist."
+                                            }
+                                            """
                             )
                     )
             ),
@@ -263,11 +263,11 @@ public class FacultyController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                                {
-                                  "message": "Internal server error",
-                                  "details": "An unexpected error occurred while processing the request."
-                                }
-                                """
+                                            {
+                                              "message": "Internal server error",
+                                              "details": "An unexpected error occurred while processing the request."
+                                            }
+                                            """
                             )
                     )
             )
@@ -295,11 +295,11 @@ public class FacultyController {
     @Operation(
             summary = "Delete a faculty",
             description = """
-        Delete a faculty by its ID.
-        This endpoint will remove a faculty from the database.
-        Make sure to provide a valid faculty ID.
-        If the faculty does not exist, a 404 status will be returned.
-        """
+                    Delete a faculty by its ID.
+                    This endpoint will remove a faculty from the database.
+                    Make sure to provide a valid faculty ID.
+                    If the faculty does not exist, a 404 status will be returned.
+                    """
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -313,11 +313,11 @@ public class FacultyController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                                {
-                                  "message": "Resource not found",
-                                  "details": "Faculty with id {id} does not exist."
-                                }
-                                """
+                                            {
+                                              "message": "Resource not found",
+                                              "details": "Faculty with id {id} does not exist."
+                                            }
+                                            """
                             )
                     )
             ),
@@ -328,11 +328,11 @@ public class FacultyController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                                {
-                                  "message": "Internal server error",
-                                  "details": "An unexpected error occurred while processing the request."
-                                }
-                                """
+                                            {
+                                              "message": "Internal server error",
+                                              "details": "An unexpected error occurred while processing the request."
+                                            }
+                                            """
                             )
                     )
             )
@@ -355,9 +355,9 @@ public class FacultyController {
     @Operation(
             summary = "Get faculties by university ID",
             description = """
-        Retrieve a paginated list of faculties associated with a university.
-        This endpoint allows fetching faculties by specifying the university ID.
-        """
+                    Retrieve a paginated list of faculties associated with a university.
+                    This endpoint allows fetching faculties by specifying the university ID.
+                    """
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -375,11 +375,11 @@ public class FacultyController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                                {
-                                  "message": "University not found",
-                                  "details": "No university exists with the provided ID."
-                                }
-                                """
+                                            {
+                                              "message": "University not found",
+                                              "details": "No university exists with the provided ID."
+                                            }
+                                            """
                             )
                     )
             ),
@@ -390,11 +390,11 @@ public class FacultyController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                                {
-                                  "message": "Internal server error",
-                                  "details": "An unexpected error occurred while processing the request."
-                                }
-                                """
+                                            {
+                                              "message": "Internal server error",
+                                              "details": "An unexpected error occurred while processing the request."
+                                            }
+                                            """
                             )
                     )
             )
@@ -415,12 +415,12 @@ public class FacultyController {
     @Operation(
             summary = "Add a department to a faculty",
             description = """
-        Associate a department with a faculty.
-        This endpoint allows adding a new department to a specific faculty by its ID.
-        If the department is successfully added, a 201 Created response is returned.
-        In case of invalid data, a 400 Bad Request response is returned.
-        In case of an internal error, a 500 Internal Server Error response is returned.
-        """
+                    Associate a department with a faculty.
+                    This endpoint allows adding a new department to a specific faculty by its ID.
+                    If the department is successfully added, a 201 Created response is returned.
+                    In case of invalid data, a 400 Bad Request response is returned.
+                    In case of an internal error, a 500 Internal Server Error response is returned.
+                    """
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -434,11 +434,11 @@ public class FacultyController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                                {
-                                  "message": "Invalid data",
-                                  "details": "The department information provided is not valid."
-                                }
-                                """
+                                            {
+                                              "message": "Invalid data",
+                                              "details": "The department information provided is not valid."
+                                            }
+                                            """
                             )
                     )
             ),
@@ -449,11 +449,11 @@ public class FacultyController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                                {
-                                  "message": "Internal server error",
-                                  "details": "An unexpected error occurred while processing the request."
-                                }
-                                """
+                                            {
+                                              "message": "Internal server error",
+                                              "details": "An unexpected error occurred while processing the request."
+                                            }
+                                            """
                             )
                     )
             )
@@ -477,11 +477,11 @@ public class FacultyController {
     @Operation(
             summary = "Remove a department from a faculty",
             description = """
-        Dissociate a department from a faculty.
-        This endpoint allows the removal of a department from a specific faculty by its IDs
-        If the department is successfully removed, a 204 No Content response is returned.
-        In case the faculty or department is not found, a 404 Not Found response is returned.
-        """
+                    Dissociate a department from a faculty.
+                    This endpoint allows the removal of a department from a specific faculty by its IDs
+                    If the department is successfully removed, a 204 No Content response is returned.
+                    In case the faculty or department is not found, a 404 Not Found response is returned.
+                    """
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -495,11 +495,11 @@ public class FacultyController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                                {
-                                  "message": "Resource not found",
-                                  "details": "Department with id {departmentId} does not exist in faculty with id {facultyId}."
-                                }
-                                """
+                                            {
+                                              "message": "Resource not found",
+                                              "details": "Department with id {departmentId} does not exist in faculty with id {facultyId}."
+                                            }
+                                            """
                             )
                     )
             ),
@@ -510,11 +510,11 @@ public class FacultyController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                                {
-                                  "message": "Internal server error",
-                                  "details": "An unexpected error occurred while processing the request."
-                                }
-                                """
+                                            {
+                                              "message": "Internal server error",
+                                              "details": "An unexpected error occurred while processing the request."
+                                            }
+                                            """
                             )
                     )
             )

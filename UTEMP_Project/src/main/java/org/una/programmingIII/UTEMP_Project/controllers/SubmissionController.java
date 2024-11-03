@@ -1,13 +1,13 @@
 package org.una.programmingIII.UTEMP_Project.controllers;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.Valid;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -265,6 +265,7 @@ public class SubmissionController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
     @Operation(
             summary = "Get submissions by assignment ID",
             description = "Retrieve a paginated list of submissions for a specific assignment."
@@ -306,9 +307,9 @@ public class SubmissionController {
                     responseCode = "201",
                     description = "File metadata added successfully.",
                     content = @Content(
-                        mediaType = "application/json",
-                        schema = @Schema(implementation = FileMetadatumDTO.class)
-            )
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = FileMetadatumDTO.class)
+                    )
             ),
             @ApiResponse(
                     responseCode = "400",
@@ -364,9 +365,9 @@ public class SubmissionController {
                     responseCode = "201",
                     description = "Grade added successfully.",
                     content = @Content(
-                        mediaType = "application/json",
-                        schema = @Schema(implementation = GradeDTO.class)
-            )
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = GradeDTO.class)
+                    )
             ),
             @ApiResponse(
                     responseCode = "400",

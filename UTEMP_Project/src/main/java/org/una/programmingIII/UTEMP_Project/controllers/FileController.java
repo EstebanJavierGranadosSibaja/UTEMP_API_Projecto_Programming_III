@@ -2,11 +2,11 @@ package org.una.programmingIII.UTEMP_Project.controllers;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.ExampleObject;
 import org.apache.tomcat.util.http.fileupload.FileUploadException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -53,11 +53,11 @@ public class FileController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                {
-                  "message": "File not found",
-                  "details": "No file exists with the provided ID."
-                }
-                """
+                                            {
+                                              "message": "File not found",
+                                              "details": "No file exists with the provided ID."
+                                            }
+                                            """
                             )
                     )
             ),
@@ -144,23 +144,23 @@ public class FileController {
                             mediaType = "application/json",
                             schema = @Schema(implementation = FileMetadatumDTO.class),
                             examples = @ExampleObject(value = """
-                            [
-                                {
-                                    "id": 1,
-                                    "submission": {},
-                                    "student": {},
-                                    "fileName": "assignment_submission.pdf",
-                                    "fileSize": 102400,
-                                    "fileType": "application/pdf",
-                                    "storagePath": "/uploads/assignments/",
-                                    "createdAt": "2024-01-01T12:00:00",
-                                    "lastUpdate": "2024-01-01T12:00:00",
-                                    "fileChunk": [byte data],
-                                    "chunkIndex": 0,
-                                    "totalChunks": 5
-                                }
-                            ]
-                        """)
+                                        [
+                                            {
+                                                "id": 1,
+                                                "submission": {},
+                                                "student": {},
+                                                "fileName": "assignment_submission.pdf",
+                                                "fileSize": 102400,
+                                                "fileType": "application/pdf",
+                                                "storagePath": "/uploads/assignments/",
+                                                "createdAt": "2024-01-01T12:00:00",
+                                                "lastUpdate": "2024-01-01T12:00:00",
+                                                "fileChunk": [byte data],
+                                                "chunkIndex": 0,
+                                                "totalChunks": 5
+                                            }
+                                        ]
+                                    """)
                     )
             ),
             @ApiResponse(

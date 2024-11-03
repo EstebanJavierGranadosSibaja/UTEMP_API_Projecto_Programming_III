@@ -16,7 +16,7 @@ public class TokenResponse {
     @NotNull(message = "Password must not be null")
     private String tokenType; //"Bearer",
     @NotNull(message = "Password must not be null")
-    private  UserDTO user;
+    private UserDTO user;
     @Value("${jwt.expiration.access}")
     private int expiresIn; //3600
 }

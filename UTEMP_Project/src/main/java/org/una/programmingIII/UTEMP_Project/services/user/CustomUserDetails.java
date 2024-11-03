@@ -51,7 +51,7 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public boolean isAccountNonExpired() {
-        return  user.getState() != UserState.INACTIVE && user.getState() != UserState.SUSPENDED;
+        return user.getState() != UserState.INACTIVE && user.getState() != UserState.SUSPENDED;
     }
 
     @Override

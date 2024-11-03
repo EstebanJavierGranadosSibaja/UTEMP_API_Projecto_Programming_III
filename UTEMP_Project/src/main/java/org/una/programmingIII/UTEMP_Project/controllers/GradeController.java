@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,18 +18,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.una.programmingIII.UTEMP_Project.dtos.GradeDTO;
-import org.una.programmingIII.UTEMP_Project.services.grade.GradeService;
 import org.una.programmingIII.UTEMP_Project.exceptions.InvalidDataException;
 import org.una.programmingIII.UTEMP_Project.exceptions.ResourceNotFoundException;
-
-import jakarta.validation.Valid;
+import org.una.programmingIII.UTEMP_Project.services.grade.GradeService;
 
 @RestController
 @RequestMapping("/utemp/grades")
 public class GradeController {
 
-    private final GradeService gradeService;
     private static final Logger logger = LoggerFactory.getLogger(GradeController.class);
+    private final GradeService gradeService;
 
     @Autowired
     public GradeController(GradeService gradeService) {

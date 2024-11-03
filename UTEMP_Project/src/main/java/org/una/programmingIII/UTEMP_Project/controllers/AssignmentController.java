@@ -1,13 +1,13 @@
 package org.una.programmingIII.UTEMP_Project.controllers;
 
-import io.swagger.v3.oas.annotations.media.ExampleObject;
-import jakarta.validation.Valid;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,15 +40,15 @@ public class AssignmentController {
     @Operation(
             summary = "Retrieve all assignments",
             description = """
-        Fetches a paginated list of all assignments in the system.
-        This endpoint allows clients to retrieve a comprehensive
-        overview of all assignments available, with support for
-        pagination. The client can specify page size and number
-        through the Pageable parameter. A successful response will
-        return a 200 OK status along with a Page object containing
-        a list of AssignmentDTO items. In case of invalid data or
-        errors, appropriate error responses will be returned.
-        """
+                    Fetches a paginated list of all assignments in the system.
+                    This endpoint allows clients to retrieve a comprehensive
+                    overview of all assignments available, with support for
+                    pagination. The client can specify page size and number
+                    through the Pageable parameter. A successful response will
+                    return a 200 OK status along with a Page object containing
+                    a list of AssignmentDTO items. In case of invalid data or
+                    errors, appropriate error responses will be returned.
+                    """
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -59,45 +59,45 @@ public class AssignmentController {
                             schema = @Schema(implementation = Page.class),
                             examples = @ExampleObject(
                                     value = """
-                {
-                  "content": [
-                    {
-                      "id": 1,
-                      "title": "First Assignment",
-                      "description": "Description of the first assignment.",
-                      "deadline": "2024-12-15T23:59:59Z",
-                      "courseId": 10
-                    },
-                    {
-                      "id": 2,
-                      "title": "Second Assignment",
-                      "description": "Description of the second assignment.",
-                      "deadline": "2024-12-20T23:59:59Z",
-                      "courseId": 10
-                    }
-                  ],
-                  "pageable": {
-                    "sort": {
-                      "sorted": false,
-                      "unsorted": true,
-                      "empty": true
-                    },
-                    "offset": 0,
-                    "pageNumber": 0,
-                    "pageSize": 10,
-                    "unpaged": false,
-                    "paged": true
-                  },
-                  "totalElements": 2,
-                  "totalPages": 1,
-                  "size": 10,
-                  "number": 0,
-                  "numberOfElements": 2,
-                  "first": true,
-                  "last": true,
-                  "empty": false
-                }
-                """
+                                            {
+                                              "content": [
+                                                {
+                                                  "id": 1,
+                                                  "title": "First Assignment",
+                                                  "description": "Description of the first assignment.",
+                                                  "deadline": "2024-12-15T23:59:59Z",
+                                                  "courseId": 10
+                                                },
+                                                {
+                                                  "id": 2,
+                                                  "title": "Second Assignment",
+                                                  "description": "Description of the second assignment.",
+                                                  "deadline": "2024-12-20T23:59:59Z",
+                                                  "courseId": 10
+                                                }
+                                              ],
+                                              "pageable": {
+                                                "sort": {
+                                                  "sorted": false,
+                                                  "unsorted": true,
+                                                  "empty": true
+                                                },
+                                                "offset": 0,
+                                                "pageNumber": 0,
+                                                "pageSize": 10,
+                                                "unpaged": false,
+                                                "paged": true
+                                              },
+                                              "totalElements": 2,
+                                              "totalPages": 1,
+                                              "size": 10,
+                                              "number": 0,
+                                              "numberOfElements": 2,
+                                              "first": true,
+                                              "last": true,
+                                              "empty": false
+                                            }
+                                            """
                             )
                     )
             ),
@@ -108,11 +108,11 @@ public class AssignmentController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                {
-                  "message": "Invalid pagination parameters",
-                  "details": "Page size must be greater than zero"
-                }
-                """
+                                            {
+                                              "message": "Invalid pagination parameters",
+                                              "details": "Page size must be greater than zero"
+                                            }
+                                            """
                             )
                     )
             ),
@@ -140,15 +140,15 @@ public class AssignmentController {
     @Operation(
             summary = "Retrieve assignment by ID",
             description = """
-        Fetches an assignment record from the system using its unique ID.
-        This endpoint is useful for retrieving detailed information about
-        a specific assignment. A valid assignment ID must be provided
-        as a path variable. If the assignment exists, the server responds
-        with a 200 OK status and the corresponding AssignmentDTO object.
-        If no assignment is found with the specified ID, a 404 Not Found
-        response is returned, along with an error message. In case of
-        unexpected errors, a 500 Internal Server Error response is sent.
-        """
+                    Fetches an assignment record from the system using its unique ID.
+                    This endpoint is useful for retrieving detailed information about
+                    a specific assignment. A valid assignment ID must be provided
+                    as a path variable. If the assignment exists, the server responds
+                    with a 200 OK status and the corresponding AssignmentDTO object.
+                    If no assignment is found with the specified ID, a 404 Not Found
+                    response is returned, along with an error message. In case of
+                    unexpected errors, a 500 Internal Server Error response is sent.
+                    """
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -159,14 +159,14 @@ public class AssignmentController {
                             schema = @Schema(implementation = AssignmentDTO.class),
                             examples = @ExampleObject(
                                     value = """
-                {
-                  "id": 1,
-                  "title": "Assignment Title",
-                  "description": "This is a detailed description of the assignment.",
-                  "deadline": "2024-12-15T23:59:59Z",
-                  "courseId": 10
-                }
-                """
+                                            {
+                                              "id": 1,
+                                              "title": "Assignment Title",
+                                              "description": "This is a detailed description of the assignment.",
+                                              "deadline": "2024-12-15T23:59:59Z",
+                                              "courseId": 10
+                                            }
+                                            """
                             )
                     )
             ),
@@ -177,11 +177,11 @@ public class AssignmentController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                {
-                  "message": "Assignment not found",
-                  "details": "No assignment found with ID 1"
-                }
-                """
+                                            {
+                                              "message": "Assignment not found",
+                                              "details": "No assignment found with ID 1"
+                                            }
+                                            """
                             )
                     )
             ),
@@ -218,15 +218,15 @@ public class AssignmentController {
     @Operation(
             summary = "Create a new assignment",
             description = """
-        This endpoint allows users to create a new assignment record in the system.
-        The request must include an AssignmentDTO object in the request body,
-        which contains the assignment details such as title, description,
-        deadline, and associated course ID. Upon successful creation,
-        the server responds with a 201 Created status, along with the
-        created AssignmentDTO object in the response body.
-        If the provided data is invalid, a 400 Bad Request response is returned,
-        detailing the validation errors.
-        """
+                    This endpoint allows users to create a new assignment record in the system.
+                    The request must include an AssignmentDTO object in the request body,
+                    which contains the assignment details such as title, description,
+                    deadline, and associated course ID. Upon successful creation,
+                    the server responds with a 201 Created status, along with the
+                    created AssignmentDTO object in the response body.
+                    If the provided data is invalid, a 400 Bad Request response is returned,
+                    detailing the validation errors.
+                    """
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -237,14 +237,14 @@ public class AssignmentController {
                             schema = @Schema(implementation = AssignmentDTO.class),
                             examples = @ExampleObject(
                                     value = """
-                {
-                  "id": 1,
-                  "title": "New Assignment Title",
-                  "description": "This is a detailed description of the new assignment.",
-                  "deadline": "2024-12-15T23:59:59Z",
-                  "courseId": 10
-                }
-                """
+                                            {
+                                              "id": 1,
+                                              "title": "New Assignment Title",
+                                              "description": "This is a detailed description of the new assignment.",
+                                              "deadline": "2024-12-15T23:59:59Z",
+                                              "courseId": 10
+                                            }
+                                            """
                             )
                     )
             ),
@@ -255,14 +255,14 @@ public class AssignmentController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                {
-                  "message": "Invalid data provided",
-                  "details": [
-                    "Title must not be empty",
-                    "Deadline must be a future date"
-                  ]
-                }
-                """
+                                            {
+                                              "message": "Invalid data provided",
+                                              "details": [
+                                                "Title must not be empty",
+                                                "Deadline must be a future date"
+                                              ]
+                                            }
+                                            """
                             )
                     )
             ),
@@ -295,13 +295,13 @@ public class AssignmentController {
     @Operation(
             summary = "Update an existing assignment by ID",
             description = """
-        Updates the details of a specific assignment identified by its ID.
-        This endpoint allows clients to modify the assignment's properties by sending an
-        updated AssignmentDTO object in the request body.
-        If the assignment is successfully updated, the response includes the updated
-        AssignmentDTO. If the assignment is not found, a 404 Not Found response is returned.
-        If the provided data is invalid, a 400 Bad Request response is returned.
-        """
+                    Updates the details of a specific assignment identified by its ID.
+                    This endpoint allows clients to modify the assignment's properties by sending an
+                    updated AssignmentDTO object in the request body.
+                    If the assignment is successfully updated, the response includes the updated
+                    AssignmentDTO. If the assignment is not found, a 404 Not Found response is returned.
+                    If the provided data is invalid, a 400 Bad Request response is returned.
+                    """
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -312,14 +312,14 @@ public class AssignmentController {
                             schema = @Schema(implementation = AssignmentDTO.class),
                             examples = @ExampleObject(
                                     value = """
-                {
-                  "id": 1,
-                  "title": "Updated Assignment Title",
-                  "description": "Updated description of the assignment.",
-                  "deadline": "2024-12-01T23:59:59Z",
-                  "courseId": 10
-                }
-                """
+                                            {
+                                              "id": 1,
+                                              "title": "Updated Assignment Title",
+                                              "description": "Updated description of the assignment.",
+                                              "deadline": "2024-12-01T23:59:59Z",
+                                              "courseId": 10
+                                            }
+                                            """
                             )
                     )
             ),
@@ -366,11 +366,11 @@ public class AssignmentController {
     @Operation(
             summary = "Delete an assignment by ID",
             description = """
-        Deletes a specific assignment identified by its ID.
-        This endpoint permanently removes the assignment from the system.
-        If the assignment is successfully deleted, a 204 No Content response is returned.
-        If the specified assignment does not exist, a 404 Not Found response is returned.
-        """
+                    Deletes a specific assignment identified by its ID.
+                    This endpoint permanently removes the assignment from the system.
+                    If the assignment is successfully deleted, a 204 No Content response is returned.
+                    If the specified assignment does not exist, a 404 Not Found response is returned.
+                    """
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -412,10 +412,10 @@ public class AssignmentController {
     @Operation(
             summary = "Retrieve assignments by course ID",
             description = """
-        Retrieves a paginated list of assignments associated with a specified course.
-        This endpoint is useful for fetching assignments in manageable pages by specifying the course ID.
-        The response includes AssignmentDTO objects containing assignment details.
-        """
+                    Retrieves a paginated list of assignments associated with a specified course.
+                    This endpoint is useful for fetching assignments in manageable pages by specifying the course ID.
+                    The response includes AssignmentDTO objects containing assignment details.
+                    """
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -426,44 +426,44 @@ public class AssignmentController {
                             schema = @Schema(implementation = Page.class),
                             examples = @ExampleObject(
                                     value = """
-                {
-                  "content": [
-                    {
-                      "id": 1,
-                      "title": "Assignment 1",
-                      "description": "Complete chapter 3 exercises",
-                      "deadline": "2024-11-01T23:59:59Z",
-                      "course": {
-                        "id": 10,
-                        "name": "Mathematics"
-                      },
-                      "state": "ACTIVE"
-                    },
-                    {
-                      "id": 2,
-                      "title": "Assignment 2",
-                      "description": "Write a summary of chapter 4",
-                      "deadline": "2024-11-10T23:59:59Z",
-                      "course": {
-                        "id": 10,
-                        "name": "Mathematics"
-                      },
-                      "state": "ACTIVE"
-                    }
-                  ],
-                  "pageable": {
-                    "pageNumber": 0,
-                    "pageSize": 10,
-                    "sort": {
-                      "sorted": true,
-                      "unsorted": false,
-                      "empty": false
-                    }
-                  },
-                  "totalPages": 1,
-                  "totalElements": 2
-                }
-                """
+                                            {
+                                              "content": [
+                                                {
+                                                  "id": 1,
+                                                  "title": "Assignment 1",
+                                                  "description": "Complete chapter 3 exercises",
+                                                  "deadline": "2024-11-01T23:59:59Z",
+                                                  "course": {
+                                                    "id": 10,
+                                                    "name": "Mathematics"
+                                                  },
+                                                  "state": "ACTIVE"
+                                                },
+                                                {
+                                                  "id": 2,
+                                                  "title": "Assignment 2",
+                                                  "description": "Write a summary of chapter 4",
+                                                  "deadline": "2024-11-10T23:59:59Z",
+                                                  "course": {
+                                                    "id": 10,
+                                                    "name": "Mathematics"
+                                                  },
+                                                  "state": "ACTIVE"
+                                                }
+                                              ],
+                                              "pageable": {
+                                                "pageNumber": 0,
+                                                "pageSize": 10,
+                                                "sort": {
+                                                  "sorted": true,
+                                                  "unsorted": false,
+                                                  "empty": false
+                                                }
+                                              },
+                                              "totalPages": 1,
+                                              "totalElements": 2
+                                            }
+                                            """
                             )
                     )
             ),
@@ -503,12 +503,12 @@ public class AssignmentController {
     @Operation(
             summary = "Add a submission to an assignment",
             description = """
-        This endpoint allows students to submit their work for a specific assignment.
-        It requires the ID of the assignment and the submission details.
-        Upon successful creation of the submission, a 201 Created response is returned
-        along with the created SubmissionDTO object.
-        If the assignment is not found or if the provided data is invalid, appropriate error responses will be returned.
-        """
+                    This endpoint allows students to submit their work for a specific assignment.
+                    It requires the ID of the assignment and the submission details.
+                    Upon successful creation of the submission, a 201 Created response is returned
+                    along with the created SubmissionDTO object.
+                    If the assignment is not found or if the provided data is invalid, appropriate error responses will be returned.
+                    """
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -531,11 +531,11 @@ public class AssignmentController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                    {
-                      "message": "Invalid file name",
-                      "details": "File name must not be blank"
-                    }
-                    """
+                                            {
+                                              "message": "Invalid file name",
+                                              "details": "File name must not be blank"
+                                            }
+                                            """
                             )
                     )
             ),

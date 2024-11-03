@@ -16,7 +16,10 @@ import org.una.programmingIII.UTEMP_Project.dtos.AssignmentDTO;
 import org.una.programmingIII.UTEMP_Project.dtos.CourseDTO;
 import org.una.programmingIII.UTEMP_Project.exceptions.InvalidDataException;
 import org.una.programmingIII.UTEMP_Project.exceptions.ResourceNotFoundException;
-import org.una.programmingIII.UTEMP_Project.models.*;
+import org.una.programmingIII.UTEMP_Project.models.Assignment;
+import org.una.programmingIII.UTEMP_Project.models.Course;
+import org.una.programmingIII.UTEMP_Project.models.CourseState;
+import org.una.programmingIII.UTEMP_Project.models.Enrollment;
 import org.una.programmingIII.UTEMP_Project.observers.Subject;
 import org.una.programmingIII.UTEMP_Project.repositories.AssignmentRepository;
 import org.una.programmingIII.UTEMP_Project.repositories.CourseRepository;
@@ -284,7 +287,7 @@ public class CourseServiceImplementation extends Subject<EmailNotificationObserv
     }
 
     @Async("taskExecutor")
-    protected CompletableFuture<Void> sendMailToAllStudents(List<Enrollment> enrollments, Assignment assignment) {
+    protected void sendMailToAllStudents(List<Enrollment> enrollments, Assignment assignment) {
         String message = "Assignment '" + assignment.getTitle() +
                 "' was added in the " + assignment.getCourse().getName() + " course";
 
@@ -296,6 +299,6 @@ public class CourseServiceImplementation extends Subject<EmailNotificationObserv
                 logger.error("Error notifying student {}: {}", enrollment.getStudent().getEmail(), e.getMessage());
             }
         }
-        return CompletableFuture.completedFuture(null);
+        CompletableFuture.completedFuture(null);
     }
 }

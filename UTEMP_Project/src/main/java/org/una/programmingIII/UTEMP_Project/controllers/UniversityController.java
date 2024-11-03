@@ -17,11 +17,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import org.una.programmingIII.UTEMP_Project.dtos.UniversityDTO;
 import org.una.programmingIII.UTEMP_Project.dtos.FacultyDTO;
-import org.una.programmingIII.UTEMP_Project.services.university.UniversityService;
-import org.una.programmingIII.UTEMP_Project.exceptions.ResourceNotFoundException;
+import org.una.programmingIII.UTEMP_Project.dtos.UniversityDTO;
 import org.una.programmingIII.UTEMP_Project.exceptions.InvalidDataException;
+import org.una.programmingIII.UTEMP_Project.exceptions.ResourceNotFoundException;
+import org.una.programmingIII.UTEMP_Project.services.university.UniversityService;
 
 import java.util.Optional;
 
@@ -29,8 +29,8 @@ import java.util.Optional;
 @RequestMapping("/utemp/universities")
 public class UniversityController {
 
-    private final UniversityService universityService;
     private static final Logger logger = LoggerFactory.getLogger(UniversityController.class);
+    private final UniversityService universityService;
 
     @Autowired
     public UniversityController(UniversityService universityService) {

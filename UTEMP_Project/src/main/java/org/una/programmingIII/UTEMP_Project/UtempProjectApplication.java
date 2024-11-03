@@ -8,7 +8,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 @EnableAsync(proxyTargetClass = true)
 public class UtempProjectApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(UtempProjectApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(UtempProjectApplication.class, args);
+    }
 }

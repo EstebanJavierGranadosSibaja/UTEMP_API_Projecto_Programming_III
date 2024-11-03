@@ -15,7 +15,7 @@ public class PasswordEncryptionServiceImplementation implements PasswordEncrypti
 
         this.passwordEncoder = passwordEncoder;
     }
-    
+
     @Override
     public String encryptPassword(String password) {
         return passwordEncoder.encode(password);

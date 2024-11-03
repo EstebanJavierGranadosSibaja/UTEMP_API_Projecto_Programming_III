@@ -15,9 +15,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.una.programmingIII.UTEMP_Project.security.filters.JwtRequestFilter;
 import org.una.programmingIII.UTEMP_Project.security.utils.CustomAccessDeniedHandler;
 import org.una.programmingIII.UTEMP_Project.security.utils.CustomAuthenticationEntryPoint;
-import org.una.programmingIII.UTEMP_Project.security.filters.JwtRequestFilter;
 import org.una.programmingIII.UTEMP_Project.services.jwtTokenProvider.JwtTokenProviderService;
 import org.una.programmingIII.UTEMP_Project.services.user.CustomUserDetailsService;
 

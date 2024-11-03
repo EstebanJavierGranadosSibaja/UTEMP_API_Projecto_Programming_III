@@ -10,22 +10,20 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.una.programmingIII.UTEMP_Project.dtos.UniversityDTO;
 import org.una.programmingIII.UTEMP_Project.dtos.FacultyDTO;
+import org.una.programmingIII.UTEMP_Project.dtos.UniversityDTO;
 import org.una.programmingIII.UTEMP_Project.exceptions.InvalidDataException;
 import org.una.programmingIII.UTEMP_Project.exceptions.ResourceNotFoundException;
-import org.una.programmingIII.UTEMP_Project.models.University;
 import org.una.programmingIII.UTEMP_Project.models.Faculty;
-import org.una.programmingIII.UTEMP_Project.repositories.UniversityRepository;
+import org.una.programmingIII.UTEMP_Project.models.University;
 import org.una.programmingIII.UTEMP_Project.repositories.FacultyRepository;
+import org.una.programmingIII.UTEMP_Project.repositories.UniversityRepository;
 import org.una.programmingIII.UTEMP_Project.transformers.mappers.GenericMapper;
 import org.una.programmingIII.UTEMP_Project.transformers.mappers.GenericMapperFactory;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 

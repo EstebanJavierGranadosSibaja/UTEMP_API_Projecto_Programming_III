@@ -11,7 +11,8 @@ import java.util.stream.Collectors;
 @Converter(autoApply = true)
 public class UserPermissionConverter implements AttributeConverter<List<UserPermission>, String> {
 
-    public UserPermissionConverter() {}
+    public UserPermissionConverter() {
+    }
 
     public String convertToDatabaseColumn(List<UserPermission> permissions) {
         if (permissions == null || permissions.isEmpty()) {

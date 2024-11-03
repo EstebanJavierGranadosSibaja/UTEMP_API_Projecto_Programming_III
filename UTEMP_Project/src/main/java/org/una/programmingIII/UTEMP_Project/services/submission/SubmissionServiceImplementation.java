@@ -13,12 +13,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.una.programmingIII.UTEMP_Project.dtos.SubmissionDTO;
 import org.una.programmingIII.UTEMP_Project.dtos.FileMetadatumDTO;
 import org.una.programmingIII.UTEMP_Project.dtos.GradeDTO;
+import org.una.programmingIII.UTEMP_Project.dtos.SubmissionDTO;
 import org.una.programmingIII.UTEMP_Project.exceptions.InvalidDataException;
 import org.una.programmingIII.UTEMP_Project.exceptions.ResourceNotFoundException;
-import org.una.programmingIII.UTEMP_Project.models.Assignment;
 import org.una.programmingIII.UTEMP_Project.models.FileMetadatum;
 import org.una.programmingIII.UTEMP_Project.models.Grade;
 import org.una.programmingIII.UTEMP_Project.models.Submission;
@@ -32,7 +31,6 @@ import org.una.programmingIII.UTEMP_Project.transformers.mappers.GenericMapper;
 import org.una.programmingIII.UTEMP_Project.transformers.mappers.GenericMapperFactory;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -54,8 +52,8 @@ public class SubmissionServiceImplementation extends Subject implements Submissi
 
     @Autowired
     public SubmissionServiceImplementation(SubmissionRepository submissionRepository, AssignmentRepository assignmentRepository,
-            FileMetadatumRepository fileMetadatumRepository, GradeRepository gradeRepository, NotificationService notificationService,
-            GenericMapperFactory mapperFactory) {
+                                           FileMetadatumRepository fileMetadatumRepository, GradeRepository gradeRepository, NotificationService notificationService,
+                                           GenericMapperFactory mapperFactory) {
 
         this.submissionRepository = submissionRepository;
         this.assignmentRepository = assignmentRepository;

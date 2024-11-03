@@ -1,12 +1,11 @@
 package org.una.programmingIII.UTEMP_Project.validators;
 
-import org.springframework.stereotype.Component;
-import org.una.programmingIII.UTEMP_Project.dtos.UserDTO;
-import org.una.programmingIII.UTEMP_Project.exceptions.InvalidDataException;
-
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
+import org.springframework.stereotype.Component;
+import org.una.programmingIII.UTEMP_Project.dtos.UserDTO;
+import org.una.programmingIII.UTEMP_Project.exceptions.InvalidDataException;
 
 @Component
 public class UserValidator {

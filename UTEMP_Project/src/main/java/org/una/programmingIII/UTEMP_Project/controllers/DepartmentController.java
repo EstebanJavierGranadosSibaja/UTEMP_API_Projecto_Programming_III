@@ -1,8 +1,13 @@
 package org.una.programmingIII.UTEMP_Project.controllers;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,17 +17,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import org.una.programmingIII.UTEMP_Project.dtos.DepartmentDTO;
 import org.una.programmingIII.UTEMP_Project.dtos.CourseDTO;
-import org.una.programmingIII.UTEMP_Project.services.department.DepartmentService;
+import org.una.programmingIII.UTEMP_Project.dtos.DepartmentDTO;
 import org.una.programmingIII.UTEMP_Project.exceptions.InvalidDataException;
 import org.una.programmingIII.UTEMP_Project.exceptions.ResourceNotFoundException;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.Parameter;
-
-import jakarta.validation.Valid;
+import org.una.programmingIII.UTEMP_Project.services.department.DepartmentService;
 
 @RestController
 @RequestMapping("/utemp/departments")
@@ -39,10 +38,10 @@ public class DepartmentController {
     @Operation(
             summary = "Fetch all departments",
             description = """
-        Returns a paginated list of all departments.
-        This endpoint retrieves a list of departments in a paginated format,
-        allowing clients to specify pagination parameters.
-        """
+                    Returns a paginated list of all departments.
+                    This endpoint retrieves a list of departments in a paginated format,
+                    allowing clients to specify pagination parameters.
+                    """
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -60,11 +59,11 @@ public class DepartmentController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                                {
-                                  "message": "Invalid pagination parameters.",
-                                  "details": "Page size must be a positive number."
-                                }
-                                """
+                                            {
+                                              "message": "Invalid pagination parameters.",
+                                              "details": "Page size must be a positive number."
+                                            }
+                                            """
                             )
                     )
             ),
@@ -75,11 +74,11 @@ public class DepartmentController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                                {
-                                  "message": "Internal server error",
-                                  "details": "An unexpected error occurred while processing the request."
-                                }
-                                """
+                                            {
+                                              "message": "Internal server error",
+                                              "details": "An unexpected error occurred while processing the request."
+                                            }
+                                            """
                             )
                     )
             )
@@ -103,11 +102,11 @@ public class DepartmentController {
     @Operation(
             summary = "Fetch department by ID",
             description = """
-        Returns a department by its ID.
-        This endpoint retrieves the details of a department specified
-        by the provided ID. If the department does not exist, a
-        corresponding error response will be returned.
-        """
+                    Returns a department by its ID.
+                    This endpoint retrieves the details of a department specified
+                    by the provided ID. If the department does not exist, a
+                    corresponding error response will be returned.
+                    """
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -125,11 +124,11 @@ public class DepartmentController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                                {
-                                  "message": "Department not found.",
-                                  "details": "No department found with ID 123."
-                                }
-                                """
+                                            {
+                                              "message": "Department not found.",
+                                              "details": "No department found with ID 123."
+                                            }
+                                            """
                             )
                     )
             ),
@@ -140,11 +139,11 @@ public class DepartmentController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                                {
-                                  "message": "Internal server error",
-                                  "details": "An unexpected error occurred while processing the request."
-                                }
-                                """
+                                            {
+                                              "message": "Internal server error",
+                                              "details": "An unexpected error occurred while processing the request."
+                                            }
+                                            """
                             )
                     )
             )
@@ -170,11 +169,11 @@ public class DepartmentController {
     @Operation(
             summary = "Create a new department",
             description = """
-        Creates a new department and returns the created department.
-        This endpoint allows the creation of a new department within the
-        system. The provided department data must be valid and complete
-        according to the required fields.
-        """
+                    Creates a new department and returns the created department.
+                    This endpoint allows the creation of a new department within the
+                    system. The provided department data must be valid and complete
+                    according to the required fields.
+                    """
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -192,11 +191,11 @@ public class DepartmentController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                                {
-                                  "message": "Invalid data for creating department.",
-                                  "details": "The name field is required."
-                                }
-                                """
+                                            {
+                                              "message": "Invalid data for creating department.",
+                                              "details": "The name field is required."
+                                            }
+                                            """
                             )
                     )
             ),
@@ -207,11 +206,11 @@ public class DepartmentController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                                {
-                                  "message": "Internal server error",
-                                  "details": "An unexpected error occurred while processing the request."
-                                }
-                                """
+                                            {
+                                              "message": "Internal server error",
+                                              "details": "An unexpected error occurred while processing the request."
+                                            }
+                                            """
                             )
                     )
             )
@@ -235,11 +234,11 @@ public class DepartmentController {
     @Operation(
             summary = "Update an existing department",
             description = """
-        Updates an existing department by its ID.
-        This endpoint allows for modifying the details of a specific
-        department. Ensure that the department ID exists before attempting
-        to update its information.
-        """
+                    Updates an existing department by its ID.
+                    This endpoint allows for modifying the details of a specific
+                    department. Ensure that the department ID exists before attempting
+                    to update its information.
+                    """
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -257,11 +256,11 @@ public class DepartmentController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                                {
-                                  "message": "Department not found.",
-                                  "details": "No department exists with the provided ID."
-                                }
-                                """
+                                            {
+                                              "message": "Department not found.",
+                                              "details": "No department exists with the provided ID."
+                                            }
+                                            """
                             )
                     )
             ),
@@ -272,11 +271,11 @@ public class DepartmentController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                                {
-                                  "message": "Internal server error",
-                                  "details": "An unexpected error occurred while processing the request."
-                                }
-                                """
+                                            {
+                                              "message": "Internal server error",
+                                              "details": "An unexpected error occurred while processing the request."
+                                            }
+                                            """
                             )
                     )
             )
@@ -302,11 +301,11 @@ public class DepartmentController {
     @Operation(
             summary = "Delete a department",
             description = """
-        Deletes a department by its ID.
-        This endpoint allows for the removal of a specific department
-        from the system using its unique identifier. Ensure that the
-        department ID exists before attempting to delete it.
-        """
+                    Deletes a department by its ID.
+                    This endpoint allows for the removal of a specific department
+                    from the system using its unique identifier. Ensure that the
+                    department ID exists before attempting to delete it.
+                    """
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -320,11 +319,11 @@ public class DepartmentController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                                {
-                                  "message": "Department not found.",
-                                  "details": "No department exists with the provided ID."
-                                }
-                                """
+                                            {
+                                              "message": "Department not found.",
+                                              "details": "No department exists with the provided ID."
+                                            }
+                                            """
                             )
                     )
             ),
@@ -335,11 +334,11 @@ public class DepartmentController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                                {
-                                  "message": "Internal server error",
-                                  "details": "An unexpected error occurred while processing the request."
-                                }
-                                """
+                                            {
+                                              "message": "Internal server error",
+                                              "details": "An unexpected error occurred while processing the request."
+                                            }
+                                            """
                             )
                     )
             )
@@ -363,12 +362,12 @@ public class DepartmentController {
     @Operation(
             summary = "Fetch departments by faculty ID",
             description = """
-        Returns a paginated list of departments for a given faculty.
-        This endpoint retrieves all departments associated with a specific
-        faculty ID and supports pagination to manage large datasets.
-        Ensure that the provided faculty ID is valid to receive a
-        successful response.
-        """
+                    Returns a paginated list of departments for a given faculty.
+                    This endpoint retrieves all departments associated with a specific
+                    faculty ID and supports pagination to manage large datasets.
+                    Ensure that the provided faculty ID is valid to receive a
+                    successful response.
+                    """
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -383,11 +382,11 @@ public class DepartmentController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                                {
-                                  "message": "Invalid faculty ID provided.",
-                                  "details": "Faculty ID must be a positive integer."
-                                }
-                                """
+                                            {
+                                              "message": "Invalid faculty ID provided.",
+                                              "details": "Faculty ID must be a positive integer."
+                                            }
+                                            """
                             )
                     )
             ),
@@ -398,11 +397,11 @@ public class DepartmentController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                                {
-                                  "message": "Internal server error",
-                                  "details": "An unexpected error occurred."
-                                }
-                                """
+                                            {
+                                              "message": "Internal server error",
+                                              "details": "An unexpected error occurred."
+                                            }
+                                            """
                             )
                     )
             )
@@ -428,14 +427,14 @@ public class DepartmentController {
     @Operation(
             summary = "Add a course to a department",
             description = """
-        Adds a course to the specified department.
-        This endpoint allows for the addition of a new course
-        associated with a given department by providing the
-        department ID and the course details.
-        It is important to ensure that the provided
-        course data is valid and that the department exists
-        before attempting to add the course.
-        """
+                    Adds a course to the specified department.
+                    This endpoint allows for the addition of a new course
+                    associated with a given department by providing the
+                    department ID and the course details.
+                    It is important to ensure that the provided
+                    course data is valid and that the department exists
+                    before attempting to add the course.
+                    """
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -449,11 +448,11 @@ public class DepartmentController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                                {
-                                  "message": "Invalid data for course creation",
-                                  "details": "Course name cannot be empty."
-                                }
-                                """
+                                            {
+                                              "message": "Invalid data for course creation",
+                                              "details": "Course name cannot be empty."
+                                            }
+                                            """
                             )
                     )
             ),
@@ -464,11 +463,11 @@ public class DepartmentController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                                {
-                                  "message": "Department not found",
-                                  "details": "No department exists with ID 123."
-                                }
-                                """
+                                            {
+                                              "message": "Department not found",
+                                              "details": "No department exists with ID 123."
+                                            }
+                                            """
                             )
                     )
             ),
@@ -479,11 +478,11 @@ public class DepartmentController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                                {
-                                  "message": "Internal server error",
-                                  "details": "An unexpected error occurred."
-                                }
-                                """
+                                            {
+                                              "message": "Internal server error",
+                                              "details": "An unexpected error occurred."
+                                            }
+                                            """
                             )
                     )
             )

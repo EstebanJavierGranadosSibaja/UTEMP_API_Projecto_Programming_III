@@ -22,7 +22,6 @@ import org.una.programmingIII.UTEMP_Project.repositories.CourseRepository;
 import org.una.programmingIII.UTEMP_Project.repositories.EnrollmentRepository;
 import org.una.programmingIII.UTEMP_Project.repositories.UserRepository;
 import org.una.programmingIII.UTEMP_Project.services.EmailNotificationObserver;
-import org.una.programmingIII.UTEMP_Project.services.enrollment.EnrollmentService;
 import org.una.programmingIII.UTEMP_Project.services.notification.NotificationService;
 import org.una.programmingIII.UTEMP_Project.services.passwordEncryption.PasswordEncryptionService;
 import org.una.programmingIII.UTEMP_Project.transformers.mappers.GenericMapper;
@@ -387,7 +386,7 @@ public class UserServiceImplementation extends Subject<EmailNotificationObserver
     }
 
     @Async("taskExecutor")
-    public CompletableFuture<Void> notifyUserAndProfessor(User user, Course course) {
+    public void notifyUserAndProfessor(User user, Course course) {
         String userMessage = "The user " + user.getName() + " has been enrolled in the course " + course.getName();
         String professorMessage = "The student " + user.getName() + " has been enrolled in your course " + course.getName();
 
@@ -399,6 +398,6 @@ public class UserServiceImplementation extends Subject<EmailNotificationObserver
 
         logger.info("Notifying user {} and professor about enrollment in course {}", user.getId(), course.getId());
 
-        return CompletableFuture.completedFuture(null);
+        CompletableFuture.completedFuture(null);
     }
 }

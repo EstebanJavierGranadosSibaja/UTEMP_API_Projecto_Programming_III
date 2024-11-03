@@ -1,8 +1,12 @@
 package org.una.programmingIII.UTEMP_Project.controllers;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,10 +21,6 @@ import org.una.programmingIII.UTEMP_Project.dtos.EnrollmentDTO;
 import org.una.programmingIII.UTEMP_Project.exceptions.InvalidDataException;
 import org.una.programmingIII.UTEMP_Project.exceptions.ResourceNotFoundException;
 import org.una.programmingIII.UTEMP_Project.services.enrollment.EnrollmentService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.Parameter;
 
 import java.util.Optional;
 
@@ -28,8 +28,8 @@ import java.util.Optional;
 @RequestMapping("/utemp/enrollments")
 public class EnrollmentController {
 
-    private final EnrollmentService enrollmentService;
     private static final Logger logger = LoggerFactory.getLogger(EnrollmentController.class);
+    private final EnrollmentService enrollmentService;
 
     @Autowired
     public EnrollmentController(EnrollmentService enrollmentService) {
@@ -39,11 +39,11 @@ public class EnrollmentController {
     @Operation(
             summary = "Fetch all enrollments",
             description = """
-    Returns a paginated list of all enrollments.
-    This endpoint retrieves all enrollment records available in the system, supporting pagination
-    for efficient data management and display. The response includes metadata about the pagination
-    such as total pages, current page, and number of items per page.
-    """
+                    Returns a paginated list of all enrollments.
+                    This endpoint retrieves all enrollment records available in the system, supporting pagination
+                    for efficient data management and display. The response includes metadata about the pagination
+                    such as total pages, current page, and number of items per page.
+                    """
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -61,11 +61,11 @@ public class EnrollmentController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                {
-                  "message": "Internal server error",
-                  "details": "An unexpected error occurred while processing the request."
-                }
-                """
+                                            {
+                                              "message": "Internal server error",
+                                              "details": "An unexpected error occurred while processing the request."
+                                            }
+                                            """
                             )
                     )
             )
@@ -85,10 +85,10 @@ public class EnrollmentController {
     @Operation(
             summary = "Fetch enrollments by course ID",
             description = """
-    Returns a paginated list of enrollments for a specific course.
-    This endpoint retrieves all enrollment records associated with a specific course identified by its ID.
-    The results are returned in a paginated format, allowing for efficient data handling and display.
-    """
+                    Returns a paginated list of enrollments for a specific course.
+                    This endpoint retrieves all enrollment records associated with a specific course identified by its ID.
+                    The results are returned in a paginated format, allowing for efficient data handling and display.
+                    """
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -106,11 +106,11 @@ public class EnrollmentController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                {
-                  "message": "Course not found",
-                  "details": "No course record exists with the provided ID."
-                }
-                """
+                                            {
+                                              "message": "Course not found",
+                                              "details": "No course record exists with the provided ID."
+                                            }
+                                            """
                             )
                     )
             ),
@@ -121,11 +121,11 @@ public class EnrollmentController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                {
-                  "message": "Internal server error",
-                  "details": "An unexpected error occurred while processing the request."
-                }
-                """
+                                            {
+                                              "message": "Internal server error",
+                                              "details": "An unexpected error occurred while processing the request."
+                                            }
+                                            """
                             )
                     )
             )
@@ -150,10 +150,10 @@ public class EnrollmentController {
     @Operation(
             summary = "Fetch enrollments by student ID",
             description = """
-    Returns a paginated list of enrollments for a specific student.
-    This endpoint allows you to retrieve all the enrollment records associated with a specific student identified by their ID.
-    The results are returned in a paginated format to facilitate efficient data retrieval.
-    """
+                    Returns a paginated list of enrollments for a specific student.
+                    This endpoint allows you to retrieve all the enrollment records associated with a specific student identified by their ID.
+                    The results are returned in a paginated format to facilitate efficient data retrieval.
+                    """
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -171,11 +171,11 @@ public class EnrollmentController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                {
-                  "message": "Student not found",
-                  "details": "No student record exists with the provided ID."
-                }
-                """
+                                            {
+                                              "message": "Student not found",
+                                              "details": "No student record exists with the provided ID."
+                                            }
+                                            """
                             )
                     )
             ),
@@ -186,11 +186,11 @@ public class EnrollmentController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                {
-                  "message": "Internal server error",
-                  "details": "An unexpected error occurred while processing the request."
-                }
-                """
+                                            {
+                                              "message": "Internal server error",
+                                              "details": "An unexpected error occurred while processing the request."
+                                            }
+                                            """
                             )
                     )
             )
@@ -215,10 +215,10 @@ public class EnrollmentController {
     @Operation(
             summary = "Fetch enrollment by ID",
             description = """
-    Returns an enrollment by its ID.
-    This endpoint retrieves the details of a specific enrollment record based on the provided ID.
-    If the enrollment exists, it returns the enrollment data; otherwise, it returns a not found status.
-    """
+                    Returns an enrollment by its ID.
+                    This endpoint retrieves the details of a specific enrollment record based on the provided ID.
+                    If the enrollment exists, it returns the enrollment data; otherwise, it returns a not found status.
+                    """
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -236,11 +236,11 @@ public class EnrollmentController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                {
-                  "message": "Enrollment not found",
-                  "details": "No enrollment record exists with the provided ID."
-                }
-                """
+                                            {
+                                              "message": "Enrollment not found",
+                                              "details": "No enrollment record exists with the provided ID."
+                                            }
+                                            """
                             )
                     )
             ),
@@ -251,11 +251,11 @@ public class EnrollmentController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                {
-                  "message": "Internal server error",
-                  "details": "An unexpected error occurred while processing the request."
-                }
-                """
+                                            {
+                                              "message": "Internal server error",
+                                              "details": "An unexpected error occurred while processing the request."
+                                            }
+                                            """
                             )
                     )
             )
@@ -280,10 +280,10 @@ public class EnrollmentController {
     @Operation(
             summary = "Create a new enrollment",
             description = """
-    Creates a new enrollment and returns the created enrollment.
-    This endpoint allows clients to create a new enrollment record in the system.
-    Upon successful creation, the endpoint returns the details of the newly created enrollment in the response body.
-    """
+                    Creates a new enrollment and returns the created enrollment.
+                    This endpoint allows clients to create a new enrollment record in the system.
+                    Upon successful creation, the endpoint returns the details of the newly created enrollment in the response body.
+                    """
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -301,11 +301,11 @@ public class EnrollmentController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                {
-                  "message": "Invalid data",
-                  "details": "The provided enrollment data is not valid."
-                }
-                """
+                                            {
+                                              "message": "Invalid data",
+                                              "details": "The provided enrollment data is not valid."
+                                            }
+                                            """
                             )
                     )
             ),
@@ -316,11 +316,11 @@ public class EnrollmentController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                {
-                  "message": "Internal server error",
-                  "details": "An unexpected error occurred while processing the request."
-                }
-                """
+                                            {
+                                              "message": "Internal server error",
+                                              "details": "An unexpected error occurred while processing the request."
+                                            }
+                                            """
                             )
                     )
             )
@@ -343,11 +343,11 @@ public class EnrollmentController {
     @Operation(
             summary = "Update an existing enrollment",
             description = """
-    Updates an existing enrollment by its ID.
-    This endpoint allows clients to modify the details of a specific enrollment record.
-    A successful update will return the updated enrollment information in the response body.
-    If the enrollment with the specified ID is not found, a 404 Not Found response is returned.
-    """
+                    Updates an existing enrollment by its ID.
+                    This endpoint allows clients to modify the details of a specific enrollment record.
+                    A successful update will return the updated enrollment information in the response body.
+                    If the enrollment with the specified ID is not found, a 404 Not Found response is returned.
+                    """
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -365,11 +365,11 @@ public class EnrollmentController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                {
-                  "message": "Enrollment not found",
-                  "details": "No enrollment record exists with the specified ID."
-                }
-                """
+                                            {
+                                              "message": "Enrollment not found",
+                                              "details": "No enrollment record exists with the specified ID."
+                                            }
+                                            """
                             )
                     )
             ),
@@ -380,11 +380,11 @@ public class EnrollmentController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                {
-                  "message": "Invalid data",
-                  "details": "The provided enrollment data is not valid."
-                }
-                """
+                                            {
+                                              "message": "Invalid data",
+                                              "details": "The provided enrollment data is not valid."
+                                            }
+                                            """
                             )
                     )
             ),
@@ -395,11 +395,11 @@ public class EnrollmentController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                {
-                  "message": "Internal server error",
-                  "details": "An unexpected error occurred while processing the request."
-                }
-                """
+                                            {
+                                              "message": "Internal server error",
+                                              "details": "An unexpected error occurred while processing the request."
+                                            }
+                                            """
                             )
                     )
             )
@@ -428,11 +428,11 @@ public class EnrollmentController {
     @Operation(
             summary = "Delete an enrollment",
             description = """
-    Deletes an enrollment by its ID.
-    This endpoint allows clients to delete a specific enrollment record from the system.
-    Upon successful deletion, a 204 No Content response is returned, indicating that the operation
-    was successful and no further information is returned in the response body.
-    """
+                    Deletes an enrollment by its ID.
+                    This endpoint allows clients to delete a specific enrollment record from the system.
+                    Upon successful deletion, a 204 No Content response is returned, indicating that the operation
+                    was successful and no further information is returned in the response body.
+                    """
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -449,11 +449,11 @@ public class EnrollmentController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                {
-                  "message": "Enrollment not found",
-                  "details": "No enrollment record exists with the specified ID."
-                }
-                """
+                                            {
+                                              "message": "Enrollment not found",
+                                              "details": "No enrollment record exists with the specified ID."
+                                            }
+                                            """
                             )
                     )
             ),
@@ -464,11 +464,11 @@ public class EnrollmentController {
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
-                {
-                  "message": "Internal server error",
-                  "details": "An unexpected error occurred while processing the request."
-                }
-                """
+                                            {
+                                              "message": "Internal server error",
+                                              "details": "An unexpected error occurred while processing the request."
+                                            }
+                                            """
                             )
                     )
             )
