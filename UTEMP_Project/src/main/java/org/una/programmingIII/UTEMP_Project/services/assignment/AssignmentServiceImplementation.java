@@ -221,7 +221,7 @@ public class AssignmentServiceImplementation extends Subject<EmailNotificationOb
 
     @Override
     @Transactional
-    public void deleteSubmissionFromAssignment(Long assignmentId, Long submissionId) {
+    public void removeSubmissionFromAssignment(Long assignmentId, Long submissionId) {
         Assignment assignment = getEntityById(assignmentId, assignmentRepository, "Assignment");
         Submission submission = getEntityById(submissionId, submissionRepository, "Submission");
 

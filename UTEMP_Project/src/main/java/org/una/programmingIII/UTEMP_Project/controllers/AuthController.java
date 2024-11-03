@@ -9,14 +9,16 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.una.programmingIII.UTEMP_Project.security.utils.JwtTokenProvider;
 import org.una.programmingIII.UTEMP_Project.controllers.request.AuthRequest;
 import org.una.programmingIII.UTEMP_Project.controllers.responses.ApiResponse;
 import org.una.programmingIII.UTEMP_Project.controllers.responses.TokenResponse;
 import org.una.programmingIII.UTEMP_Project.dtos.UserDTO;
+import org.una.programmingIII.UTEMP_Project.security.utils.JwtTokenProvider;
 import org.una.programmingIII.UTEMP_Project.services.user.CustomUserDetails;
 import org.una.programmingIII.UTEMP_Project.services.user.CustomUserDetailsService;
 import org.una.programmingIII.UTEMP_Project.services.user.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 
 import java.util.Optional;
 
@@ -36,6 +38,15 @@ public class AuthController {
         this.userService = userService;
     }
 
+    @Operation(
+            summary = "Authenticate User",
+            description = "Validates user credentials and generates an access token."
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Authentication successful. Returns JWT token and user details."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Invalid credentials. Authentication failed."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "User not found.")
+    })
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<TokenResponse>> createAuthenticationToken(@Valid @RequestBody AuthRequest authRequest) {
         try {
@@ -60,7 +71,9 @@ public class AuthController {
                     .tokenType("Bearer")
                     .user(user.get())
                     .build();
-            return ResponseEntity.ok(new ApiResponse<>());
+            ApiResponse<TokenResponse> response = new ApiResponse<>();
+            response.setData(tokenResponse);
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new ApiResponse<>(HttpStatus.UNAUTHORIZED.value(), "Invalid credentials"));

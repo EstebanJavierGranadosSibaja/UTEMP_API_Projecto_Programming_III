@@ -45,8 +45,8 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(authorizeRequests ->
                         authorizeRequests
-                                .requestMatchers("/utemp/auth/login", "/swagger-ui/**", "/v3/api-docs/**")
-                                .permitAll()
+                                .requestMatchers("/utemp/auth/login").permitAll()
+                                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                                 .anyRequest().authenticated()
                 )
                 .csrf(AbstractHttpConfigurer::disable)
@@ -61,14 +61,13 @@ public class SecurityConfig {
         return http.build();
     }
 
-
     @Bean
     public AuthenticationManager authManager(HttpSecurity http) throws Exception {
         AuthenticationManagerBuilder authenticationManagerBuilder =
                 http.getSharedObject(AuthenticationManagerBuilder.class);
         authenticationManagerBuilder
                 .userDetailsService(userDetailsService)
-                .passwordEncoder(passwordEncoder); // Mantenido aquí
+                .passwordEncoder(passwordEncoder);
         return authenticationManagerBuilder.build();
     }
 

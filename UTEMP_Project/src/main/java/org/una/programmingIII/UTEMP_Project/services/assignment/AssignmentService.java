@@ -6,7 +6,6 @@ import org.springframework.data.domain.Pageable;
 import org.una.programmingIII.UTEMP_Project.dtos.AssignmentDTO;
 import org.una.programmingIII.UTEMP_Project.dtos.SubmissionDTO;
 
-import java.util.List;
 import java.util.Optional;
 
 public interface AssignmentService {
@@ -17,5 +16,5 @@ public interface AssignmentService {
     void deleteAssignment(Long id);
     Page<AssignmentDTO> getAssignmentsByCourseId(Long courseId, Pageable pageable);
     SubmissionDTO addSubmissionToAssignment(Long assignmentId, @Valid SubmissionDTO submissionDTO);
-    void deleteSubmissionFromAssignment(Long assignmentId, Long submissionId);
+    void removeSubmissionFromAssignment(Long assignmentId, Long submissionId);
 }
