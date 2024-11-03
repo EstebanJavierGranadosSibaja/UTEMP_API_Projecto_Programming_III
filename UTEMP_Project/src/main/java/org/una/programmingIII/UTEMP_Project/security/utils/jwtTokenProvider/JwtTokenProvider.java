@@ -1,8 +1,8 @@
-package org.una.programmingIII.UTEMP_Project.services.jwtTokenProvider;
+package org.una.programmingIII.UTEMP_Project.security.utils.jwtTokenProvider;
 
 import org.una.programmingIII.UTEMP_Project.dtos.TokenDTOs.TokenResponseDTO;
 
-public interface JwtTokenProviderService {
+public interface JwtTokenProvider {
     String generateAccessToken(String identificationNumber);
 
     String generateRefreshToken(String identificationNumber);

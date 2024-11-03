@@ -62,8 +62,8 @@ public class AutoReviewServiceImplementation extends Subject<EmailNotificationOb
     }
 
     @Async("taskExecutor")
-    public CompletableFuture<Grade> autoReviewSubmission(Long submissionId) {
-        return CompletableFuture.supplyAsync(() -> {
+    public void autoReviewSubmission(Long submissionId) {
+        CompletableFuture.supplyAsync(() -> {
             try {
                 Submission submission = validateSubmission(submissionId);
                 String fileId = submission.getFileMetadata().getFirst().getId().toString();

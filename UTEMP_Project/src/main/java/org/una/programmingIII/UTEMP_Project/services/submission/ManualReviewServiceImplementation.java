@@ -1,4 +1,4 @@
-package org.una.programmingIII.UTEMP_Project.services.manualReview;
+package org.una.programmingIII.UTEMP_Project.services.submission;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
