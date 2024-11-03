@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.una.programmingIII.UTEMP_Project.dtos.FileMetadatumDTO;
 import org.una.programmingIII.UTEMP_Project.dtos.GradeDTO;
 import org.una.programmingIII.UTEMP_Project.dtos.SubmissionDTO;
+import org.una.programmingIII.UTEMP_Project.models.Grade;
 
 import java.util.Optional;
 
@@ -29,4 +30,6 @@ public interface SubmissionService {
     void removeFileMetadatumFromSubmission(Long submissionId, Long fileMetadatumId);
 
     void removeGradeFromSubmission(Long submissionId, Long gradeId);
+
+    Optional<Grade> manualReviewSubmission(Long submissionId, double gradeValue, String comments);
 }
