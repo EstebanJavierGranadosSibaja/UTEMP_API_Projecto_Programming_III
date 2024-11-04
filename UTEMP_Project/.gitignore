@@ -1,0 +1,46 @@
+# Default ignored files
+/shelf/
+workspace.xml
+# Editor-based HTTP Client requests
+/httpRequests/
+# Datasource local storage ignored files
+/dataSources/
+dataSources.local.xml
+
+# Maven build files
+/target/
+*.log
+
+# IDE specific files
+/.idea/
+/*.iml
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Configuration files
+/.mvn/
+*.class
+
+# Java dependency files
+/.mvn/timing.log
+
+# Environment files
+.env
+
+# IntelliJ specific files
+/.idea/modules.xml
+/.idea/inspectionProfiles/
+/.idea/vcs.xml
+.idea/dictionaries
+.idea/misc.xml
+
+# Other ignored files
+/.gradle/
+*.hprof
+*.jar
+*.war
+*.ear
+*.swp
+*.swo
