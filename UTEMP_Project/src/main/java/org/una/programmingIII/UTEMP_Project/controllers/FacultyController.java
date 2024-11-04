@@ -22,6 +22,8 @@ import org.una.programmingIII.UTEMP_Project.dtos.FacultyDTO;
 import org.una.programmingIII.UTEMP_Project.exceptions.InvalidDataException;
 import org.una.programmingIII.UTEMP_Project.exceptions.ResourceNotFoundException;
 import org.una.programmingIII.UTEMP_Project.services.faculty.FacultyService;
+import org.una.programmingIII.UTEMP_Project.utils.PageConverter;
+import org.una.programmingIII.UTEMP_Project.utils.PageDTO;
 
 @RestController
 @RequestMapping("/utemp/faculties")
@@ -71,10 +73,13 @@ public class FacultyController {
     })
     @GetMapping
     @PreAuthorize("hasAuthority('MANAGE_FACULTIES')")
-    public ResponseEntity<Page<FacultyDTO>> getAllFaculties(Pageable pageable) {
+    public ResponseEntity<PageDTO<FacultyDTO>> getAllFaculties(Pageable pageable) {
         try {
-            Page<FacultyDTO> faculties = facultyService.getAllFaculties(pageable);
-            return ResponseEntity.ok(faculties);
+            Page<FacultyDTO> facultiesPage = facultyService.getAllFaculties(pageable);
+            PageDTO<FacultyDTO> facultiesDTOPage = PageConverter.convertPageToDTO(facultiesPage, facultyDTO -> facultyDTO);
+            logger.info("Fetched all faculties successfully.");
+            return ResponseEntity.ok(facultiesDTOPage);
+
         } catch (Exception e) {
             logger.error("Error retrieving faculties: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -401,11 +406,13 @@ public class FacultyController {
     })
     @GetMapping("/university/{universityId}")
     @PreAuthorize("hasAuthority('GET_UNIVERSITY_FACILITIES')")
-    public ResponseEntity<Page<FacultyDTO>> getFacultiesByUniversityId(@PathVariable Long universityId,
-                                                                       Pageable pageable) {
+    public ResponseEntity<PageDTO<FacultyDTO>> getFacultiesByUniversityId(@PathVariable Long universityId,
+                                                                          Pageable pageable) {
         try {
-            Page<FacultyDTO> faculties = facultyService.getFacultiesByUniversityId(universityId, pageable);
-            return ResponseEntity.ok(faculties);
+            Page<FacultyDTO> facultiesPage = facultyService.getFacultiesByUniversityId(universityId, pageable);
+            PageDTO<FacultyDTO> facultiesDTOPage = PageConverter.convertPageToDTO(facultiesPage, facultyDTO -> facultyDTO);
+            return ResponseEntity.ok(facultiesDTOPage);
+
         } catch (Exception e) {
             logger.error("Error retrieving faculties for university {}: {}", universityId, e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);

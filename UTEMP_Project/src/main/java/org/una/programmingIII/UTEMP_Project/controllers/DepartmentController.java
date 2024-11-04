@@ -22,6 +22,8 @@ import org.una.programmingIII.UTEMP_Project.dtos.DepartmentDTO;
 import org.una.programmingIII.UTEMP_Project.exceptions.InvalidDataException;
 import org.una.programmingIII.UTEMP_Project.exceptions.ResourceNotFoundException;
 import org.una.programmingIII.UTEMP_Project.services.department.DepartmentService;
+import org.una.programmingIII.UTEMP_Project.utils.PageConverter;
+import org.una.programmingIII.UTEMP_Project.utils.PageDTO;
 
 @RestController
 @RequestMapping("/utemp/departments")
@@ -85,11 +87,11 @@ public class DepartmentController {
     })
     @GetMapping
     @PreAuthorize("hasAuthority('MANAGE_DEPARTMENTS')")
-    public ResponseEntity<Page<DepartmentDTO>> getAllDepartments(Pageable pageable) {
+    public ResponseEntity<PageDTO<DepartmentDTO>> getAllDepartments(Pageable pageable) {
         try {
-            Page<DepartmentDTO> departments = departmentService.getAllDepartments(pageable);
+            Page<DepartmentDTO> departmentsPage = departmentService.getAllDepartments(pageable);
             logger.info("Fetched all departments successfully.");
-            return ResponseEntity.ok(departments);
+            return ResponseEntity.ok(PageConverter.convertPageToDTO(departmentsPage, departmentDTO -> departmentDTO));
         } catch (InvalidDataException e) {
             logger.error("Invalid data while fetching departments: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
@@ -408,13 +410,13 @@ public class DepartmentController {
     })
     @GetMapping("/faculty/{facultyId}")
     @PreAuthorize("hasAuthority('GET_FACULTY_DEPARTMENTS')")
-    public ResponseEntity<Page<DepartmentDTO>> getDepartmentsByFacultyId(
+    public ResponseEntity<PageDTO<DepartmentDTO>> getDepartmentsByFacultyId(
             @Parameter(description = "ID of the faculty to retrieve departments from") @PathVariable Long facultyId,
             Pageable pageable) {
         try {
-            Page<DepartmentDTO> departments = departmentService.getDepartmentsByFacultyId(facultyId, pageable);
+            Page<DepartmentDTO> departmentsPage = departmentService.getDepartmentsByFacultyId(facultyId, pageable);
             logger.info("Fetched departments for faculty ID {} successfully.", facultyId);
-            return ResponseEntity.ok(departments);
+            return ResponseEntity.ok(PageConverter.convertPageToDTO(departmentsPage, departmentDTO -> departmentDTO));
         } catch (InvalidDataException e) {
             logger.error("Invalid data while fetching departments for faculty ID {}: {}", facultyId, e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);

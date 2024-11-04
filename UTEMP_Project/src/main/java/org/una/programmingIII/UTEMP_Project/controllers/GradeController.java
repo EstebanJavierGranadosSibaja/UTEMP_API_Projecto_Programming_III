@@ -21,6 +21,8 @@ import org.una.programmingIII.UTEMP_Project.dtos.GradeDTO;
 import org.una.programmingIII.UTEMP_Project.exceptions.InvalidDataException;
 import org.una.programmingIII.UTEMP_Project.exceptions.ResourceNotFoundException;
 import org.una.programmingIII.UTEMP_Project.services.grade.GradeService;
+import org.una.programmingIII.UTEMP_Project.utils.PageConverter;
+import org.una.programmingIII.UTEMP_Project.utils.PageDTO;
 
 @RestController
 @RequestMapping("/utemp/grades")
@@ -63,11 +65,12 @@ public class GradeController {
     })
     @GetMapping
     @PreAuthorize("hasAuthority('MANAGE_GRADES')")
-    public ResponseEntity<Page<GradeDTO>> getAllGrades(Pageable pageable) {
+    public ResponseEntity<PageDTO<GradeDTO>> getAllGrades(Pageable pageable) {
         try {
-            Page<GradeDTO> grades = gradeService.getAllGrades(pageable);
+            Page<GradeDTO> gradesPage = gradeService.getAllGrades(pageable);
+            PageDTO<GradeDTO> gradesDTOPage = PageConverter.convertPageToDTO(gradesPage, gradeDTO -> gradeDTO);
             logger.info("Fetched all grades successfully.");
-            return ResponseEntity.ok(grades);
+            return ResponseEntity.ok(gradesDTOPage);
         } catch (InvalidDataException e) {
             logger.error("Invalid data while fetching grades: {}", e.getMessage());
             return ResponseEntity.badRequest().build();
@@ -305,13 +308,15 @@ public class GradeController {
     })
     @GetMapping("/submissions/{submissionId}/grades")
     @PreAuthorize("hasAuthority('GET_SUBMISSION_GRADES')")
-    public ResponseEntity<Page<GradeDTO>> getGradesBySubmissionId(
+    public ResponseEntity<PageDTO<GradeDTO>> getGradesBySubmissionId(
             @Parameter(description = "ID of the submission to retrieve grades for", required = true)
             @PathVariable Long submissionId, Pageable pageable) {
         try {
-            Page<GradeDTO> grades = gradeService.getGradesBySubmissionId(submissionId, pageable);
+            Page<GradeDTO> gradesPage = gradeService.getGradesBySubmissionId(submissionId, pageable);
+            PageDTO<GradeDTO> gradesDTOPage = PageConverter.convertPageToDTO(gradesPage, gradeDTO -> gradeDTO);
             logger.info("Fetched grades for submission ID: {}", submissionId);
-            return ResponseEntity.ok(grades);
+            return ResponseEntity.ok(gradesDTOPage);
+
         } catch (ResourceNotFoundException e) {
             logger.warn("No grades found for submission ID: {}.", submissionId);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();

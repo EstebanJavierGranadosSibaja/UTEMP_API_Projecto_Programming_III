@@ -22,6 +22,8 @@ import org.una.programmingIII.UTEMP_Project.dtos.CourseDTO;
 import org.una.programmingIII.UTEMP_Project.exceptions.InvalidDataException;
 import org.una.programmingIII.UTEMP_Project.exceptions.ResourceNotFoundException;
 import org.una.programmingIII.UTEMP_Project.services.course.CourseService;
+import org.una.programmingIII.UTEMP_Project.utils.PageConverter;
+import org.una.programmingIII.UTEMP_Project.utils.PageDTO;
 
 import java.util.Optional;
 
@@ -75,10 +77,12 @@ public class CourseController {
     })
     @GetMapping
     @PreAuthorize("hasAuthority('MANAGE_COURSES')")
-    public ResponseEntity<Page<CourseDTO>> getAllCourses(Pageable pageable) {
+    public ResponseEntity<PageDTO<CourseDTO>> getAllCourses(Pageable pageable) {
         try {
-            Page<CourseDTO> courses = courseService.getAllCourses(pageable);
-            return ResponseEntity.ok(courses);
+            Page<CourseDTO> coursesPage = courseService.getAllCourses(pageable);
+            logger.info("Fetched all courses successfully.");
+            return ResponseEntity.ok(PageConverter.convertPageToDTO(coursesPage, courseDTO -> courseDTO));
+
         } catch (Exception e) {
             logger.error("Error fetching all courses: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
@@ -409,7 +413,7 @@ public class CourseController {
                     description = "Successfully retrieved courses",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = Page.class), // Cambia a Page si es un Page<CourseDTO>
+                            schema = @Schema(implementation = Page.class), // Cambia a Page si es un PageDTO<CourseDTO>
                             examples = @ExampleObject(
                                     value = """
                                             {
@@ -502,7 +506,7 @@ public class CourseController {
     })
     @GetMapping("/teacher/{teacherId}")
     @PreAuthorize("hasAuthority('GET_TEACHER_COURSES')")
-    public ResponseEntity<Page<CourseDTO>> getCoursesByTeacherId(
+    public ResponseEntity<PageDTO<CourseDTO>> getCoursesByTeacherId(
             @Parameter(
                     description = "ID of the teacher",
                     required = true,
@@ -511,8 +515,9 @@ public class CourseController {
             @PathVariable Long teacherId,
             Pageable pageable) {
         try {
-            Page<CourseDTO> courses = courseService.getCoursesByTeacherId(teacherId, pageable);
-            return ResponseEntity.ok(courses);
+            Page<CourseDTO> coursesPage = courseService.getCoursesByTeacherId(teacherId, pageable);
+            logger.info("Fetched courses for teacher ID {} successfully.", teacherId);
+            return ResponseEntity.ok(PageConverter.convertPageToDTO(coursesPage, courseDTO -> courseDTO));
         } catch (ResourceNotFoundException e) {
             logger.error("Teacher not found with ID {}: {}", teacherId, e.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
@@ -543,7 +548,7 @@ public class CourseController {
                     description = "Successfully retrieved courses",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = Page.class), // Cambia a Page si es un Page<CourseDTO>
+                            schema = @Schema(implementation = Page.class), // Cambia a Page si es un PageDTO<CourseDTO>
                             examples = @ExampleObject(
                                     value = """
                                             {
@@ -636,7 +641,7 @@ public class CourseController {
     })
     @GetMapping("/department/{departmentId}")
     @PreAuthorize("hasAuthority('GET_DEPARTMENT_COURSES')")
-    public ResponseEntity<Page<CourseDTO>> getCoursesByDepartmentId(
+    public ResponseEntity<PageDTO<CourseDTO>> getCoursesByDepartmentId(
             @Parameter(
                     description = "ID of the department",
                     required = true,
@@ -645,8 +650,9 @@ public class CourseController {
             @PathVariable Long departmentId,
             Pageable pageable) {
         try {
-            Page<CourseDTO> courses = courseService.getCoursesByDepartmentId(departmentId, pageable);
-            return ResponseEntity.ok(courses);
+            Page<CourseDTO> coursesPage = courseService.getCoursesByDepartmentId(departmentId, pageable);
+            return ResponseEntity.ok(PageConverter.convertPageToDTO(coursesPage, courseDTO -> courseDTO));
+
         } catch (ResourceNotFoundException e) {
             logger.error("Department not found with ID {}: {}", departmentId, e.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);

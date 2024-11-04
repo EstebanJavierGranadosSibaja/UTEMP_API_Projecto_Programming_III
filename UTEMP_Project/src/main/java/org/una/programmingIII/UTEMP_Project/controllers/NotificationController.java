@@ -21,6 +21,8 @@ import org.una.programmingIII.UTEMP_Project.dtos.NotificationDTO;
 import org.una.programmingIII.UTEMP_Project.exceptions.InvalidDataException;
 import org.una.programmingIII.UTEMP_Project.exceptions.ResourceNotFoundException;
 import org.una.programmingIII.UTEMP_Project.services.notification.NotificationService;
+import org.una.programmingIII.UTEMP_Project.utils.PageConverter;
+import org.una.programmingIII.UTEMP_Project.utils.PageDTO;
 
 import java.util.Optional;
 
@@ -59,11 +61,12 @@ public class NotificationController {
             )
     })
     @GetMapping
-    public ResponseEntity<Page<NotificationDTO>> getAllNotifications(Pageable pageable) {
+    public ResponseEntity<PageDTO<NotificationDTO>> getAllNotifications(Pageable pageable) {
         try {
-            Page<NotificationDTO> notifications = notificationService.getAllNotifications(pageable);
+            Page<NotificationDTO> notificationsPage = notificationService.getAllNotifications(pageable);
+            PageDTO<NotificationDTO> notificationsDTOPage = PageConverter.convertPageToDTO(notificationsPage, notificationDTO -> notificationDTO);
             logger.info("Fetched all notifications successfully.");
-            return new ResponseEntity<>(notifications, HttpStatus.OK);
+            return ResponseEntity.ok(notificationsDTOPage);
         } catch (Exception e) {
             logger.error("Error retrieving notifications: {}", e.getMessage(), e);
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -286,11 +289,12 @@ public class NotificationController {
     })
     @GetMapping("/user/{userId}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Page<NotificationDTO>> getNotificationsByUserId(@PathVariable Long userId, Pageable pageable) {
+    public ResponseEntity<PageDTO<NotificationDTO>> getNotificationsByUserId(@PathVariable Long userId, Pageable pageable) {
         try {
-            Page<NotificationDTO> notifications = notificationService.getNotificationsByUserId(userId, pageable);
+            Page<NotificationDTO> notificationsPage = notificationService.getNotificationsByUserId(userId, pageable);
+            PageDTO<NotificationDTO> notificationsDTOPage = PageConverter.convertPageToDTO(notificationsPage, notificationDTO -> notificationDTO);
             logger.info("Fetched notifications for user ID: {}", userId);
-            return new ResponseEntity<>(notifications, HttpStatus.OK);
+            return ResponseEntity.ok(notificationsDTOPage);
         } catch (Exception e) {
             logger.error("Error retrieving notifications for user ID {}: {}", userId, e.getMessage(), e);
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);

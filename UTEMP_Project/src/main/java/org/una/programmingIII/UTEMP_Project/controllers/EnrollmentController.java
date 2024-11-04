@@ -21,6 +21,8 @@ import org.una.programmingIII.UTEMP_Project.dtos.EnrollmentDTO;
 import org.una.programmingIII.UTEMP_Project.exceptions.InvalidDataException;
 import org.una.programmingIII.UTEMP_Project.exceptions.ResourceNotFoundException;
 import org.una.programmingIII.UTEMP_Project.services.enrollment.EnrollmentService;
+import org.una.programmingIII.UTEMP_Project.utils.PageConverter;
+import org.una.programmingIII.UTEMP_Project.utils.PageDTO;
 
 import java.util.Optional;
 
@@ -72,10 +74,12 @@ public class EnrollmentController {
     })
     @GetMapping
     @PreAuthorize("hasAuthority('MANAGE_ENROLLMENTS')")
-    public ResponseEntity<Page<EnrollmentDTO>> getAllEnrollments(Pageable pageable) {
+    public ResponseEntity<PageDTO<EnrollmentDTO>> getAllEnrollments(Pageable pageable) {
         try {
-            Page<EnrollmentDTO> enrollments = enrollmentService.getAllEnrollments(pageable);
-            return ResponseEntity.ok(enrollments);
+            Page<EnrollmentDTO> enrollmentsPage = enrollmentService.getAllEnrollments(pageable);
+            PageDTO<EnrollmentDTO> enrollmentsDTOPage = PageConverter.convertPageToDTO(enrollmentsPage, enrollmentDTO -> enrollmentDTO);
+            return ResponseEntity.ok(enrollmentsDTOPage);
+
         } catch (Exception e) {
             logger.error("Error retrieving enrollments: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
@@ -132,12 +136,13 @@ public class EnrollmentController {
     })
     @GetMapping("/course/{courseId}")
     @PreAuthorize("hasAuthority('MANAGE_ENROLLMENTS')")
-    public ResponseEntity<Page<EnrollmentDTO>> getEnrollmentsByCourseId(
+    public ResponseEntity<PageDTO<EnrollmentDTO>> getEnrollmentsByCourseId(
             @Parameter(description = "ID of the course to retrieve enrollments for") @PathVariable Long courseId,
             Pageable pageable) {
         try {
-            Page<EnrollmentDTO> enrollments = enrollmentService.getEnrollmentsByCourseId(courseId, pageable);
-            return ResponseEntity.ok(enrollments);
+            Page<EnrollmentDTO> enrollmentsPage = enrollmentService.getEnrollmentsByCourseId(courseId, pageable);
+            PageDTO<EnrollmentDTO> enrollmentsDTOPage = PageConverter.convertPageToDTO(enrollmentsPage, enrollmentDTO -> enrollmentDTO);
+            return ResponseEntity.ok(enrollmentsDTOPage);
         } catch (ResourceNotFoundException e) {
             logger.warn("Course not found with ID: {}", courseId);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
@@ -197,12 +202,13 @@ public class EnrollmentController {
     })
     @GetMapping("/student/{studentId}")
     @PreAuthorize("hasAuthority('GET_STUDENT_ENROLLMENTS')")
-    public ResponseEntity<Page<EnrollmentDTO>> getEnrollmentsByStudentId(
+    public ResponseEntity<PageDTO<EnrollmentDTO>> getEnrollmentsByStudentId(
             @Parameter(description = "ID of the student to retrieve enrollments for") @PathVariable Long studentId,
             Pageable pageable) {
         try {
-            Page<EnrollmentDTO> enrollments = enrollmentService.getEnrollmentsByStudentId(studentId, pageable);
-            return ResponseEntity.ok(enrollments);
+            Page<EnrollmentDTO> enrollmentsPage = enrollmentService.getEnrollmentsByStudentId(studentId, pageable);
+            PageDTO<EnrollmentDTO> enrollmentsDTOPage = PageConverter.convertPageToDTO(enrollmentsPage, enrollmentDTO -> enrollmentDTO);
+            return ResponseEntity.ok(enrollmentsDTOPage);
         } catch (ResourceNotFoundException e) {
             logger.warn("Student not found with ID: {}", studentId);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();

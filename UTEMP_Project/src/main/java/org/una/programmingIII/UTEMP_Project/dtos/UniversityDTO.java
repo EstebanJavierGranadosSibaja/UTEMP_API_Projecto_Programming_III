@@ -1,5 +1,6 @@
 package org.una.programmingIII.UTEMP_Project.dtos;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -34,9 +35,11 @@ public class UniversityDTO {
     @Schema(description = "List of faculties associated with the university")
     private List<FacultyDTO> faculties = new ArrayList<>();
 
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     @Schema(description = "Timestamp of when the university was created")
     private LocalDateTime createdAt;
 
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     @Schema(description = "Timestamp of the last update to the university record")
     private LocalDateTime lastUpdate;
 }

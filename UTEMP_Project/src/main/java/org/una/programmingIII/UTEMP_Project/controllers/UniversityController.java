@@ -22,6 +22,8 @@ import org.una.programmingIII.UTEMP_Project.dtos.UniversityDTO;
 import org.una.programmingIII.UTEMP_Project.exceptions.InvalidDataException;
 import org.una.programmingIII.UTEMP_Project.exceptions.ResourceNotFoundException;
 import org.una.programmingIII.UTEMP_Project.services.university.UniversityService;
+import org.una.programmingIII.UTEMP_Project.utils.PageConverter;
+import org.una.programmingIII.UTEMP_Project.utils.PageDTO;
 
 import java.util.Optional;
 
@@ -62,11 +64,16 @@ public class UniversityController {
     })
     @GetMapping
     @PreAuthorize("hasAuthority('MANAGE_UNIVERSITIES')")
-    public ResponseEntity<Page<UniversityDTO>> getAllUniversities(Pageable pageable) {
+    public ResponseEntity<PageDTO<UniversityDTO>> getAllUniversities(Pageable pageable) {
         logger.info("Fetching all universities with pagination");
         try {
-            Page<UniversityDTO> universities = universityService.getAllUniversities(pageable);
-            return ResponseEntity.ok(universities);
+            Page<UniversityDTO> universitiesPage = universityService.getAllUniversities(pageable);
+
+            // Convertir la página a PageDTO usando PageConverter
+            PageDTO<UniversityDTO> universityDTOPage = PageConverter.convertPageToDTO(universitiesPage, universityDTO -> universityDTO);
+
+            // Retornar la respuesta con el PageDTO
+            return ResponseEntity.ok(universityDTOPage);
         } catch (Exception e) {
             logger.error("Error fetching universities: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();

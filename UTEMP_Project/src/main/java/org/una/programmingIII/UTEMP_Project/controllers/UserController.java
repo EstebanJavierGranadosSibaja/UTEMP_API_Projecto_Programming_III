@@ -26,8 +26,11 @@ import org.una.programmingIII.UTEMP_Project.exceptions.InvalidDataException;
 import org.una.programmingIII.UTEMP_Project.exceptions.ResourceNotFoundException;
 import org.una.programmingIII.UTEMP_Project.services.user.CustomUserDetails;
 import org.una.programmingIII.UTEMP_Project.services.user.UserService;
+import org.una.programmingIII.UTEMP_Project.utils.PageConverter;
+import org.una.programmingIII.UTEMP_Project.utils.PageDTO;
 
 import java.util.Optional;
+
 
 @RestController
 @RequestMapping("/utemp/users")
@@ -113,11 +116,14 @@ public class UserController {
     })
     @GetMapping
     @PreAuthorize("hasAuthority('MANAGE_USERS')")
-    public ResponseEntity<Page<UserDTO>> getAllUsers(@PageableDefault Pageable pageable) {
+    public ResponseEntity<PageDTO<UserDTO>> getAllUsers(@PageableDefault Pageable pageable) {
         logger.info("Fetching all users with pagination");
         try {
-            Page<UserDTO> users = userService.getAllUsers(pageable);
-            return ResponseEntity.ok(users);
+
+            Page<UserDTO> usersDTO = userService.getAllUsers(pageable); // Cambiar a Page<User>
+            PageDTO<UserDTO> userDTOPage = PageConverter.convertPageToDTO(usersDTO, userDTO -> userDTO);
+
+            return ResponseEntity.ok(userDTOPage);
         } catch (Exception e) {
             logger.error("Error fetching all users: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -405,11 +411,16 @@ public class UserController {
     })
     @GetMapping("/{id}/courses")
     @PreAuthorize("hasAuthority('GET_TEACHER_COURSES')")
-    public ResponseEntity<Page<CourseDTO>> getCoursesTeachingByUserId(@PathVariable Long id,
-                                                                      Pageable pageable) {
+    public ResponseEntity<PageDTO<CourseDTO>> getCoursesTeachingByUserId(@PathVariable Long id,
+                                                                         Pageable pageable) {
         try {
-            Page<CourseDTO> courses = userService.getCoursesTeachingByUserId(id, pageable);
-            return ResponseEntity.ok(courses);
+            Page<CourseDTO> coursesPage = userService.getCoursesTeachingByUserId(id, pageable);
+
+            // Convertir la página a PageDTO
+            PageDTO<CourseDTO> coursesDTOPage = PageConverter.convertPageToDTO(coursesPage, courseDTO -> courseDTO);
+
+            // Retornar la respuesta con el PageDTO
+            return ResponseEntity.ok(coursesDTOPage);
         } catch (ResourceNotFoundException e) {
             logger.warn("Courses for teacher ID {} not found", id);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
@@ -546,12 +557,14 @@ public class UserController {
     })
     @GetMapping("/{userId}/enrollments")
     @PreAuthorize("hasAuthority('GET_STUDENT_ENROLLMENTS')")
-    public ResponseEntity<Page<EnrollmentDTO>> retrieveEnrollmentsForUser(
+    public ResponseEntity<PageDTO<EnrollmentDTO>> retrieveEnrollmentsForUser(
             @PathVariable Long userId,
             Pageable pageable) {
         try {
             Page<EnrollmentDTO> enrollments = userService.getEnrollmentsByStudentId(userId, pageable);
-            return ResponseEntity.ok(enrollments);
+            PageDTO<EnrollmentDTO> enroll = PageConverter.convertPageToDTO(enrollments, EnrollmentDTO -> EnrollmentDTO);
+
+            return ResponseEntity.ok(enroll);
         } catch (ResourceNotFoundException e) {
             logger.warn("No enrollments found for user ID {}: {}", userId, e.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();

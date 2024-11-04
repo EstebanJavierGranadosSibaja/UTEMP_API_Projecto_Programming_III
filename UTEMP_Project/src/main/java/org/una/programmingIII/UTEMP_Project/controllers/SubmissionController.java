@@ -24,6 +24,8 @@ import org.una.programmingIII.UTEMP_Project.exceptions.InvalidDataException;
 import org.una.programmingIII.UTEMP_Project.exceptions.ResourceNotFoundException;
 import org.una.programmingIII.UTEMP_Project.models.Grade;
 import org.una.programmingIII.UTEMP_Project.services.submission.SubmissionService;
+import org.una.programmingIII.UTEMP_Project.utils.PageConverter;
+import org.una.programmingIII.UTEMP_Project.utils.PageDTO;
 
 import java.util.Optional;
 
@@ -63,10 +65,11 @@ public class SubmissionController {
     })
     @GetMapping
     @PreAuthorize("hasAuthority('MANAGE_SUBMISSIONS')")
-    public ResponseEntity<Page<SubmissionDTO>> getAllSubmissions(Pageable pageable) {
+    public ResponseEntity<PageDTO<SubmissionDTO>> getAllSubmissions(Pageable pageable) {
         try {
-            Page<SubmissionDTO> submissions = submissionService.getAllSubmissions(pageable);
-            return ResponseEntity.ok(submissions);
+            Page<SubmissionDTO> submissionsPage = submissionService.getAllSubmissions(pageable);
+            PageDTO<SubmissionDTO> submissionsDTOPage = PageConverter.convertPageToDTO(submissionsPage, submissionDTO -> submissionDTO);
+            return ResponseEntity.ok(submissionsDTOPage);
         } catch (Exception e) {
             logger.error("Error retrieving submissions", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -287,12 +290,13 @@ public class SubmissionController {
     })
     @GetMapping("/assignment/{assignmentId}")
     @PreAuthorize("hasAuthority('GET_ASSIGNMENT_SUBMISSIONS')")
-    public ResponseEntity<Page<SubmissionDTO>> getSubmissionsByAssignmentId(
+    public ResponseEntity<PageDTO<SubmissionDTO>> getSubmissionsByAssignmentId(
             @Parameter(description = "ID of the assignment", required = true) @PathVariable Long assignmentId,
             Pageable pageable) {
         try {
-            Page<SubmissionDTO> submissions = submissionService.getSubmissionsByAssignmentId(assignmentId, pageable);
-            return ResponseEntity.ok(submissions);
+            Page<SubmissionDTO> submissionsPage = submissionService.getSubmissionsByAssignmentId(assignmentId, pageable);
+            PageDTO<SubmissionDTO> submissionsDTOPage = PageConverter.convertPageToDTO(submissionsPage, submissionDTO -> submissionDTO);
+            return ResponseEntity.ok(submissionsDTOPage);
         } catch (Exception e) {
             logger.error("Error retrieving submissions for assignment id: {}", assignmentId, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();

@@ -22,8 +22,11 @@ import org.una.programmingIII.UTEMP_Project.dtos.SubmissionDTO;
 import org.una.programmingIII.UTEMP_Project.exceptions.InvalidDataException;
 import org.una.programmingIII.UTEMP_Project.exceptions.ResourceNotFoundException;
 import org.una.programmingIII.UTEMP_Project.services.assignment.AssignmentService;
+import org.una.programmingIII.UTEMP_Project.utils.PageConverter;
+import org.una.programmingIII.UTEMP_Project.utils.PageDTO;
 
 import java.util.Optional;
+import java.util.function.Function;
 
 @RestController
 @RequestMapping("/utemp/assignments")
@@ -124,10 +127,12 @@ public class AssignmentController {
     })
     @GetMapping
     @PreAuthorize("hasAuthority('MANAGE_ASSIGNMENTS')")
-    public ResponseEntity<Page<AssignmentDTO>> getAllAssignments(Pageable pageable) {
+    public ResponseEntity<PageDTO<AssignmentDTO>> getAllAssignments(Pageable pageable) {
         try {
             Page<AssignmentDTO> assignments = assignmentService.getAllAssignments(pageable);
-            return ResponseEntity.ok(assignments);
+            PageDTO<AssignmentDTO> assignmentDTOs = PageConverter.convertPageToDTO(assignments, Function.identity());
+            return ResponseEntity.ok(assignmentDTOs);
+
         } catch (InvalidDataException e) {
             logger.error("Invalid data fetching assignments: {}", e.getMessage());
             return ResponseEntity.badRequest().body(null);
@@ -480,7 +485,7 @@ public class AssignmentController {
     })
     @GetMapping("/course/{courseId}")
     @PreAuthorize("hasAuthority('GET_COURSE_ASSIGNMENTS')")
-    public ResponseEntity<Page<AssignmentDTO>> getAssignmentsByCourseId(
+    public ResponseEntity<PageDTO<AssignmentDTO>> getAssignmentsByCourseId(
             @Parameter(
                     description = "Unique identifier of the course to fetch assignments for",
                     required = true,
@@ -489,8 +494,9 @@ public class AssignmentController {
             @PathVariable Long courseId,
             Pageable pageable) {
         try {
-            Page<AssignmentDTO> assignments = assignmentService.getAssignmentsByCourseId(courseId, pageable);
-            return ResponseEntity.ok(assignments);
+            Page<AssignmentDTO> assignmentsPage = assignmentService.getAssignmentsByCourseId(courseId, pageable);
+            return ResponseEntity.ok(PageConverter.convertPageToDTO(assignmentsPage, assignmentDTO -> assignmentDTO));
+
         } catch (InvalidDataException e) {
             logger.error("Invalid data fetching assignments for course ID {}: {}", courseId, e.getMessage());
             return ResponseEntity.badRequest().body(null);
