@@ -73,7 +73,6 @@ public class FileController {
             )
     })
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('GET_FILE_BY_ID')")
     public ResponseEntity<FileMetadatumDTO> getFileMetadata(@PathVariable Long id) {
         try {
             Optional<FileMetadatumDTO> fileMetadata = fileService.getFileMetadatumById(id);
@@ -116,7 +115,6 @@ public class FileController {
             )
     })
     @PostMapping("/upload")
-    @PreAuthorize("hasAuthority('UPLOAD_FILE')")
     public ResponseEntity<String> uploadFileChunk(@RequestBody FileMetadatumDTO fileChunkDTO) {
         try {
             fileService.receiveFileChunk(fileChunkDTO);
@@ -173,7 +171,6 @@ public class FileController {
             )
     })
     @GetMapping("/download/{id}")
-    @PreAuthorize("hasAuthority('DOWNLOAD_FILE')")
     public ResponseEntity<List<FileMetadatumDTO>> downloadFile(@PathVariable Long id) {
         try {
             List<FileMetadatumDTO> fileChunks = fileService.downloadFileInChunks(id);
@@ -214,7 +211,6 @@ public class FileController {
             )
     })
     @PutMapping
-    @PreAuthorize("hasAuthority('UPDATE_FILE')")
     public ResponseEntity<FileMetadatumDTO> updateFile(@RequestBody FileMetadatumDTO fileChunkDTO) {
         try {
             FileMetadatumDTO updatedFile = fileService.updateFileMetadatum(fileChunkDTO.getId(), fileChunkDTO);

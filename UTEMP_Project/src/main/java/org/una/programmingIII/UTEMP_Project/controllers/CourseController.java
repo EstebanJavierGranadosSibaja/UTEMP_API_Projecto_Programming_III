@@ -74,7 +74,7 @@ public class CourseController {
             )
     })
     @GetMapping
-    @PreAuthorize("hasAuthority('GET_ALL_COURSES')")
+    @PreAuthorize("hasAuthority('MANAGE_COURSES')")
     public ResponseEntity<Page<CourseDTO>> getAllCourses(Pageable pageable) {
         try {
             Page<CourseDTO> courses = courseService.getAllCourses(pageable);
@@ -139,7 +139,7 @@ public class CourseController {
             )
     })
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('GET_COURSE_BY_ID')")
+    @PreAuthorize("hasAuthority('MANAGE_COURSES')")
     public ResponseEntity<CourseDTO> getCourseById(@Parameter(description = "ID of the course to be retrieved") @PathVariable Long id) {
         try {
             Optional<CourseDTO> courseDTO = courseService.getCourseById(id);
@@ -210,7 +210,7 @@ public class CourseController {
             )
     })
     @PostMapping
-    @PreAuthorize("hasAuthority('CREATE_COURSE')")
+    @PreAuthorize("hasAuthority('MANAGE_COURSES')")
     public ResponseEntity<CourseDTO> createCourse(@Valid @RequestBody CourseDTO courseDTO) {
         try {
             CourseDTO createdCourse = courseService.createCourse(courseDTO);
@@ -295,7 +295,7 @@ public class CourseController {
             )
     })
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('UPDATE_COURSE')")
+    @PreAuthorize("hasAuthority('MANAGE_COURSES')")
     public ResponseEntity<CourseDTO> updateCourse(
             @Parameter(
                     description = "ID of the course to be updated",
@@ -370,7 +370,7 @@ public class CourseController {
             )
     })
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('DELETE_COURSE')")
+    @PreAuthorize("hasAuthority('MANAGE_COURSES')")
     public ResponseEntity<Void> deleteCourse(
             @Parameter(
                     description = "ID of the course to be deleted",
@@ -501,7 +501,7 @@ public class CourseController {
             )
     })
     @GetMapping("/teacher/{teacherId}")
-    @PreAuthorize("hasAuthority('GET_ALL_COURSES_OF_TEACHER')")
+    @PreAuthorize("hasAuthority('GET_TEACHER_COURSES')")
     public ResponseEntity<Page<CourseDTO>> getCoursesByTeacherId(
             @Parameter(
                     description = "ID of the teacher",
@@ -635,7 +635,7 @@ public class CourseController {
             )
     })
     @GetMapping("/department/{departmentId}")
-    @PreAuthorize("hasAuthority('GET_ALL_DEPARTMENT_COURSES')")
+    @PreAuthorize("hasAuthority('GET_DEPARTMENT_COURSES')")
     public ResponseEntity<Page<CourseDTO>> getCoursesByDepartmentId(
             @Parameter(
                     description = "ID of the department",
@@ -698,7 +698,7 @@ public class CourseController {
             )
     })
     @PostMapping("/{courseId}/assignments")
-    @PreAuthorize("hasAuthority('ADD_ASSIGNMENT_TO_COURSE')")
+    @PreAuthorize("hasAuthority('ADD_COURSE_ASSIGNMENTS')")
     public ResponseEntity<Void> addAssignmentToCourse(@PathVariable Long courseId,
                                                       @RequestBody AssignmentDTO assignmentDTO) {
         try {
@@ -747,7 +747,7 @@ public class CourseController {
             )
     })
     @DeleteMapping("/{courseId}/assignments/{assignmentId}")
-    @PreAuthorize("hasAuthority('REMOVE_ASSIGNMENT_TO_COURSE')")
+    @PreAuthorize("hasAuthority('REMOVE_COURSE_ASSIGNMENTS')")
     public ResponseEntity<Void> removeAssignmentFromCourse(@PathVariable Long courseId,
                                                            @PathVariable Long assignmentId) {
         try {

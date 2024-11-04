@@ -123,7 +123,7 @@ public class AssignmentController {
             )
     })
     @GetMapping
-    @PreAuthorize("hasAuthority('GET_ALL_ASSIGNMENTS')")
+    @PreAuthorize("hasAuthority('MANAGE_ASSIGNMENTS')")
     public ResponseEntity<Page<AssignmentDTO>> getAllAssignments(Pageable pageable) {
         try {
             Page<AssignmentDTO> assignments = assignmentService.getAllAssignments(pageable);
@@ -192,7 +192,7 @@ public class AssignmentController {
             )
     })
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('GET_ASSIGNMENT_BY_ID')")
+    @PreAuthorize("hasAuthority('MANAGE_ASSIGNMENTS')")
     public ResponseEntity<AssignmentDTO> getAssignmentById(
             @Parameter(
                     description = "ID of the assignment to retrieve",
@@ -273,7 +273,7 @@ public class AssignmentController {
             )
     })
     @PostMapping
-    @PreAuthorize("hasAuthority('CREATE_ASSIGNMENT')")
+    @PreAuthorize("hasAuthority('MANAGE_ASSIGNMENTS')")
     public ResponseEntity<AssignmentDTO> createAssignment(
             @Parameter(
                     description = "Details of the assignment to be created",
@@ -340,7 +340,7 @@ public class AssignmentController {
             )
     })
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('UPDATE_ASSIGNMENT')")
+    @PreAuthorize("hasAuthority('MANAGE_ASSIGNMENTS')")
     public ResponseEntity<AssignmentDTO> updateAssignment(
             @Parameter(
                     description = "Unique identifier of the assignment to be updated",
@@ -389,7 +389,7 @@ public class AssignmentController {
             )
     })
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('DELETE_ASSIGNMENT')")
+    @PreAuthorize("hasAuthority('MANAGE_ASSIGNMENTS')")
     public ResponseEntity<Void> deleteAssignment(
             @Parameter(
                     description = "Unique identifier of the assignment to be deleted",
@@ -479,7 +479,7 @@ public class AssignmentController {
             )
     })
     @GetMapping("/course/{courseId}")
-    @PreAuthorize("hasAuthority('GET_ALL_COURSE_ASSIGNMENTS')")
+    @PreAuthorize("hasAuthority('GET_COURSE_ASSIGNMENTS')")
     public ResponseEntity<Page<AssignmentDTO>> getAssignmentsByCourseId(
             @Parameter(
                     description = "Unique identifier of the course to fetch assignments for",
@@ -546,7 +546,7 @@ public class AssignmentController {
             )
     })
     @PostMapping("/{assignmentId}/submissions")
-    @PreAuthorize("hasAuthority('ADD_SUBMISSION_TO_ASSIGNMENT')")
+    @PreAuthorize("hasAuthority('ADD_ASSIGNMENT_SUBMISSION')")
     public ResponseEntity<SubmissionDTO> addSubmissionToAssignment(
             @Parameter(
                     description = "Unique identifier of the assignment to which the submission will be added",
@@ -601,7 +601,7 @@ public class AssignmentController {
             )
     })
     @DeleteMapping("/{assignmentId}/submissions/{submissionId}")
-    @PreAuthorize("hasAuthority('REMOVE_SUBMISSION_TO_ASSIGNMENT')")
+    @PreAuthorize("hasAuthority('REMOVE_ASSIGNMENT_SUBMISSION')")
     public ResponseEntity<Void> removeSubmissionFromAssignment(@PathVariable Long assignmentId,
                                                                @PathVariable Long submissionId) {
         try {

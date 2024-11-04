@@ -71,7 +71,7 @@ public class EnrollmentController {
             )
     })
     @GetMapping
-    @PreAuthorize("hasAuthority('GET_ALL_ENROLLMENTS')")
+    @PreAuthorize("hasAuthority('MANAGE_ENROLLMENTS')")
     public ResponseEntity<Page<EnrollmentDTO>> getAllEnrollments(Pageable pageable) {
         try {
             Page<EnrollmentDTO> enrollments = enrollmentService.getAllEnrollments(pageable);
@@ -131,7 +131,7 @@ public class EnrollmentController {
             )
     })
     @GetMapping("/course/{courseId}")
-    @PreAuthorize("hasAuthority('GET_ALL_ENROLLMENTS_TO_COURSE')")
+    @PreAuthorize("hasAuthority('MANAGE_ENROLLMENTS')")
     public ResponseEntity<Page<EnrollmentDTO>> getEnrollmentsByCourseId(
             @Parameter(description = "ID of the course to retrieve enrollments for") @PathVariable Long courseId,
             Pageable pageable) {
@@ -196,7 +196,7 @@ public class EnrollmentController {
             )
     })
     @GetMapping("/student/{studentId}")
-    @PreAuthorize("hasAuthority('GET_ALL_ENROLLMENTS_TO_STUDENT')")
+    @PreAuthorize("hasAuthority('GET_STUDENT_ENROLLMENTS')")
     public ResponseEntity<Page<EnrollmentDTO>> getEnrollmentsByStudentId(
             @Parameter(description = "ID of the student to retrieve enrollments for") @PathVariable Long studentId,
             Pageable pageable) {
@@ -261,7 +261,7 @@ public class EnrollmentController {
             )
     })
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('GET_ENROLLMENT_BY_ID')")
+    @PreAuthorize("hasAuthority('MANAGE_ENROLLMENTS')")
     public ResponseEntity<EnrollmentDTO> getEnrollmentById(
             @Parameter(description = "ID of the enrollment to be fetched") @PathVariable Long id) {
         try {
@@ -326,7 +326,7 @@ public class EnrollmentController {
             )
     })
     @PostMapping
-    @PreAuthorize("hasAuthority('CREATE_ENROLLMENT')")
+    @PreAuthorize("hasAuthority('MANAGE_ENROLLMENTS')")
     public ResponseEntity<EnrollmentDTO> createEnrollment(@Valid @RequestBody EnrollmentDTO enrollmentDTO) {
         try {
             EnrollmentDTO createdEnrollment = enrollmentService.createEnrollment(enrollmentDTO);
@@ -405,7 +405,7 @@ public class EnrollmentController {
             )
     })
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('UPDATE_ENROLLMENT')")
+    @PreAuthorize("hasAuthority('MANAGE_ENROLLMENTS')")
     public ResponseEntity<EnrollmentDTO> updateEnrollment(
             @Parameter(description = "ID of the enrollment to update") @PathVariable Long id,
             @Valid @RequestBody EnrollmentDTO enrollmentDTO) {
@@ -474,7 +474,7 @@ public class EnrollmentController {
             )
     })
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('DELETE_ENROLLMENT')")
+    @PreAuthorize("hasAuthority('MANAGE_ENROLLMENTS')")
     public ResponseEntity<Void> deleteEnrollment(
             @Parameter(description = "ID of the enrollment to delete") @PathVariable Long id) {
         try {

@@ -70,7 +70,7 @@ public class FacultyController {
             )
     })
     @GetMapping
-    @PreAuthorize("hasAuthority('GET_ALL_FACULTIES')")
+    @PreAuthorize("hasAuthority('MANAGE_FACULTIES')")
     public ResponseEntity<Page<FacultyDTO>> getAllFaculties(Pageable pageable) {
         try {
             Page<FacultyDTO> faculties = facultyService.getAllFaculties(pageable);
@@ -131,7 +131,7 @@ public class FacultyController {
             )
     })
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('GET_FACULTY_BY_ID')")
+    @PreAuthorize("hasAuthority('MANAGE_FACULTIES')")
     public ResponseEntity<FacultyDTO> getFacultyById(@Parameter(description = "ID of the faculty to retrieve") @PathVariable Long id) {
         try {
             return facultyService.getFacultyById(id)
@@ -195,7 +195,7 @@ public class FacultyController {
             )
     })
     @PostMapping
-    @PreAuthorize("hasAuthority('CREATE_FACULTY')")
+    @PreAuthorize("hasAuthority('MANAGE_FACULTIES')")
     public ResponseEntity<FacultyDTO> createFaculty(@Valid @RequestBody FacultyDTO facultyDTO) {
         try {
             FacultyDTO createdFaculty = facultyService.createFaculty(facultyDTO);
@@ -273,7 +273,7 @@ public class FacultyController {
             )
     })
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('UPDATE_FACULTY')")
+    @PreAuthorize("hasAuthority('MANAGE_FACULTIES')")
     public ResponseEntity<FacultyDTO> updateFaculty(@PathVariable Long id,
                                                     @Valid @RequestBody FacultyDTO facultyDTO) {
         try {
@@ -338,7 +338,7 @@ public class FacultyController {
             )
     })
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('DELETE_FACULTY')")
+    @PreAuthorize("hasAuthority('MANAGE_FACULTIES')")
     public ResponseEntity<Void> deleteFaculty(@PathVariable Long id) {
         try {
             facultyService.deleteFaculty(id);
@@ -400,7 +400,7 @@ public class FacultyController {
             )
     })
     @GetMapping("/university/{universityId}")
-    @PreAuthorize("hasAuthority('GET_ALL_UNIVERSITY_FACILITIES')")
+    @PreAuthorize("hasAuthority('GET_UNIVERSITY_FACILITIES')")
     public ResponseEntity<Page<FacultyDTO>> getFacultiesByUniversityId(@PathVariable Long universityId,
                                                                        Pageable pageable) {
         try {
@@ -459,7 +459,7 @@ public class FacultyController {
             )
     })
     @PostMapping("/{facultyId}/departments")
-    @PreAuthorize("hasAuthority('ADD_DEPARTMENT_TO_FACULTY')")
+    @PreAuthorize("hasAuthority('ADD_FACULTY_DEPARTMENTS')")
     public ResponseEntity<Void> addDepartmentToFaculty(@PathVariable Long facultyId,
                                                        @Valid @RequestBody DepartmentDTO departmentDTO) {
         try {
@@ -520,7 +520,7 @@ public class FacultyController {
             )
     })
     @DeleteMapping("/{facultyId}/departments/{departmentId}")
-    @PreAuthorize("hasAuthority('REMOVE_DEPARTMENT_TO_FACULTY')")
+    @PreAuthorize("hasAuthority('REMOVE_FACULTY_DEPARTMENTS')")
     public ResponseEntity<Void> removeDepartmentFromFaculty(@PathVariable Long facultyId,
                                                             @PathVariable Long departmentId) {
         try {

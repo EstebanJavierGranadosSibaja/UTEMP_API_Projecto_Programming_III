@@ -62,7 +62,7 @@ public class GradeController {
             )
     })
     @GetMapping
-    @PreAuthorize("hasAuthority('GET_ALL_GRADES')")
+    @PreAuthorize("hasAuthority('MANAGE_GRADES')")
     public ResponseEntity<Page<GradeDTO>> getAllGrades(Pageable pageable) {
         try {
             Page<GradeDTO> grades = gradeService.getAllGrades(pageable);
@@ -105,7 +105,7 @@ public class GradeController {
             )
     })
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('GET_GRADE_BY_ID')")
+    @PreAuthorize("hasAuthority('MANAGE_GRADES')")
     public ResponseEntity<GradeDTO> getGradeById(
             @Parameter(description = "ID of the grade to retrieve", required = true) @PathVariable Long id) {
         try {
@@ -155,7 +155,7 @@ public class GradeController {
             )
     })
     @PostMapping
-    @PreAuthorize("hasAuthority('CREATE_GRADE')")
+    @PreAuthorize("hasAuthority('MANAGE_GRADES')")
     public ResponseEntity<GradeDTO> createGrade(
             @Parameter(description = "Grade data to create", required = true) @Valid @RequestBody GradeDTO gradeDTO) {
         try {
@@ -207,7 +207,7 @@ public class GradeController {
             )
     })
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('UPDATE_GRADE')")
+    @PreAuthorize("hasAuthority('MANAGE_GRADES')")
     public ResponseEntity<GradeDTO> updateGrade(
             @Parameter(description = "ID of the grade to update", required = true) @PathVariable Long id,
             @Valid @RequestBody GradeDTO gradeDTO) {
@@ -260,7 +260,7 @@ public class GradeController {
             )
     })
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('DELETE_GRADE')")
+    @PreAuthorize("hasAuthority('MANAGE_GRADES')")
     public ResponseEntity<Void> deleteGrade(
             @Parameter(description = "ID of the grade to delete", required = true) @PathVariable Long id) {
         try {
@@ -304,7 +304,7 @@ public class GradeController {
             )
     })
     @GetMapping("/submissions/{submissionId}/grades")
-    @PreAuthorize("hasAuthority('GET_GRADES_BY_SUBMISSION_ID')")
+    @PreAuthorize("hasAuthority('GET_SUBMISSION_GRADES')")
     public ResponseEntity<Page<GradeDTO>> getGradesBySubmissionId(
             @Parameter(description = "ID of the submission to retrieve grades for", required = true)
             @PathVariable Long submissionId, Pageable pageable) {

@@ -62,7 +62,7 @@ public class SubmissionController {
             )
     })
     @GetMapping
-    @PreAuthorize("hasAuthority('GET_ALL_SUBMISSIONS')")
+    @PreAuthorize("hasAuthority('MANAGE_SUBMISSIONS')")
     public ResponseEntity<Page<SubmissionDTO>> getAllSubmissions(Pageable pageable) {
         try {
             Page<SubmissionDTO> submissions = submissionService.getAllSubmissions(pageable);
@@ -104,7 +104,7 @@ public class SubmissionController {
             )
     })
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('GET_SUBMISSION_BY_ID')")
+    @PreAuthorize("hasAuthority('MANAGE_SUBMISSIONS')")
     public ResponseEntity<SubmissionDTO> getSubmissionById(
             @Parameter(description = "ID of the submission to retrieve", required = true) @PathVariable Long id) {
         try {
@@ -151,7 +151,7 @@ public class SubmissionController {
             )
     })
     @PostMapping
-    @PreAuthorize("hasAuthority('CREATE_SUBMISSION')")
+    @PreAuthorize("hasAuthority('MANAGE_SUBMISSIONS')")
     public ResponseEntity<SubmissionDTO> createSubmission(
             @Valid @RequestBody SubmissionDTO submissionDTO) {
         try {
@@ -205,7 +205,7 @@ public class SubmissionController {
             )
     })
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('UPDATE_SUBMISSION')")
+    @PreAuthorize("hasAuthority('MANAGE_SUBMISSIONS')")
     public ResponseEntity<SubmissionDTO> updateSubmission(
             @Parameter(description = "ID of the submission to update", required = true) @PathVariable Long id,
             @Valid @RequestBody SubmissionDTO submissionDTO) {
@@ -252,7 +252,7 @@ public class SubmissionController {
             )
     })
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('DELETE_SUBMISSION')")
+    @PreAuthorize("hasAuthority('MANAGE_SUBMISSIONS')")
     public ResponseEntity<Void> deleteSubmission(
             @Parameter(description = "ID of the submission to delete", required = true) @PathVariable Long id) {
         try {
@@ -286,7 +286,7 @@ public class SubmissionController {
             )
     })
     @GetMapping("/assignment/{assignmentId}")
-    @PreAuthorize("hasAuthority('GET_ALL_ASSIGNMENT_SUBMISSIONS')")
+    @PreAuthorize("hasAuthority('GET_ASSIGNMENT_SUBMISSIONS')")
     public ResponseEntity<Page<SubmissionDTO>> getSubmissionsByAssignmentId(
             @Parameter(description = "ID of the assignment", required = true) @PathVariable Long assignmentId,
             Pageable pageable) {
@@ -338,7 +338,7 @@ public class SubmissionController {
             )
     })
     @PostMapping("/{submissionId}/file-metadata")
-    @PreAuthorize("hasAuthority('ADD_FILE_TO_SUBMISSION')")
+    @PreAuthorize("hasAuthority('ADD_SUBMISSION_FILES')")
     public ResponseEntity<FileMetadatumDTO> addFileMetadatumToSubmission(
             @Parameter(description = "ID of the submission", required = true) @PathVariable Long submissionId,
             @Valid @RequestBody FileMetadatumDTO fileMetadatumDTO) {
@@ -396,7 +396,7 @@ public class SubmissionController {
             )
     })
     @PostMapping("/{submissionId}/grades")
-    @PreAuthorize("hasAuthority('ADD_GRADE_TO_SUBMISSION')")
+    @PreAuthorize("hasAuthority('ADD_SUBMISSION_GRADES')")
     public ResponseEntity<GradeDTO> addGradeToSubmission(
             @Parameter(description = "ID of the submission", required = true) @PathVariable Long submissionId,
             @Valid @RequestBody GradeDTO gradeDTO) {
@@ -446,7 +446,7 @@ public class SubmissionController {
             )
     })
     @DeleteMapping("/{submissionId}/file-metadata/{fileMetadatumId}")
-    @PreAuthorize("hasAuthority('REMOVE_FILE_TO_SUBMISSION')")
+    @PreAuthorize("hasAuthority('REMOVE_SUBMISSION_FILES')")
     public ResponseEntity<Void> removeFileMetadatumFromSubmission(@PathVariable Long submissionId,
                                                                   @PathVariable Long fileMetadatumId) {
         try {
@@ -492,7 +492,7 @@ public class SubmissionController {
             )
     })
     @DeleteMapping("/{submissionId}/grades/{gradeId}")
-    @PreAuthorize("hasAuthority('REMOVE_GRADE_TO_SUBMISSION')")
+    @PreAuthorize("hasAuthority('REMOVE_SUBMISSION_GRADES')")
     public ResponseEntity<Void> removeGradeFromSubmission(@PathVariable Long submissionId,
                                                           @PathVariable Long gradeId) {
         try {
@@ -508,7 +508,7 @@ public class SubmissionController {
     }
 
     @PutMapping("/{submissionId}/{gradeValue}")
-    @PreAuthorize("hasAuthority('evaluator')")
+    @PreAuthorize("hasAuthority('EVALUATE_SUBMISSIONS')")
     public ResponseEntity<Void> manualReviewSubmission(@PathVariable Long submissionId, @PathVariable Double gradeValue, @RequestBody String comments) {
         Optional<Grade> grade = submissionService.manualReviewSubmission(submissionId, gradeValue, comments);
         if (grade.isPresent()) {
@@ -517,5 +517,4 @@ public class SubmissionController {
             return ResponseEntity.badRequest().build();
         }
     }
-
 }

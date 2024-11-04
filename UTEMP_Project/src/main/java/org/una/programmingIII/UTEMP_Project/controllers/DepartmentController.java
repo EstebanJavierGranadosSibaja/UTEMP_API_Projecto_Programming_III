@@ -84,7 +84,7 @@ public class DepartmentController {
             )
     })
     @GetMapping
-    @PreAuthorize("hasAuthority('GET_ALL_DEPARTMENTS')")
+    @PreAuthorize("hasAuthority('MANAGE_DEPARTMENTS')")
     public ResponseEntity<Page<DepartmentDTO>> getAllDepartments(Pageable pageable) {
         try {
             Page<DepartmentDTO> departments = departmentService.getAllDepartments(pageable);
@@ -149,7 +149,7 @@ public class DepartmentController {
             )
     })
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('GET_DEPARTMENT_BY_ID')")
+    @PreAuthorize("hasAuthority('MANAGE_DEPARTMENTS')")
     public ResponseEntity<DepartmentDTO> getDepartmentById(
             @Parameter(description = "ID of the department to be fetched") @PathVariable Long id) {
         try {
@@ -216,7 +216,7 @@ public class DepartmentController {
             )
     })
     @PostMapping
-    @PreAuthorize("hasAuthority('CREATE_DEPARTMENT')")
+    @PreAuthorize("hasAuthority('MANAGE_DEPARTMENTS')")
     public ResponseEntity<DepartmentDTO> createDepartment(@Valid @RequestBody DepartmentDTO departmentDTO) {
         try {
             DepartmentDTO createdDepartment = departmentService.createDepartment(departmentDTO);
@@ -281,7 +281,7 @@ public class DepartmentController {
             )
     })
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('UPDATE_DEPARTMENT')")
+    @PreAuthorize("hasAuthority('MANAGE_DEPARTMENTS')")
     public ResponseEntity<DepartmentDTO> updateDepartment(@Parameter(description = "ID of the department to be updated") @PathVariable Long id,
                                                           @Valid @RequestBody DepartmentDTO departmentDTO) {
         try {
@@ -344,7 +344,7 @@ public class DepartmentController {
             )
     })
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('DELETE_DEPARTMENT')")
+    @PreAuthorize("hasAuthority('MANAGE_DEPARTMENTS')")
     public ResponseEntity<Void> deleteDepartment(@Parameter(description = "ID of the department to be deleted") @PathVariable Long id) {
         try {
             departmentService.deleteDepartment(id);
@@ -407,7 +407,7 @@ public class DepartmentController {
             )
     })
     @GetMapping("/faculty/{facultyId}")
-    @PreAuthorize("hasAuthority('GET_ALL_FACULTY_DEPARTMENT')")
+    @PreAuthorize("hasAuthority('GET_FACULTY_DEPARTMENTS')")
     public ResponseEntity<Page<DepartmentDTO>> getDepartmentsByFacultyId(
             @Parameter(description = "ID of the faculty to retrieve departments from") @PathVariable Long facultyId,
             Pageable pageable) {
@@ -488,7 +488,7 @@ public class DepartmentController {
             )
     })
     @PostMapping("/{departmentId}/courses")
-    @PreAuthorize("hasAuthority('ADD_COURSE_TO_DEPARTMENT')")
+    @PreAuthorize("hasAuthority('ADD_DEPARTMENT_COURSES')")
     public ResponseEntity<Void> addCourseToDepartment(
             @Parameter(description = "ID of the department to which the course will be added") @PathVariable Long departmentId,
             @Valid @RequestBody CourseDTO courseDTO) {
@@ -539,7 +539,7 @@ public class DepartmentController {
             )
     })
     @DeleteMapping("/{departmentId}/courses/{courseId}")
-    @PreAuthorize("hasAuthority('REMOVE_COURSE_TO_DEPARTMENT')")
+    @PreAuthorize("hasAuthority('REMOVE_DEPARTMENT_COURSES')")
     public ResponseEntity<Void> removeCourseFromDepartment(@PathVariable Long departmentId,
                                                            @PathVariable Long courseId) {
         try {

@@ -112,7 +112,7 @@ public class UserController {
             )
     })
     @GetMapping
-    @PreAuthorize("hasAuthority('GET_ALL_USERS') or hasAuthority('MANAGE_USERS')")
+    @PreAuthorize("hasAuthority('MANAGE_USERS')")
     public ResponseEntity<Page<UserDTO>> getAllUsers(@PageableDefault Pageable pageable) {
         logger.info("Fetching all users with pagination");
         try {
@@ -164,7 +164,7 @@ public class UserController {
             )
     })
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('GET_USER_BY_ID') or hasAuthority('MANAGE_USERS')")
+    @PreAuthorize("hasAuthority('MANAGE_USERS')")
     public ResponseEntity<UserDTO> getUserById(
             @Parameter(description = "ID of the user to retrieve") @PathVariable Long id) {
         try {
@@ -214,7 +214,7 @@ public class UserController {
             )
     })
     @GetMapping("/identification/{identificationNumber}")
-    @PreAuthorize("hasAuthority('GET_STUDENT_BY_IDENTIFICATION_NUMBER')")
+    @PreAuthorize("hasAuthority('MANAGE_USERS')")
     public ResponseEntity<UserDTO> getUserByIdentificationNumber(
             @Parameter(description = "Identification number of the user") @PathVariable String identificationNumber) {
         try {
@@ -261,7 +261,7 @@ public class UserController {
             )
     })
     @PostMapping
-    @PreAuthorize("hasAuthority('CREATE_USER')")
+    @PreAuthorize("hasAuthority('MANAGE_USERS')")
     public ResponseEntity<UserDTO> createUser(@Valid @RequestBody UserDTO userDTO) {
         try {
             UserDTO createdUser = userService.createUser(userDTO);
@@ -316,7 +316,7 @@ public class UserController {
             )
     })
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('UPDATE_USER')")
+    @PreAuthorize("hasAuthority('MANAGE_USERS')")
     public ResponseEntity<UserDTO> updateUser(@PathVariable Long id,
                                               @Valid @RequestBody UserDTO userDTO) {
         try {
@@ -364,7 +364,7 @@ public class UserController {
             )
     })
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('DELETE_USER')")
+    @PreAuthorize("hasAuthority('MANAGE_USERS')")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id,
                                            @RequestParam Boolean isPermanentDelete) {
         try {
@@ -404,7 +404,7 @@ public class UserController {
             )
     })
     @GetMapping("/{id}/courses")
-    @PreAuthorize("hasAuthority('GET_ALL_COURSES_OF_TEACHER')")
+    @PreAuthorize("hasAuthority('GET_TEACHER_COURSES')")
     public ResponseEntity<Page<CourseDTO>> getCoursesTeachingByUserId(@PathVariable Long id,
                                                                       Pageable pageable) {
         try {
@@ -454,7 +454,7 @@ public class UserController {
             )
     })
     @PostMapping("/{userId}/courses/{courseId}")
-    @PreAuthorize("hasAuthority('ADD_COURSE_TO_TEACHER')")
+    @PreAuthorize("hasAuthority('ADD_TEACHER_COURSES')")
     public ResponseEntity<Void> assignCourseToTeacher(@PathVariable Long userId,
                                                       @PathVariable Long courseId) {
         try {
@@ -499,7 +499,7 @@ public class UserController {
             )
     })
     @DeleteMapping("/{userId}/courses/{courseId}")
-    @PreAuthorize("hasAuthority('REMOVE_COURSE_TO_TEACHER')")
+    @PreAuthorize("hasAuthority('REMOVE_TEACHER_COURSE')")
     public ResponseEntity<Void> removeCourseFromTeacher(@PathVariable Long userId,
                                                         @PathVariable Long courseId) {
         try {
@@ -545,7 +545,7 @@ public class UserController {
             )
     })
     @GetMapping("/{userId}/enrollments")
-    @PreAuthorize("hasAuthority('GET_ALL_STUDENT_ENROLLMENTS')")
+    @PreAuthorize("hasAuthority('GET_STUDENT_ENROLLMENTS')")
     public ResponseEntity<Page<EnrollmentDTO>> retrieveEnrollmentsForUser(
             @PathVariable Long userId,
             Pageable pageable) {
@@ -596,7 +596,7 @@ public class UserController {
             )
     })
     @PostMapping("/{userId}/enrollments/{courseId}")
-    @PreAuthorize("hasAuthority('ADD_COURSE_TO_STUDENT')")
+    @PreAuthorize("hasAuthority('ADD_STUDENT_COURSES')")
     public ResponseEntity<Void> registerUserForCourseEnrollment(
             @PathVariable Long userId,
             @PathVariable Long courseId) {
@@ -650,7 +650,7 @@ public class UserController {
             )
     })
     @DeleteMapping("/{userId}/enrollments/{courseId}")
-    @PreAuthorize("hasAuthority('REMOVE_COURSE_TO_STUDENT')")
+    @PreAuthorize("hasAuthority('REMOVE_STUDENT_COURSES')")
     public ResponseEntity<Void> removeUserFromCourseEnrollment(
             @PathVariable Long userId,
             @PathVariable Long courseId) {

@@ -61,7 +61,7 @@ public class UniversityController {
             )
     })
     @GetMapping
-    @PreAuthorize("hasAuthority('GET_ALL_UNIVERSITIES')")
+    @PreAuthorize("hasAuthority('MANAGE_UNIVERSITIES')")
     public ResponseEntity<Page<UniversityDTO>> getAllUniversities(Pageable pageable) {
         logger.info("Fetching all universities with pagination");
         try {
@@ -106,7 +106,7 @@ public class UniversityController {
             )
     })
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('GET_UNIVERSITY_BY_ID')")
+    @PreAuthorize("hasAuthority('MANAGE_UNIVERSITIES')")
     public ResponseEntity<UniversityDTO> getUniversityById(
             @Parameter(description = "ID of the university to retrieve", required = true) @PathVariable Long id) {
         logger.info("Fetching university with ID: {}", id);
@@ -158,7 +158,7 @@ public class UniversityController {
             )
     })
     @PostMapping
-    @PreAuthorize("hasAuthority('CREATE_UNIVERSITY')")
+    @PreAuthorize("hasAuthority('MANAGE_UNIVERSITIES')")
     public ResponseEntity<UniversityDTO> createUniversity(
             @Parameter(description = "University data to create", required = true) @Valid @RequestBody UniversityDTO universityDTO) {
         logger.info("Creating new university: {}", universityDTO);
@@ -214,7 +214,7 @@ public class UniversityController {
             )
     })
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('UPDATE_UNIVERSITY')")
+    @PreAuthorize("hasAuthority('MANAGE_UNIVERSITIES')")
     public ResponseEntity<UniversityDTO> updateUniversity(
             @Parameter(description = "ID of the university to update", required = true) @PathVariable Long id,
             @Valid @RequestBody UniversityDTO universityDTO) {
@@ -273,7 +273,7 @@ public class UniversityController {
             )
     })
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('DELETE_UNIVERSITY')")
+    @PreAuthorize("hasAuthority('MANAGE_UNIVERSITIES')")
     public ResponseEntity<Void> deleteUniversity(
             @Parameter(description = "ID of the university to delete", required = true) @PathVariable Long id) {
         logger.info("Deleting university with ID: {}", id);
@@ -327,7 +327,7 @@ public class UniversityController {
             )
     })
     @PostMapping("/{universityId}/faculties")
-    @PreAuthorize("hasAuthority('ADD_FACULTY_TO_UNIVERSITY')")
+    @PreAuthorize("hasAuthority('ADD_UNIVERSITY_FACULTIES')")
     public ResponseEntity<Void> addFacultyToUniversity(
             @Parameter(description = "ID of the university to which the faculty will be added", required = true) @PathVariable Long universityId,
             @Valid @RequestBody FacultyDTO facultyDTO) {
@@ -375,7 +375,7 @@ public class UniversityController {
             )
     })
     @DeleteMapping("/{universityId}/faculties/{facultyId}")
-    @PreAuthorize("hasAuthority('REMOVE_FACULTY_TO_UNIVERSITY')")
+    @PreAuthorize("hasAuthority('REMOVE_UNIVERSITY_FACULTIES')")
     public ResponseEntity<Void> removeFacultyFromUniversity(
             @Parameter(description = "ID of the university", required = true) @PathVariable Long universityId,
             @PathVariable Long facultyId) {
