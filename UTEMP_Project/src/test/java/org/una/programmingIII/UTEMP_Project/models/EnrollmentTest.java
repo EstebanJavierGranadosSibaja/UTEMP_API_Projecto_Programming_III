@@ -23,7 +23,7 @@ class EnrollmentTest {
     @Test
     void testEnrollmentInitialization() {
         assertThat(enrollment).isNotNull();
-        assertThat(enrollment.getId()).isNull(); // ID debe ser null antes de persistir.
+        assertThat(enrollment.getId()).isNull();
         assertThat(enrollment.getCourse()).isNotNull();
         assertThat(enrollment.getStudent()).isNotNull();
         assertThat(enrollment.getState()).isEqualTo(EnrollmentState.ENROLLED);
@@ -42,10 +42,10 @@ class EnrollmentTest {
         enrollment.onCreate();
         LocalDateTime initialLastUpdate = enrollment.getLastUpdate();
 
-        // Simular una actualización después de un tiempo
+
         enrollment.onUpdate();
         assertThat(enrollment.getLastUpdate()).isAfter(initialLastUpdate);
-        assertThat(enrollment.getCreatedAt()).isNotNull(); // createdAt no debe cambiar.
+        assertThat(enrollment.getCreatedAt()).isNotNull();
     }
 
     @Test
@@ -79,6 +79,6 @@ class EnrollmentTest {
     @Test
     void testDefaultState() {
         Enrollment defaultEnrollment = new Enrollment();
-        assertThat(defaultEnrollment.getState()).isNull(); // Si el estado no se inicializa explícitamente.
+        assertThat(defaultEnrollment.getState()).isNull();
     }
 }
