@@ -25,7 +25,7 @@ class SubmissionTest {
     @Test
     void testSubmissionInitialization() {
         assertThat(submission).isNotNull();
-        assertThat(submission.getId()).isNull(); // ID debe ser null antes de persistir
+        assertThat(submission.getId()).isNull();
         assertThat(submission.getFileName()).isEqualTo("test_file.txt");
         assertThat(submission.getState()).isEqualTo(SubmissionState.SUBMITTED);
     }
@@ -35,10 +35,9 @@ class SubmissionTest {
         submission.setFileName("ShortFileName");
         assertThat(submission.getFileName()).isEqualTo("ShortFileName");
 
-        submission.setFileName("A".repeat(255)); // Nombre de archivo límite permitido
+        submission.setFileName("A".repeat(255));
         assertThat(submission.getFileName()).hasSize(255);
 
-        // Validación de nombre de archivo vacío
         submission.setFileName("");
         assertThat(submission.getFileName()).isBlank();
 
@@ -51,17 +50,17 @@ class SubmissionTest {
         submission.setComments("This is a test comment.");
         assertThat(submission.getComments()).isEqualTo("This is a test comment.");
 
-        submission.setComments("A".repeat(500)); // Comentario límite permitido
+        submission.setComments("A".repeat(500));
         assertThat(submission.getComments()).hasSize(500);
 
-        submission.setComments("A".repeat(501)); // Comentario fuera del límite
+        submission.setComments("A".repeat(501));
         assertThat(submission.getComments()).hasSize(501);
     }
 
     @Test
     void testStateDefault() {
         Submission newSubmission = new Submission();
-        assertThat(newSubmission.getState()).isNull(); // El valor predeterminado depende de la persistencia.
+        assertThat(newSubmission.getState()).isNull();
     }
 
     @Test
@@ -77,10 +76,10 @@ class SubmissionTest {
         submission.onCreate();
         LocalDateTime initialLastUpdate = submission.getLastUpdate();
 
-        // Simular actualización
+
         submission.onUpdate();
         assertThat(submission.getLastUpdate()).isAfter(initialLastUpdate);
-        assertThat(submission.getCreatedAt()).isNotNull(); // `createdAt` no debe cambiar
+        assertThat(submission.getCreatedAt()).isNotNull();
     }
 
     @Test

@@ -26,7 +26,7 @@ class FileMetadatumTest {
     @Test
     void testFileMetadatumInitialization() {
         assertThat(fileMetadatum).isNotNull();
-        assertThat(fileMetadatum.getId()).isNull(); // ID es null antes de persistir.
+        assertThat(fileMetadatum.getId()).isNull();
         assertThat(fileMetadatum.getFileName()).isEqualTo("test_document.pdf");
         assertThat(fileMetadatum.getFileSize()).isEqualTo(1048576L);
         assertThat(fileMetadatum.getFileType()).isEqualTo("application/pdf");
@@ -40,17 +40,17 @@ class FileMetadatumTest {
         fileMetadatum.setFileName("valid_file_name.txt");
         assertThat(fileMetadatum.getFileName()).isEqualTo("valid_file_name.txt");
 
-        fileMetadatum.setFileName("A".repeat(255)); // Nombre límite máximo permitido.
+        fileMetadatum.setFileName("A".repeat(255));
         assertThat(fileMetadatum.getFileName()).hasSize(255);
 
-        fileMetadatum.setFileName(null); // La validación @NotNull no aplica aquí directamente.
+        fileMetadatum.setFileName(null);
         assertThat(fileMetadatum.getFileName()).isNull();
     }
 
     @Test
     void testFileSizeNotNull() {
         fileMetadatum.setFileSize(null);
-        assertThat(fileMetadatum.getFileSize()).isNull(); // La validación @NotNull es en persistencia.
+        assertThat(fileMetadatum.getFileSize()).isNull();
     }
 
     @Test
@@ -58,10 +58,10 @@ class FileMetadatumTest {
         fileMetadatum.setFileType("text/plain");
         assertThat(fileMetadatum.getFileType()).isEqualTo("text/plain");
 
-        fileMetadatum.setFileType("A".repeat(100)); // Límite permitido.
+        fileMetadatum.setFileType("A".repeat(100));
         assertThat(fileMetadatum.getFileType()).hasSize(100);
 
-        fileMetadatum.setFileType(null); // No es obligatorio, así que puede ser null.
+        fileMetadatum.setFileType(null);
         assertThat(fileMetadatum.getFileType()).isNull();
     }
 
@@ -70,10 +70,10 @@ class FileMetadatumTest {
         fileMetadatum.setStoragePath("/valid/path/to/file.txt");
         assertThat(fileMetadatum.getStoragePath()).isEqualTo("/valid/path/to/file.txt");
 
-        fileMetadatum.setStoragePath("A".repeat(500)); // Límite permitido.
+        fileMetadatum.setStoragePath("A".repeat(500));
         assertThat(fileMetadatum.getStoragePath()).hasSize(500);
 
-        fileMetadatum.setStoragePath(null); // No es obligatorio, así que puede ser null.
+        fileMetadatum.setStoragePath(null);
         assertThat(fileMetadatum.getStoragePath()).isNull();
     }
 
@@ -90,10 +90,10 @@ class FileMetadatumTest {
         fileMetadatum.onCreate();
         LocalDateTime initialLastUpdate = fileMetadatum.getLastUpdate();
 
-        // Simular actualización
+
         fileMetadatum.onUpdate();
         assertThat(fileMetadatum.getLastUpdate()).isAfter(initialLastUpdate);
-        assertThat(fileMetadatum.getCreatedAt()).isNotNull(); // createdAt no debe cambiar.
+        assertThat(fileMetadatum.getCreatedAt()).isNotNull();
     }
 
     @Test

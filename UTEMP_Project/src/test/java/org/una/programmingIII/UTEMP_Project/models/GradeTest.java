@@ -25,7 +25,7 @@ class GradeTest {
     @Test
     void testGradeInitialization() {
         assertThat(grade).isNotNull();
-        assertThat(grade.getId()).isNull(); // ID es null antes de persistir
+        assertThat(grade.getId()).isNull();
         assertThat(grade.getSubmission()).isNotNull();
         assertThat(grade.getGrade()).isEqualTo(85.0);
         assertThat(grade.getComments()).isEqualTo("Well done!");
@@ -38,23 +38,23 @@ class GradeTest {
         grade.setComments("This is a valid comment.");
         assertThat(grade.getComments()).isEqualTo("This is a valid comment.");
 
-        grade.setComments("A".repeat(1000)); // Comentario límite permitido.
+        grade.setComments("A".repeat(1000));
         assertThat(grade.getComments()).hasSize(1000);
 
-        grade.setComments(null); // Campo opcional, puede ser null.
+        grade.setComments(null);
         assertThat(grade.getComments()).isNull();
     }
 
     @Test
     void testReviewedByAiDefaults() {
         Grade newGrade = new Grade();
-        assertThat(newGrade.getReviewedByAi()).isNull(); // Por defecto debe ser null.
+        assertThat(newGrade.getReviewedByAi()).isNull();
     }
 
     @Test
     void testStateDefault() {
         Grade newGrade = new Grade();
-        assertThat(newGrade.getState()).isNull(); // El estado inicial depende de la persistencia.
+        assertThat(newGrade.getState()).isNull();
     }
 
     @Test
@@ -62,7 +62,7 @@ class GradeTest {
         grade.setGrade(95.5);
         assertThat(grade.getGrade()).isEqualTo(95.5);
 
-        grade.setGrade(null); // Campo opcional, puede ser null.
+        grade.setGrade(null);
         assertThat(grade.getGrade()).isNull();
     }
 
@@ -79,10 +79,10 @@ class GradeTest {
         grade.onCreate();
         LocalDateTime initialLastUpdate = grade.getLastUpdate();
 
-        // Simular actualización
+
         grade.onUpdate();
         assertThat(grade.getLastUpdate()).isAfter(initialLastUpdate);
-        assertThat(grade.getCreatedAt()).isNotNull(); // `createdAt` no debe cambiar.
+        assertThat(grade.getCreatedAt()).isNotNull();
     }
 
     @Test

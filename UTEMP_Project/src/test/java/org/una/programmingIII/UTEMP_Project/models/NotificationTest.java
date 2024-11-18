@@ -23,7 +23,7 @@ class NotificationTest {
     @Test
     void testNotificationInitialization() {
         assertThat(notification).isNotNull();
-        assertThat(notification.getId()).isNull(); // ID debe ser null antes de persistir
+        assertThat(notification.getId()).isNull();
         assertThat(notification.getUser()).isNotNull();
         assertThat(notification.getMessage()).isEqualTo("This is a test notification.");
         assertThat(notification.getStatus()).isEqualTo(NotificationStatus.UNREAD);
@@ -34,10 +34,10 @@ class NotificationTest {
         notification.setMessage("Short message");
         assertThat(notification.getMessage()).isEqualTo("Short message");
 
-        notification.setMessage("A".repeat(500)); // Mensaje límite permitido
+        notification.setMessage("A".repeat(500));
         assertThat(notification.getMessage()).hasSize(500);
 
-        // Validación de mensaje vacío o null (campo obligatorio)
+
         notification.setMessage("");
         assertThat(notification.getMessage()).isBlank();
 
@@ -48,7 +48,7 @@ class NotificationTest {
     @Test
     void testStatusDefault() {
         Notification newNotification = new Notification();
-        assertThat(newNotification.getStatus()).isNull(); // El valor predeterminado depende de la persistencia.
+        assertThat(newNotification.getStatus()).isNull();
     }
 
     @Test
@@ -64,10 +64,10 @@ class NotificationTest {
         notification.onCreate();
         LocalDateTime initialLastUpdate = notification.getLastUpdate();
 
-        // Simular actualización
+
         notification.onUpdate();
         assertThat(notification.getLastUpdate()).isAfter(initialLastUpdate);
-        assertThat(notification.getCreatedAt()).isNotNull(); // `createdAt` no debe cambiar
+        assertThat(notification.getCreatedAt()).isNotNull();
     }
 
     @Test

@@ -24,7 +24,7 @@ class FacultyTest {
     @Test
     void testFacultyInitialization() {
         assertThat(faculty).isNotNull();
-        assertThat(faculty.getId()).isNull(); // ID es null antes de persistir.
+        assertThat(faculty.getId()).isNull();
         assertThat(faculty.getName()).isEqualTo("Engineering Faculty");
         assertThat(faculty.getUniversity()).isNotNull();
         assertThat(faculty.getDepartments()).hasSize(2);
@@ -35,17 +35,17 @@ class FacultyTest {
         faculty.setName("Valid Name");
         assertThat(faculty.getName()).isEqualTo("Valid Name");
 
-        faculty.setName("A".repeat(50)); // Nombre límite máximo permitido.
+        faculty.setName("A".repeat(50));
         assertThat(faculty.getName()).hasSize(50);
 
-        faculty.setName(null); // La validación @NotNull no aplica aquí directamente en pruebas de unidad.
+        faculty.setName(null);
         assertThat(faculty.getName()).isNull();
     }
 
     @Test
     void testFacultyUniversityNotNull() {
         faculty.setUniversity(null);
-        assertThat(faculty.getUniversity()).isNull(); // Solo se valida en persistencia.
+        assertThat(faculty.getUniversity()).isNull();
     }
 
     @Test
@@ -70,10 +70,10 @@ class FacultyTest {
         faculty.onCreate();
         LocalDateTime initialLastUpdate = faculty.getLastUpdate();
 
-        // Simular actualización
+
         faculty.onUpdate();
         assertThat(faculty.getLastUpdate()).isAfter(initialLastUpdate);
-        assertThat(faculty.getCreatedAt()).isNotNull(); // createdAt no debe cambiar.
+        assertThat(faculty.getCreatedAt()).isNotNull();
     }
 
     @Test

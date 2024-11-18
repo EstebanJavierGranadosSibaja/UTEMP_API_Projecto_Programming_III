@@ -22,7 +22,7 @@ class UniversityTest {
     @Test
     void testUniversityInitialization() {
         assertThat(university).isNotNull();
-        assertThat(university.getId()).isNull(); // ID debe ser null antes de persistir
+        assertThat(university.getId()).isNull();
         assertThat(university.getName()).isEqualTo("Test University");
         assertThat(university.getLocation()).isEqualTo("Test Location");
     }
@@ -32,12 +32,12 @@ class UniversityTest {
         university.setName("Valid University Name");
         assertThat(university.getName()).isEqualTo("Valid University Name");
 
-        // Validación de nombre de universidad vacío
+
         university.setName("");
         assertThat(university.getName()).isBlank();
 
-        university.setName("A".repeat(101)); // Excede el límite de 100 caracteres
-        assertThat(university.getName()).hasSize(101); // Excede el límite máximo de caracteres
+        university.setName("A".repeat(101));
+        assertThat(university.getName()).hasSize(101);
     }
 
     @Test
@@ -45,11 +45,11 @@ class UniversityTest {
         university.setLocation("Valid Location");
         assertThat(university.getLocation()).isEqualTo("Valid Location");
 
-        university.setLocation("A".repeat(200)); // Límite de caracteres para location
+        university.setLocation("A".repeat(200));
         assertThat(university.getLocation()).hasSize(200);
 
-        university.setLocation("A".repeat(201)); // Excede el límite de 200 caracteres
-        assertThat(university.getLocation()).hasSize(201); // Excede el límite máximo
+        university.setLocation("A".repeat(201));
+        assertThat(university.getLocation()).hasSize(201);
     }
 
     @Test
@@ -65,10 +65,10 @@ class UniversityTest {
         university.onCreate();
         LocalDateTime initialLastUpdate = university.getLastUpdate();
 
-        // Simular actualización
+
         university.onUpdate();
         assertThat(university.getLastUpdate()).isAfter(initialLastUpdate);
-        assertThat(university.getCreatedAt()).isNotNull(); // `createdAt` no debe cambiar
+        assertThat(university.getCreatedAt()).isNotNull();
     }
 
     @Test
