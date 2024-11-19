@@ -1,5 +1,7 @@
 package org.una.programmingIII.UTEMP_Project.dtos;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -19,6 +21,7 @@ import java.util.List;
 @Builder
 public class UserDTO {
 
+    // Basic user information
     private Long id;
 
     @NotBlank(message = "Name must not be blank")
@@ -37,25 +40,54 @@ public class UserDTO {
 
     @Size(max = 50, message = "Identification number must be at most 50 characters long")
     private String identificationNumber;
-    @Builder.Default
-    private List<CourseDTO> coursesTeaching = new ArrayList<>();
-    @Builder.Default
-    private List<NotificationDTO> notifications = new ArrayList<>();
-    @Builder.Default
-    private List<EnrollmentDTO> userEnrollments = new ArrayList<>();
-    @Builder.Default
-    private List<SubmissionDTO> submissions = new ArrayList<>();
 
+    // User status and role
     @NotNull(message = "State must not be null")
     private UserState state;
 
     @NotNull(message = "Role must not be null")
     private UserRole role;
 
+    // Timestamps
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSSSSS")
+    private LocalDateTime createdAt;
+
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSSSSS")
+    private LocalDateTime lastUpdate;
+
+    // Permissions
     @Builder.Default
     private List<UserPermission> permissions = new ArrayList<>();
 
-    private LocalDateTime createdAt;
+    // Relationships and Collections
+    @Builder.Default
+    @JsonManagedReference("user-courses")  // Unique name for coursesTeaching
+    private List<CourseDTO> coursesTeaching = new ArrayList<>();
 
-    private LocalDateTime lastUpdate;
+    @Builder.Default
+    @JsonManagedReference("user-notifications")  // Unique name for notifications
+    private List<NotificationDTO> notifications = new ArrayList<>();
+
+    @Builder.Default
+    @JsonManagedReference("user-enrollments")  // Unique name for userEnrollments
+    private List<EnrollmentDTO> userEnrollments = new ArrayList<>();
+
+    @Builder.Default
+    @JsonManagedReference("user-submissions")  // Unique name for submissions
+    private List<SubmissionDTO> submissions = new ArrayList<>();
+
+    @Override
+    public String toString() {
+        return "UserDTO{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", email='" + email + '\'' +
+                ", password='" + (password != null ? "*****" : "null") + '\'' +  // Ocultamos la contraseña
+                ", identificationNumber='" + identificationNumber + '\'' +
+                ", state=" + state +
+                ", role=" + role +
+                ", createdAt=" + createdAt +
+                ", lastUpdate=" + lastUpdate +
+                '}';
+    }
 }
