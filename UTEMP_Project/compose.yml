@@ -1,0 +1,42 @@
+services:
+  postgres:
+    image: postgres:16.3
+    container_name: UTEMP_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PGDATA: ${PGDATA}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts:/docker-entrypoint-initdb.d
+    networks:
+      - backend
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: UTEMP_pgadmin
+    depends_on:
+      - postgres
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    ports:
+      - "8070:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - backend
+
+volumes:
+  postgres_data: # Volumen para almacenar datos de PostgreSQL
+    name: postgres_utemp
+  pgadmin_data: # Volumen para almacenar datos de pgAdmin
+    name: pgadmin_utemp
+
+networks:
+  backend:
