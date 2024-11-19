@@ -12,5 +12,6 @@ import java.util.Optional;
 public interface GradeRepository extends JpaRepository<Grade, Long> {
     @Query("SELECT g FROM Grade g WHERE g.submission.id = :submissionId")
     Page<Grade> findBySubmissionsId(@Param("submissionId") Long submissionId, Pageable pageable);
+
     Optional<Grade> findBySubmissionId(Long submissionId);
 }
