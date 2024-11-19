@@ -14,5 +14,35 @@
       "name": "jwt.expiration.refresh",
       "type": "java.lang.String",
       "description": "Description for jwt.expiration.refresh."
+    },
+    {
+      "name": "spring.mail.host",
+      "type": "java.lang.String",
+      "description": "Description for spring.mail.host."
+    },
+    {
+      "name": "spring.mail.port",
+      "type": "java.lang.Integer",
+      "description": "Description for spring.mail.port."
+    },
+    {
+      "name": "spring.mail.username",
+      "type": "java.lang.String",
+      "description": "Description for jwt.expiration.refresh."
+    },
+    {
+      "name": "spring.mail.password",
+      "type": "java.lang.String",
+      "description": "Description for spring.mail.password."
+    },
+    {
+      "name": "pgadmin.default.email",
+      "type": "java.lang.String",
+      "description": "Description for pgadmin.default.email."
+    },
+    {
+      "name": "pgadmin.default.password",
+      "type": "java.lang.String",
+      "description": "Description for pgadmin.default.password."
     }
   ] }
