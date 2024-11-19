@@ -11,15 +11,18 @@ import java.util.stream.Collectors;
 @Converter(autoApply = true)
 public class UserPermissionConverter implements AttributeConverter<List<UserPermission>, String> {
 
-    public UserPermissionConverter() {}
+    public UserPermissionConverter() {
+    }
 
     public String convertToDatabaseColumn(List<UserPermission> permissions) {
         if (permissions == null || permissions.isEmpty()) {
             return "";
         }
-        return permissions.stream()
+        String result = permissions.stream()
                 .map(UserPermission::name)
                 .collect(Collectors.joining(","));
+//        System.out.println("Converting permissions to DB column: " + result);
+        return result;
     }
 
     public List<UserPermission> convertToEntityAttribute(String dbData) {
@@ -27,7 +30,13 @@ public class UserPermissionConverter implements AttributeConverter<List<UserPerm
             return List.of();
         }
         return Arrays.stream(dbData.split(","))
-                .map(UserPermission::valueOf)
+                .map(permission -> {
+                    try {
+                        return UserPermission.valueOf(permission.trim());
+                    } catch (IllegalArgumentException e) {
+                        throw new IllegalArgumentException("Invalid permission value: " + permission, e);
+                    }
+                })
                 .collect(Collectors.toList());
     }
 }
