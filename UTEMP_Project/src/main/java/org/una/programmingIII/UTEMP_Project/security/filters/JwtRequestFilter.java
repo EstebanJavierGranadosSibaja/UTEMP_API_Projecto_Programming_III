@@ -16,9 +16,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-import org.una.programmingIII.UTEMP_Project.services.jwtTokenProvider.JwtTokenProviderService;
-import org.una.programmingIII.UTEMP_Project.services.user.CustomUserDetails;
-import org.una.programmingIII.UTEMP_Project.services.user.CustomUserDetailsService;
+import org.una.programmingIII.UTEMP_Project.security.utils.jwtTokenProvider.JwtTokenProvider;
+import org.una.programmingIII.UTEMP_Project.services.CustomUserDetails;
+import org.una.programmingIII.UTEMP_Project.services.CustomUserDetailsService;
 
 import java.io.IOException;
 
@@ -27,12 +27,12 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
     private static final Logger logger = LoggerFactory.getLogger(JwtRequestFilter.class);
 
-    private final JwtTokenProviderService jwtTokenProviderService;
+    private final JwtTokenProvider jwtTokenProvider;
     private final CustomUserDetailsService userDetailsService;
 
     @Autowired
-    public JwtRequestFilter(JwtTokenProviderService jwtTokenProviderService, CustomUserDetailsService userDetailsService) {
-        this.jwtTokenProviderService = jwtTokenProviderService;
+    public JwtRequestFilter(JwtTokenProvider jwtTokenProviderService, CustomUserDetailsService userDetailsService) {
+        this.jwtTokenProvider = jwtTokenProviderService;
         this.userDetailsService = userDetailsService;
     }
 
@@ -50,8 +50,8 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         }
 
         try {
-            String identificationNumber = jwtTokenProviderService.getIdentificationNumberFromToken(token);
-            if (identificationNumber != null && jwtTokenProviderService.validateToken(token, identificationNumber)) {
+            String identificationNumber = jwtTokenProvider.getIdentificationNumberFromToken(token);
+            if (identificationNumber != null && jwtTokenProvider.validateToken(token, identificationNumber)) {
                 authenticateUser(identificationNumber);
             } else {
                 handleException(response, "Invalid JWT Token");

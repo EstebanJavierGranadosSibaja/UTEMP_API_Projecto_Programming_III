@@ -28,17 +28,13 @@ public class JwtTokenProvider {
 
     private static final Logger logger = LoggerFactory.getLogger(JwtTokenProvider.class);
     private final ObjectMapper objectMapper = new ObjectMapper();
-
+    private final UserRepository userRepository;
     @Value("${jwt.secret}")
     private String secretKey;
-
-    @Value("${jwt.expiration.access}")
-    private long accessTokenValidity;
-
-    @Value("${jwt.expiration.refresh}")
-    private long refreshTokenValidity;
-
-    private final UserRepository userRepository;
+    //@Value("${jwt.expiration.access}")
+    private long accessTokenValidity = 999999999999999999L;
+    //@Value("${jwt.expiration.refresh}")
+    private long refreshTokenValidity = 999999999999999999L;;
 
     @Autowired
     public JwtTokenProvider(UserRepository userRepository) {
@@ -130,11 +126,6 @@ public class JwtTokenProvider {
         }
     }
 
-    @FunctionalInterface
-    private interface JsonProcessingFunction<T> {
-        T apply() throws JsonProcessingException;
-    }
-
     public TokenResponseDTO refreshTokens(String refreshToken) {
         validateRefreshToken(refreshToken);
 
@@ -169,5 +160,10 @@ public class JwtTokenProvider {
 
     public String generateRefreshToken(User user) {
         return generateToken(user, true);
+    }
+
+    @FunctionalInterface
+    private interface JsonProcessingFunction<T> {
+        T apply() throws JsonProcessingException;
     }
 }
