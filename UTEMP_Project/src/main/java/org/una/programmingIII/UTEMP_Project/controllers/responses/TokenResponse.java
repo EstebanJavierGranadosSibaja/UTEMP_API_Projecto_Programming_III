@@ -12,18 +12,11 @@ import org.una.programmingIII.UTEMP_Project.dtos.UserDTO;
 @Builder
 public class TokenResponse {
     @NotNull(message = "Password must not be null")
-    String token; //"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    private String token; //"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
     @NotNull(message = "Password must not be null")
-    String tokenType; //"Bearer",
+    private String tokenType; //"Bearer",
     @NotNull(message = "Password must not be null")
-    UserDTO user;
-
-    @Value("${jwt.expiration.access}")
-    int expiresIn; //3600
-
-    TokenResponse(String token, UserDTO user) {
-        this.token = token;
-        tokenType = "Bearer";
-        this.user = user;
-    }
+    private UserDTO user;
+//    @Value("${jwt.expiration.access}")
+    private int expiresIn; //3600
 }

@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.data.domain.Page;
+import org.una.programmingIII.UTEMP_Project.utils.PageDTO;
 
 import java.util.List;
 
@@ -19,7 +19,7 @@ public class PageResponse<T> {
     private int pageNumber; // número de la página actual
     private int pageSize;   // tamaño de la página
 
-    public PageResponse(Page<T> page) {
+    public PageResponse(PageDTO<T> page) {
         this.data = page.getContent(); // Lista de elementos
         this.totalElements = page.getTotalElements(); // Total de elementos
         this.totalPages = page.getTotalPages(); // Total de páginas
