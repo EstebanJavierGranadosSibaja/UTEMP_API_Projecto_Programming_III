@@ -16,15 +16,14 @@ import org.una.programmingIII.UTEMP_Project.dtos.UserDTO;
 import org.una.programmingIII.UTEMP_Project.exceptions.InvalidDataException;
 import org.una.programmingIII.UTEMP_Project.exceptions.ResourceNotFoundException;
 import org.una.programmingIII.UTEMP_Project.models.Notification;
-import org.una.programmingIII.UTEMP_Project.models.User;
 import org.una.programmingIII.UTEMP_Project.models.NotificationStatus;
+import org.una.programmingIII.UTEMP_Project.models.User;
 import org.una.programmingIII.UTEMP_Project.repositories.NotificationRepository;
 import org.una.programmingIII.UTEMP_Project.repositories.UserRepository;
 import org.una.programmingIII.UTEMP_Project.transformers.mappers.GenericMapper;
 import org.una.programmingIII.UTEMP_Project.transformers.mappers.GenericMapperFactory;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -226,17 +225,36 @@ public class NotificationServiceImplementation implements NotificationService {
     @Override
     public void sendNotificationToUser(Long userId, String message) {
         try {
-            Optional<User> userMassage = userRepository.findById(userId);
+            // Busca el usuario por ID y lanza excepción si no lo encuentra
+            User userEntity = userRepository.findById(userId)
+                    .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: ", userId));
+
+            // Convierte la entidad a DTO
+            UserDTO userDTO;
+            try {
+                userDTO = userMapper.convertToDTO(userEntity);
+            } catch (Exception e) {
+                logger.error("Error converting User entity to DTO for user {}: {}", userId, e.getMessage());
+                throw new ServiceException("Error converting User entity to DTO", e);
+            }
+
+            // Crea y configura la notificación
             NotificationDTO notification = new NotificationDTO();
-            notification.setUser(userMapper.convertToDTO(userMassage.orElseThrow()));
+            notification.setUser(userDTO); // Aquí se asigna el DTO convertido
             notification.setMessage(message);
             notification.setStatus(NotificationStatus.UNREAD);
+
+            // Agrega la notificación al usuario
             addNotificationToUser(userId, notification);
+        } catch (ResourceNotFoundException e) {
+            logger.error("Error: {}", e.getMessage());
+            throw e; // Lanza excepción si el usuario no se encuentra
         } catch (Exception e) {
             logger.error("Error sending notification to user {}: {}", userId, e.getMessage());
             throw new ServiceException("Error sending notification", e);
         }
     }
+
 
     // --------------- MÉTODOS AUXILIARES -----------------
 

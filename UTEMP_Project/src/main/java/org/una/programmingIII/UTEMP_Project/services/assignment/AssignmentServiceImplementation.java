@@ -30,7 +30,6 @@ import org.una.programmingIII.UTEMP_Project.transformers.mappers.GenericMapper;
 import org.una.programmingIII.UTEMP_Project.transformers.mappers.GenericMapperFactory;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -66,6 +65,7 @@ public class AssignmentServiceImplementation extends Subject<EmailNotificationOb
         this.assignmentMapper = mapperFactory.createMapper(Assignment.class, AssignmentDTO.class);
         this.submissionMapper = mapperFactory.createMapper(Submission.class, SubmissionDTO.class);
     }
+
     @Override
     @Transactional(readOnly = true)
     public Page<AssignmentDTO> getAllAssignments(Pageable pageable) {
@@ -205,6 +205,7 @@ public class AssignmentServiceImplementation extends Subject<EmailNotificationOb
                 autoReviewService.autoReviewSubmission(savedSubmission.getId());
 
                 sendNotificationForSubmission(assignment, submission);
+                logger.info("Submission added successfully for assignment ID: {}", assignmentId);
                 return submissionMapper.convertToDTO(savedSubmission);
             } catch (ResourceNotFoundException e) {
                 logger.error("Error adding submission: Assignment with ID {} not found", assignmentId);
@@ -221,7 +222,7 @@ public class AssignmentServiceImplementation extends Subject<EmailNotificationOb
 
     @Override
     @Transactional
-    public void deleteSubmissionFromAssignment(Long assignmentId, Long submissionId) {
+    public void removeSubmissionFromAssignment(Long assignmentId, Long submissionId) {
         Assignment assignment = getEntityById(assignmentId, assignmentRepository, "Assignment");
         Submission submission = getEntityById(submissionId, submissionRepository, "Submission");
 
@@ -278,10 +279,12 @@ public class AssignmentServiceImplementation extends Subject<EmailNotificationOb
     @Async("taskExecutor")
     protected void sendNotificationForSubmission(Assignment assignment, Submission submission) {
         String message = "The student " + submission.getStudent().getName() +
-                " added a new submission in the assignment " + assignment.getTitle();
+                " added a new submission in the assignment " + assignment.getTitle() +
+                " (Submission ID: " + submission.getId() + ")";
         try {
             notifyObservers("USER_SUBMISSION", message, assignment.getCourse().getTeacher().getEmail());
             notificationService.sendNotificationToUser(assignment.getCourse().getTeacher().getId(), message);
+            logger.info("Notification sent to teacher {} for submission ID: {}", assignment.getCourse().getTeacher().getEmail(), submission.getId());
         } catch (Exception e) {
             logger.error("Error notifying teacher {}: {}", assignment.getCourse().getTeacher().getEmail(), e.getMessage());
         }

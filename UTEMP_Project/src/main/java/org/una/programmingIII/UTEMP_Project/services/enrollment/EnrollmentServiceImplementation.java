@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
@@ -17,9 +16,10 @@ import org.una.programmingIII.UTEMP_Project.dtos.EnrollmentDTO;
 import org.una.programmingIII.UTEMP_Project.exceptions.InvalidDataException;
 import org.una.programmingIII.UTEMP_Project.exceptions.ResourceNotFoundException;
 import org.una.programmingIII.UTEMP_Project.models.Enrollment;
-import org.una.programmingIII.UTEMP_Project.repositories.EnrollmentRepository;
 import org.una.programmingIII.UTEMP_Project.repositories.CourseRepository;
+import org.una.programmingIII.UTEMP_Project.repositories.EnrollmentRepository;
 import org.una.programmingIII.UTEMP_Project.repositories.UserRepository;
+import org.una.programmingIII.UTEMP_Project.services.UserService;
 import org.una.programmingIII.UTEMP_Project.transformers.mappers.GenericMapper;
 import org.una.programmingIII.UTEMP_Project.transformers.mappers.GenericMapperFactory;
 
@@ -36,6 +36,7 @@ public class EnrollmentServiceImplementation implements EnrollmentService {
     private final EnrollmentRepository enrollmentRepository;
     private final CourseRepository courseRepository;
     private final UserRepository userRepository;
+    private final UserService userService;
 
     private final GenericMapper<Enrollment, EnrollmentDTO> enrollmentMapper;
 
@@ -44,12 +45,14 @@ public class EnrollmentServiceImplementation implements EnrollmentService {
             EnrollmentRepository enrollmentRepository,
             CourseRepository courseRepository,
             UserRepository userRepository,
-            GenericMapperFactory mapperFactory) {
+            GenericMapperFactory mapperFactory,
+            UserService userService) {
 
         this.enrollmentRepository = enrollmentRepository;
         this.courseRepository = courseRepository;
         this.userRepository = userRepository;
         this.enrollmentMapper = mapperFactory.createMapper(Enrollment.class, EnrollmentDTO.class);
+        this.userService = userService;
     }
 
     @Override
@@ -142,7 +145,6 @@ public class EnrollmentServiceImplementation implements EnrollmentService {
         }
     }
 
-
     @Override
     @Transactional
     public Optional<EnrollmentDTO> updateEnrollment(Long id, @Valid EnrollmentDTO enrollmentDTO) {
@@ -151,6 +153,7 @@ public class EnrollmentServiceImplementation implements EnrollmentService {
             Enrollment existingEnrollment = optionalEnrollment.orElseThrow(() -> new ResourceNotFoundException("Enrollment", id));
 
             updateEnrollmentFields(existingEnrollment, enrollmentDTO);
+            userService.notifyUserAndProfessor(existingEnrollment.getStudent(), existingEnrollment.getCourse());
             return Optional.of(enrollmentMapper.convertToDTO(enrollmentRepository.save(existingEnrollment)));
         } catch (ResourceNotFoundException e) {
             logger.warn("Failed to update enrollment: {}", e.getMessage());

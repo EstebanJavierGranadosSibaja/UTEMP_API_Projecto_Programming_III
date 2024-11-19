@@ -4,26 +4,18 @@ import org.una.programmingIII.UTEMP_Project.dtos.FileMetadatumDTO;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Optional;
 
 public interface FileService {
 
-    // Métodos de Consulta
-    Optional<FileMetadatumDTO> getFileMetadatumById(Long id);
+    FileMetadatumDTO createNewFileMetadata(FileMetadatumDTO fileDTO);
 
-    // Métodos de Actualización
-    FileMetadatumDTO updateFileMetadatum(Long id, FileMetadatumDTO fileChunkDTO) throws IOException;
+    FileMetadatumDTO getFileMetadatumById(Long id);
 
-    // Métodos de Recepción y Finalización
-    void receiveFileChunk(FileMetadatumDTO fileChunkDTO) throws IOException;
+//    void uploadFileChunk(FileMetadatumDTO fileChunkDTO) throws IOException;
 
-    // Métodos de Eliminación
-    void deleteFileMetadatum(Long id);
+//    List<FileMetadatumDTO> downloadFileInChunks(Long fileId) throws IOException;
 
-    public List<FileMetadatumDTO> downloadFileInChunks(Long fileId) throws IOException;
+    boolean deleteFile(Long fileId) throws IOException;
 
+     void receiveFileChunk(FileMetadatumDTO fileDTO);
 }
-//    void finalizeFileUpload(Long fileId, FileMetadatumDTO fileDTO) throws IOException;
-
-// Métodos de Validación
-//    void validateStoragePath(String path) throws IOException;

@@ -13,26 +13,19 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.una.programmingIII.UTEMP_Project.dtos.SubmissionDTO;
 import org.una.programmingIII.UTEMP_Project.dtos.FileMetadatumDTO;
 import org.una.programmingIII.UTEMP_Project.dtos.GradeDTO;
+import org.una.programmingIII.UTEMP_Project.dtos.SubmissionDTO;
 import org.una.programmingIII.UTEMP_Project.exceptions.InvalidDataException;
 import org.una.programmingIII.UTEMP_Project.exceptions.ResourceNotFoundException;
-import org.una.programmingIII.UTEMP_Project.models.Assignment;
-import org.una.programmingIII.UTEMP_Project.models.FileMetadatum;
-import org.una.programmingIII.UTEMP_Project.models.Grade;
-import org.una.programmingIII.UTEMP_Project.models.Submission;
+import org.una.programmingIII.UTEMP_Project.models.*;
 import org.una.programmingIII.UTEMP_Project.observers.Subject;
-import org.una.programmingIII.UTEMP_Project.repositories.AssignmentRepository;
-import org.una.programmingIII.UTEMP_Project.repositories.FileMetadatumRepository;
-import org.una.programmingIII.UTEMP_Project.repositories.GradeRepository;
-import org.una.programmingIII.UTEMP_Project.repositories.SubmissionRepository;
+import org.una.programmingIII.UTEMP_Project.repositories.*;
 import org.una.programmingIII.UTEMP_Project.services.notification.NotificationService;
 import org.una.programmingIII.UTEMP_Project.transformers.mappers.GenericMapper;
 import org.una.programmingIII.UTEMP_Project.transformers.mappers.GenericMapperFactory;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -51,11 +44,12 @@ public class SubmissionServiceImplementation extends Subject implements Submissi
     private final GenericMapper<Submission, SubmissionDTO> submissionMapper;
     private final GenericMapper<FileMetadatum, FileMetadatumDTO> fileMetadatumMapper;
     private final GenericMapper<Grade, GradeDTO> gradeMapper;
+    private final UserRepository userRepository;
 
     @Autowired
     public SubmissionServiceImplementation(SubmissionRepository submissionRepository, AssignmentRepository assignmentRepository,
-            FileMetadatumRepository fileMetadatumRepository, GradeRepository gradeRepository, NotificationService notificationService,
-            GenericMapperFactory mapperFactory) {
+                                           FileMetadatumRepository fileMetadatumRepository, GradeRepository gradeRepository, NotificationService notificationService,
+                                           GenericMapperFactory mapperFactory, UserRepository userRepository) {
 
         this.submissionRepository = submissionRepository;
         this.assignmentRepository = assignmentRepository;
@@ -65,6 +59,7 @@ public class SubmissionServiceImplementation extends Subject implements Submissi
         this.submissionMapper = mapperFactory.createMapper(Submission.class, SubmissionDTO.class);
         this.fileMetadatumMapper = mapperFactory.createMapper(FileMetadatum.class, FileMetadatumDTO.class);
         this.gradeMapper = mapperFactory.createMapper(Grade.class, GradeDTO.class);
+        this.userRepository = userRepository;
     }
 
 
@@ -105,18 +100,49 @@ public class SubmissionServiceImplementation extends Subject implements Submissi
     @Override
     @Transactional
     public SubmissionDTO createSubmission(@Valid SubmissionDTO submissionDTO) {
+
         try {
+            // Convierte el DTO a entidad
+//            System.out.println(submissionDTO.toString());
             Submission submission = submissionMapper.convertToEntity(submissionDTO);
+            submission.setFileName("desconocido");
+            User user = getEntityById(submissionDTO.getStudent().getId(), userRepository, "User");
+
             submission.setAssignment(getEntityById(submissionDTO.getAssignment().getId(), assignmentRepository, "Assignment"));
-            return executeWithLogging(() -> submissionMapper.convertToDTO(submissionRepository.save(submission)),
-                    "Error creating submission");
+            submission.setStudent(user);
+
+            submission = submissionRepository.save(submission);
+
+//            FileMetadatum file = FileMetadatum.builder()
+//                    .submission(submission)
+//                    .student(user)
+//                    .fileName("desconocido")
+//                    .fileType("desconocido")
+//                    .storagePath(fileBasePath)
+//                    .fileSize(0L)
+//                    .build();
+
+
+//            List<FileMetadatum> list = new ArrayList<>();
+
+//            list.add(fileMetadataRepository.save(file));
+
+//            submission.setFileMetadata(list);
+
+            // Guarda la entidad Submission y convierte la entidad a DTO para devolverla
+            Submission finalSubmission = submission;
+
+            return executeWithLogging(() -> submissionMapper.convertToDTO(finalSubmission), "Error creating submission");
         } catch (ResourceNotFoundException e) {
+            // Manejo de excepciones cuando no se encuentra el Assignment
             logger.warn("Failed to create submission: Assignment not found with ID {}: {}", submissionDTO.getAssignment().getId(), e.getMessage());
             throw e;
         } catch (ValidationException e) {
+            // Manejo de excepciones de validación
             logger.warn("Validation error while creating submission: {}", e.getMessage());
             throw e;
         } catch (Exception e) {
+            // Manejo de excepciones generales
             logger.error("Error creating submission: {}", e.getMessage());
             throw new ServiceException("Error creating submission", e);
         }
@@ -207,23 +233,22 @@ public class SubmissionServiceImplementation extends Subject implements Submissi
     @Override
     @Transactional
     public GradeDTO addGradeToSubmission(Long submissionId, @Valid GradeDTO gradeDTO) {
-        try {
-            Submission submission = getEntityById(submissionId, submissionRepository, "Submission");
-            Grade grade = gradeMapper.convertToEntity(gradeDTO);
-            grade.setSubmission(submission);
-            return executeWithLogging(() -> {
-                Grade savedGrade = gradeRepository.save(grade);
-                submission.getGrades().add(savedGrade);
-                sendNotificationForGrade(savedGrade, submission);
-                return gradeMapper.convertToDTO(savedGrade);
-            }, "Error adding grade to submission ID: " + submissionId);
-        } catch (ResourceNotFoundException e) {
-            logger.warn("Failed to add grade: Submission not found with ID {}: {}", submissionId, e.getMessage());
-            throw e;
-        } catch (Exception e) {
-            logger.error("Error adding grade to submission ID {}: {}", submissionId, e.getMessage());
-            throw new ServiceException("Error adding grade to submission", e);
+        Submission submission = getEntityById(submissionId, submissionRepository, "Submission");
+        boolean gradeExists = submission.getGrades().stream()
+                .anyMatch(existingGrade -> existingGrade.getSubmission().equals(submission));
+        if (gradeExists) {
+            throw new InvalidDataException("A grade for this submission already exists.");
         }
+        Grade grade = gradeMapper.convertToEntity(gradeDTO);
+        grade.setSubmission(submission);
+
+        return executeWithLogging(() -> {
+            Grade savedGrade = gradeRepository.save(grade);
+            submission.getGrades().add(savedGrade);
+            notifyAboutGrade(savedGrade, submission);
+            logger.info("Grade added successfully to submission ID: {}", submissionId);
+            return gradeMapper.convertToDTO(savedGrade);
+        }, "Error adding grade to submission ID: " + submissionId);
     }
 
     @Override
@@ -311,6 +336,56 @@ public class SubmissionServiceImplementation extends Subject implements Submissi
 
         } catch (Exception e) {
             logger.error("Error notifying student {}: {}", submission.getStudent().getEmail(), e.getMessage());
+        }
+    }
+
+
+    @Override
+    public Optional<Grade> manualReviewSubmission(Long submissionId, double gradeValue, String comments) {
+        validateGradeValue(gradeValue);
+        validateComments(comments);
+
+        Optional<Grade> gradeOptional = gradeRepository.findBySubmissionId(submissionId);
+
+        if (gradeOptional.isPresent()) {
+            Grade grade = gradeOptional.get();
+            grade.setGrade(gradeValue);
+            grade.setComments(comments);
+            grade.setReviewedByAi(false);
+            grade.setState(GradeState.FINALIZED);
+            gradeRepository.save(grade);
+
+            logger.info("Submission reviewed successfully: Submission ID = {}, Grade = {}, Comments = {}", submissionId, gradeValue, comments);
+            return Optional.of(grade);
+        } else {
+            logger.error("Grade not found for submission ID: {}", submissionId);
+            throw new ResourceNotFoundException("No grade found for submission ID: " + submissionId, submissionId);
+        }
+    }
+
+    private void validateGradeValue(double gradeValue) {
+        if (gradeValue < 0 || gradeValue > 10) {
+            throw new InvalidDataException("Grade value must be between 0 and 10.");
+        }
+    }
+
+    private void validateComments(String comments) {
+        if (comments == null || comments.trim().isEmpty()) {
+            throw new InvalidDataException("Comments cannot be null or empty.");
+        }
+    }
+
+    @Async("taskExecutor")
+    protected void notifyAboutGrade(Grade savedGrade, Submission submission) {
+        String message = "A new grade has been added for the submission by " +
+                submission.getStudent().getName() +
+                " in the assignment " + submission.getAssignment().getTitle();
+        try {
+            notifyObservers("GRADE_NOTIFICATION", message, submission.getAssignment().getCourse().getTeacher().getEmail());
+            notificationService.sendNotificationToUser(submission.getAssignment().getCourse().getTeacher().getId(), message);
+            logger.info("Notification sent for grade to teacher ID: {}", submission.getAssignment().getCourse().getTeacher().getId());
+        } catch (Exception e) {
+            logger.error("Error notifying teacher {}: {}", submission.getAssignment().getCourse().getTeacher().getEmail(), e.getMessage());
         }
     }
 }

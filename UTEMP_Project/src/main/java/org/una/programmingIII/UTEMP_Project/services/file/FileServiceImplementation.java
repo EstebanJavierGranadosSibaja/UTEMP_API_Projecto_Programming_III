@@ -1,302 +1,222 @@
 package org.una.programmingIII.UTEMP_Project.services.file;
 
-import org.apache.tomcat.util.http.fileupload.FileUploadException;
+import net.loomchild.segment.util.ResourceNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.una.programmingIII.UTEMP_Project.dtos.FileMetadatumDTO;
+import org.una.programmingIII.UTEMP_Project.exceptions.UserNotFoundException;
 import org.una.programmingIII.UTEMP_Project.models.FileMetadatum;
 import org.una.programmingIII.UTEMP_Project.models.Submission;
 import org.una.programmingIII.UTEMP_Project.models.User;
 import org.una.programmingIII.UTEMP_Project.repositories.FileMetadatumRepository;
 import org.una.programmingIII.UTEMP_Project.repositories.SubmissionRepository;
 import org.una.programmingIII.UTEMP_Project.repositories.UserRepository;
-import org.una.programmingIII.UTEMP_Project.transformers.mappers.GenericMapperFactory;
 
+import javax.annotation.PostConstruct;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.*;
+import java.io.RandomAccessFile;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
-@Transactional
 public class FileServiceImplementation implements FileService {
 
     private static final Logger logger = LoggerFactory.getLogger(FileServiceImplementation.class);
     private final FileMetadatumRepository fileMetadatumRepository;
-    private final SubmissionRepository submissionRepository;
     private final UserRepository userRepository;
-    private final String fileBasePath = "path/to/final";
-
-    // Mapa para almacenar los fragmentos en memoria
-    private final Map<Long, List<byte[]>> fileChunksMap = new HashMap<>();
+    private static final String FILE_BASE_PATH = "users/files"; // Ruta base de archivos
+    private final SubmissionRepository submissionRepository;
+    private static final Long CHUNK_SIZE = 512L;
 
     @Autowired
-    public FileServiceImplementation(GenericMapperFactory mapperFactory,
-                                     FileMetadatumRepository fileMetadatumRepository,
+    public FileServiceImplementation(FileMetadatumRepository fileMetadatumRepository,
                                      SubmissionRepository submissionRepository,
                                      UserRepository userRepository) {
         this.fileMetadatumRepository = fileMetadatumRepository;
-        this.submissionRepository = submissionRepository;
         this.userRepository = userRepository;
+        this.submissionRepository = submissionRepository;
     }
 
-    // Métodos de Consulta
-
-    /**
-     * Obtiene los metadatos del archivo por su ID.
-     *
-     * @param id el ID del archivo
-     * @return un DTO con la información del archivo
-     * @throws IllegalArgumentException si no se encuentra el archivo
-     */
-    @Transactional(readOnly = true)
-    public Optional<FileMetadatumDTO> getFileMetadatumById(Long id) {
-        Optional<FileMetadatum> fileMetadatum = fileMetadatumRepository.findById(id);
-        if (fileMetadatum.isEmpty()) {
-            throw new IllegalArgumentException("No such file ID: " + id);
-        }
-        FileMetadatum file = fileMetadatum.get();
-
-        return Optional.ofNullable(FileMetadatumDTO.builder()
-                .id(file.getId())
-                .fileName(file.getFileName())
-                .fileType(file.getFileType())
-                .fileSize(file.getFileSize())
-                .storagePath(file.getStoragePath())
-                .lastUpdate(file.getLastUpdate())
-                .createdAt(file.getCreatedAt())
-                .build());
-    }
-
-    // Métodos de Recepción y Finalización
-
-    /**
-     * Recibe un fragmento de archivo y lo almacena en memoria.
-     *
-     * @param fileChunkDTO DTO que contiene información del fragmento
-     * @throws FileUploadException si ocurre un error al subir el archivo
-     */
-    public void receiveFileChunk(FileMetadatumDTO fileChunkDTO) throws IOException {
-        Long fileId = fileChunkDTO.getId();
-        fileChunksMap.putIfAbsent(fileId, new ArrayList<>());
-
-        List<byte[]> chunks = fileChunksMap.get(fileId);
-
-        // Validar que el chunkIndex es válido
-        if (fileChunkDTO.getChunkIndex() < 0 || fileChunkDTO.getChunkIndex() >= fileChunkDTO.getTotalChunks()) {
-            throw new IllegalArgumentException("Invalid chunk index: " + fileChunkDTO.getChunkIndex());
-        }
-
-        // Agregar el fragmento si es el siguiente en la secuencia
-        if (fileChunkDTO.getChunkIndex() == chunks.size()) {
-            chunks.add(fileChunkDTO.getFileChunk());
-            logger.info("Chunk {} added for file ID: {}", fileChunkDTO.getChunkIndex(), fileId);
-        } else {
-            logger.warn("Received out-of-order chunk for file ID: {}, expected index: {}", fileId, chunks.size());
-        }
-
-        // Verificar si todos los fragmentos han sido recibidos
-        if (chunks.size() == fileChunkDTO.getTotalChunks()) {
-            finalizeFileUpload(fileId, fileChunkDTO);
-        }
-    }
-
-    /**
-     * Finaliza la carga del archivo escribiendo los fragmentos en un archivo final.
-     *
-     * @param fileId  el ID del archivo
-     * @param fileDTO DTO con los metadatos del archivo
-     * @throws IOException si ocurre un error al finalizar la carga
-     */
-    public void finalizeFileUpload(Long fileId, FileMetadatumDTO fileDTO) throws IOException {
-        List<byte[]> chunks = fileChunksMap.get(fileId);
-        if (chunks == null || chunks.isEmpty()) {
-            throw new IllegalArgumentException("No chunks found for file ID: " + fileId);
-        }
-
-        validateStoragePath(fileBasePath);
-
-        String finalFilePath = String.format(fileBasePath + "/%s<%d>.%s", fileDTO.getFileName(), fileId, fileDTO.getFileType());
-
-        // Escribir los fragmentos en el archivo final
-        try (FileOutputStream fos = new FileOutputStream(finalFilePath)) {
-            for (byte[] chunk : chunks) {
-                fos.write(chunk);
-            }
-            logger.info("File upload finalized for file ID: {}", fileId);
-        } catch (IOException e) {
-            logger.error("Error finalizing file upload: {}", e.getMessage());
-            throw new FileUploadException("Error finalizing file upload", e);
-        }
-
-        // Crear y guardar la metadata del archivo
-        FileMetadatum fileMetadatum = new FileMetadatum();
-        fileMetadatum.setFileName(String.format("%s<%d>.%s", fileDTO.getFileName(), fileId, fileDTO.getFileType()));
-        fileMetadatum.setFileSize(chunks.stream().mapToLong(chunk -> chunk.length).sum());
-        fileMetadatum.setStoragePath(finalFilePath);
-        fileMetadatum.setFileType(fileDTO.getFileType());
-
-        // Validar existencia de usuario y presentación
-        Optional<User> userOpt = userRepository.findById(fileDTO.getStudent().getId());
-        Optional<Submission> submissionOpt = submissionRepository.findById(fileDTO.getSubmission().getId());
-
-        if (userOpt.isEmpty() || submissionOpt.isEmpty()) {
-            throw new IllegalArgumentException("User or Submission not found");
-        }
-
-        fileMetadatum.setStudent(userOpt.get());
-        fileMetadatum.setSubmission(submissionOpt.get());
-
-        fileMetadatumRepository.save(fileMetadatum);
-
-        // Limpiar los fragmentos después de la carga
-        fileChunksMap.remove(fileId);
-    }
-
-    // Métodos de Actualización
-
-    /**
-     * Actualiza los metadatos de un archivo eliminando el existente y recibiendo uno nuevo.
-     *
-     * @param id           el ID del archivo a actualizar
-     * @param fileChunkDTO DTO que contiene el nuevo archivo
-     * @return el nuevo DTO con los metadatos del archivo
-     * @throws FileUploadException si ocurre un error al actualizar el archivo
-     */
     @Override
     @Transactional
-    public FileMetadatumDTO updateFileMetadatum(Long id, FileMetadatumDTO fileChunkDTO) throws IOException {
-        // Validar que exista el archivo
-        Optional<FileMetadatum> existingFileOpt = fileMetadatumRepository.findById(id);
-        if (existingFileOpt.isEmpty()) {
-            throw new IllegalArgumentException("No such file ID: " + id);
-        }
+    public FileMetadatumDTO createNewFileMetadata(FileMetadatumDTO fileDTO) {
+        User user = userRepository.findById(fileDTO.getStudent().getId())
+                .orElseThrow(() -> new UserNotFoundException("Usuario con ID " + fileDTO.getStudent().getId() + " no encontrado"));
+        Submission submission = submissionRepository.findById(fileDTO.getSubmission().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Submission con ID " + fileDTO.getSubmission().getId() + " no encontrado"));
 
-        // Primero, eliminamos el archivo existente
-        deleteFileMetadatum(id);
-
-        // Luego, recibimos el nuevo archivo
-        receiveFileChunk(fileChunkDTO);
-
-        // Devolver el nuevo metadata del archivo
-        return getFileMetadatumById(id).orElse(null);
+        FileMetadatum newFile = generateMetadata(fileDTO, submission, user);
+        logger.info("Metadatos del archivo creados para archivo: {}", newFile.getFileName());
+        return metadataToDto(fileMetadatumRepository.save(newFile));
     }
 
-    // Métodos de Eliminación
-
-    /**
-     * Elimina los metadatos de un archivo y borra el archivo del sistema.
-     *
-     * @param id el ID del archivo a eliminar
-     * @throws IllegalArgumentException si no se encuentra el archivo
-     */
     @Transactional
-    public void deleteFileMetadatum(Long id) {
-        Optional<FileMetadatum> fileMetadatumOpt = fileMetadatumRepository.findById(id);
-        if (fileMetadatumOpt.isPresent()) {
-            FileMetadatum fileMetadatum = fileMetadatumOpt.get();
-            // Eliminar el archivo del sistema de archivos
-            File file = new File(fileMetadatum.getStoragePath());
-            if (file.exists() && !file.delete()) {
-                logger.warn("Failed to delete file: {}", file.getAbsolutePath());
-            } else {
-                logger.info("Deleted file: {}", file.getAbsolutePath());
-            }
-            fileMetadatumRepository.deleteById(id);
-        } else {
-            throw new IllegalArgumentException("No such file ID: " + id);
-        }
+    public FileMetadatumDTO updateMetadata(FileMetadatumDTO fileDTO) {
+        // Verificar la existencia del usuario
+        User user = userRepository.findById(fileDTO.getStudent().getId())
+                .orElseThrow(() -> new UserNotFoundException("Usuario con ID " + fileDTO.getStudent().getId() + " no encontrado"));
+
+        // Verificar la existencia de la submission
+        Submission submission = submissionRepository.findById(fileDTO.getSubmission().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Submission con ID " + fileDTO.getSubmission().getId() + " no encontrado"));
+
+        // Buscar el FileMetadatum existente en la base de datos
+        FileMetadatum existingFile = fileMetadatumRepository.findById(fileDTO.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Archivo con ID " + fileDTO.getId() + " no encontrado"));
+
+        // Actualizar los campos del archivo con los nuevos datos
+        existingFile.setFileName(fileDTO.getFileName());
+        existingFile.setFileType(fileDTO.getFileType());
+        existingFile.setFileSize(fileDTO.getFileSize());
+        existingFile.setStoragePath(fileDTO.getStoragePath());  // El almacenamiento podría cambiar si el archivo se mueve o actualiza.
+
+        List<FileMetadatum> list = new ArrayList<>();
+        list.add(existingFile);
+        submission.setFileName(existingFile.getFileName());
+        submission.setFileMetadata(list);
+        submissionRepository.save(submission);
+
+        // Actualizar la referencia de submission y student
+        existingFile.setSubmission(submission);
+        existingFile.setStudent(user);
+
+        logger.info("Metadatos del archivo actualizados para archivo: {}", existingFile.getFileName());
+
+        // Guardar y retornar el DTO
+        return metadataToDto(fileMetadatumRepository.save(existingFile));
     }
 
-    //descargar de base de datos
+    @Override
+    @Transactional(readOnly = true)
+    public FileMetadatumDTO getFileMetadatumById(Long id) {
+        return fileMetadatumRepository.findById(id)
+                .map(this::metadataToDto)
+                .orElseThrow(() -> new RuntimeException("Archivo con ID " + id + " no encontrado"));
+    }
 
-    public List<FileMetadatumDTO> downloadFileInChunks(Long fileId) throws IOException {
-        Optional<FileMetadatum> fileMetadatumOpt = fileMetadatumRepository.findById(fileId);
-        if (fileMetadatumOpt.isEmpty()) {
-            throw new IllegalArgumentException("No such file ID: " + fileId);
-        }
-
-        FileMetadatum fileMetadatum = fileMetadatumOpt.get();
+    @Override
+    @Transactional
+    public boolean deleteFile(Long id) {
+        FileMetadatum fileMetadatum = fileMetadatumRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Archivo con ID " + id + " no encontrado para eliminar."));
         File file = new File(fileMetadatum.getStoragePath());
-        List<FileMetadatumDTO> chunks = new ArrayList<>();
 
-        try (FileInputStream fis = new FileInputStream(file)) {
-            byte[] buffer = new byte[512 * 1024]; // 512KB
-            int bytesRead;
-            int chunkIndex = 0;
+        if (file.exists()) {
+            if (file.delete()) {
+                logger.info("Archivo físico eliminado: {}", file.getAbsolutePath());
+                fileMetadatumRepository.delete(fileMetadatum);
+                logger.info("Metadatos eliminados.");
+                return true;
+            } else {
+                logger.error("Error al eliminar archivo: {}", file.getAbsolutePath());
+                return false;
+            }
+        } else {
+            logger.warn("El archivo no existe: {}", file.getAbsolutePath());
+            fileMetadatumRepository.delete(fileMetadatum);
+            return true;
+        }
+    }
 
-            while ((bytesRead = fis.read(buffer)) != -1) {
-                byte[] fileChunk = Arrays.copyOf(buffer, bytesRead);
-                FileMetadatumDTO chunkDTO = FileMetadatumDTO.builder()
-                        .id(fileId)
-                        .fileName(fileMetadatum.getFileName())
-                        .fileType(fileMetadatum.getFileType())
-                        .fileChunk(fileChunk)
-                        .chunkIndex(chunkIndex++)
-                        .totalChunks((int) Math.ceil((double) fileMetadatum.getFileSize() / (512 * 1024)))
-                        .build();
-                chunks.add(chunkDTO);
+    @Override
+    @Transactional
+    public void receiveFileChunk(FileMetadatumDTO fileDTO) {
+        logger.info("Recibiendo fragmento {} de {} para el archivo con ID: {}", fileDTO.getChunkIndex() + 1, fileDTO.getTotalChunks(), fileDTO.getId());
+
+        String uniqueFileName = fileDTO.getId() + "_" + fileDTO.getFileName();
+        String filePath = FILE_BASE_PATH + "/" + uniqueFileName;
+
+        if (fileDTO.getChunkIndex() == 0) {
+            try {
+                File file = new File(filePath);
+                if (!file.exists()) {
+                    Files.createFile(file.toPath());
+                    logger.info("Archivo creado: {}", filePath);
+                }
+            } catch (IOException e) {
+                logger.error("Error al crear archivo: {}", e.getMessage());
             }
         }
 
-        return chunks;
-    }
-
-
-    // Método para combinar los bloques en un solo array
-    private byte[] combineChunks(List<byte[]> chunks) {
-        int totalLength = chunks.stream().mapToInt(chunk -> chunk.length).sum();
-        byte[] combined = new byte[totalLength];
-
-        int currentIndex = 0;
-        for (byte[] chunk : chunks) {
-            System.arraycopy(chunk, 0, combined, currentIndex, chunk.length);
-            currentIndex += chunk.length;
+        try (RandomAccessFile raf = new RandomAccessFile(filePath, "rw")) {
+            raf.seek(fileDTO.getChunkIndex() * CHUNK_SIZE);
+            raf.write(fileDTO.getFileChunk());
+            logger.info("Fragmento {} guardado", fileDTO.getChunkIndex());
+        } catch (IOException e) {
+            logger.error("Error al guardar fragmento {}: {}", fileDTO.getChunkIndex(), e.getMessage());
         }
 
-        return combined;
+        if (fileDTO.getChunkIndex() + 1 == fileDTO.getTotalChunks()) {
+            finalizeUpload(fileDTO);
+        }
     }
-    // Métodos de Validación
 
-    /**
-     * Valida si la ruta de almacenamiento existe, y si no, la crea.
-     *
-     * @param path la ruta que se va a validar
-     * @throws IOException si ocurre un error al crear la ruta
-     */
-    private void validateStoragePath(String path) throws IOException {
-        File directory = new File(path);
-        if (!directory.exists()) {
-            if (!directory.mkdirs()) {
-                throw new IOException("Failed to create storage directory: " + path);
+    @Transactional
+    protected void finalizeUpload(FileMetadatumDTO fileDTO) {
+        logger.info("Finalizando carga del archivo: {}", fileDTO.getFileName());
+
+
+        String filePath = FILE_BASE_PATH + "/" + fileDTO.getId() + "_" + fileDTO.getFileName();
+        try {
+            File file = new File(filePath);
+            if (file.exists()) {
+                fileDTO.setStoragePath(filePath);
+                updateMetadata(fileDTO);
+                logger.info("Archivo finalizado y metadatos actualizados.");
+            } else {
+                logger.error("El archivo no existe al finalizar carga.");
             }
+        } catch (Exception e) {
+            logger.error("Error al finalizar carga: {}", e.getMessage());
         }
+    }
+
+
+
+    @PostConstruct
+    private void initializeStoragePath() throws IOException {
+        Path storagePath = Paths.get(FILE_BASE_PATH);
+        if (!Files.exists(storagePath)) {
+            Files.createDirectories(storagePath);
+            logger.info("Ruta de almacenamiento creada: {}", FILE_BASE_PATH);
+        }
+    }
+
+    private FileMetadatumDTO metadataToDto(FileMetadatum fileMetadatum) {
+        return FileMetadatumDTO.builder()
+                .id(fileMetadatum.getId())
+                .fileName(fileMetadatum.getFileName())
+                .fileType(fileMetadatum.getFileType())
+                .fileSize(fileMetadatum.getFileSize())
+                .storagePath(fileMetadatum.getStoragePath())
+                .build();
+    }
+
+    private FileMetadatum generateMetadata(FileMetadatumDTO fileDTO, Submission submission, User user) {
+        return FileMetadatum.builder()
+                .submission(submission)
+                .student(user)
+                .fileName(fileDTO.getFileName() != null ? fileDTO.getFileName() : "desconocido")
+                .fileType(fileDTO.getFileType() != null ? fileDTO.getFileType() : "desconocido")
+                .fileSize(fileDTO.getFileSize() != null ? fileDTO.getFileSize() : 0L)
+                .storagePath(FILE_BASE_PATH + "/" + fileDTO.getId() + "_" + fileDTO.getFileName())
+                .build();
     }
 }
 
-/**
- * Busca archivos según el nombre del archivo y el tipo.
- *
- * @param fileName el nombre del archivo a buscar
- * @param fileType el tipo de archivo a buscar
- * @return una lista de DTOs de metadatos de archivos que coinciden
- */
-//@Transactional(readOnly = true)
-//private List<FileMetadatumDTO> searchFiles(String fileName, String fileType) {
-//    List<FileMetadatum> files = fileMetadatumRepository.findByFileNameContainingAndFileType(fileName, fileType);
-//    return files.stream()
-//            .map(file -> FileMetadatumDTO.builder()
-//                    .id(file.getId())
-//                    .fileName(file.getFileName())
-//                    .fileType(file.getFileType())
-//                    .fileSize(file.getFileSize())
-//                    .storagePath(file.getStoragePath())
-//                    .lastUpdate(file.getLastUpdate())
-//                    .createdAt(file.getCreatedAt())
-//                    .build())
-//            .collect(Collectors.toList());
-//}
+
+// private <T> T getEntityById(Long id, JpaRepository<T, Long> repository, String entityName) {
+//        return findEntityById(id, repository)
+//                .orElseThrow(() -> new ResourceNotFoundException(entityName, id));
+//    }
+//
+//    private <T> Optional<T> findEntityById(Long id, JpaRepository<T, Long> repository) {
+//        return repository.findById(id);
+//    }

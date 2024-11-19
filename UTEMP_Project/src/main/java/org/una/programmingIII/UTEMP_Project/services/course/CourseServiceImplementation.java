@@ -16,7 +16,9 @@ import org.una.programmingIII.UTEMP_Project.dtos.AssignmentDTO;
 import org.una.programmingIII.UTEMP_Project.dtos.CourseDTO;
 import org.una.programmingIII.UTEMP_Project.exceptions.InvalidDataException;
 import org.una.programmingIII.UTEMP_Project.exceptions.ResourceNotFoundException;
-import org.una.programmingIII.UTEMP_Project.models.*;
+import org.una.programmingIII.UTEMP_Project.models.Assignment;
+import org.una.programmingIII.UTEMP_Project.models.Course;
+import org.una.programmingIII.UTEMP_Project.models.Enrollment;
 import org.una.programmingIII.UTEMP_Project.observers.Subject;
 import org.una.programmingIII.UTEMP_Project.repositories.AssignmentRepository;
 import org.una.programmingIII.UTEMP_Project.repositories.CourseRepository;
@@ -72,7 +74,13 @@ public class CourseServiceImplementation extends Subject<EmailNotificationObserv
         try {
             return executeWithLogging(() -> {
                 Page<Course> coursePage = courseRepository.findAll(pageable);
-                return coursePage.map(courseMapper::convertToDTO);
+                Page<CourseDTO> AllCoursePageDTO = coursePage.map(courseMapper::convertToDTO);
+                for (int i = 0; i < AllCoursePageDTO.getNumberOfElements(); i++) {
+                    AllCoursePageDTO.getContent().get(i).setUserTeacherUniqueID(coursePage.getContent().get(i).getTeacher().getId());
+                    AllCoursePageDTO.getContent().get(i).setDepartmentUniqueID(coursePage.getContent().get(i).getDepartment().getId());
+                    AllCoursePageDTO.getContent().get(i).setDepartmentUniqueName(coursePage.getContent().get(i).getDepartment().getName());
+                }
+                return AllCoursePageDTO;
             }, "Error fetching all courses");
         } catch (DataAccessException e) {
             logger.error("Database access error occurred while fetching all courses: {}", e.getMessage());
@@ -108,13 +116,10 @@ public class CourseServiceImplementation extends Subject<EmailNotificationObserv
     public CourseDTO createCourse(@Valid CourseDTO courseDTO) {
         try {
             Course course = courseMapper.convertToEntity(courseDTO);
-            course.setTeacher(getEntityById(courseDTO.getTeacher().getId(), userRepository, "Teacher"));
+            course.setTeacher(getEntityById(/*courseDTO.getTeacher().getId()*/43L, userRepository, "Teacher"));
             course.setDepartment(getEntityById(courseDTO.getDepartment().getId(), departmentRepository, "Department"));
-            course.setState(CourseState.ACTIVE);
-
             return executeWithLogging(() -> courseMapper.convertToDTO(courseRepository.save(course)),
                     "Error creating course");
-
         } catch (ResourceNotFoundException e) {
             logger.error("Resource not found while creating course: {}", e.getMessage());
             throw new InvalidDataException("Failed to create course: " + e.getMessage());
@@ -191,8 +196,14 @@ public class CourseServiceImplementation extends Subject<EmailNotificationObserv
     public Page<CourseDTO> getCoursesByDepartmentId(Long departmentId, Pageable pageable) {
         try {
             return executeWithLogging(() -> {
-                Page<Course> coursePage = courseRepository.findByDepartmentId(departmentId, pageable);
-                return coursePage.map(courseMapper::convertToDTO);
+                Page<Course> coursePage = courseRepository.findByDepartmentIdWithTeacher(departmentId, pageable);
+                Page<CourseDTO> coursePageDTO = coursePage.map(courseMapper::convertToDTO);
+                for (int i = 0; i < coursePageDTO.getNumberOfElements(); i++) {
+                    coursePageDTO.getContent().get(i).setUserTeacherUniqueID(coursePage.getContent().get(i).getTeacher().getId());
+                    coursePageDTO.getContent().get(i).setDepartmentUniqueID(coursePage.getContent().get(i).getDepartment().getId());
+                    coursePageDTO.getContent().get(i).setDepartmentUniqueName(coursePage.getContent().get(i).getDepartment().getName());
+                }
+                return coursePageDTO;
             }, "Error fetching courses by department ID");
         } catch (DataAccessException e) {
             logger.error("Database access error occurred while fetching courses by department ID {}: {}", departmentId, e.getMessage());
@@ -284,7 +295,7 @@ public class CourseServiceImplementation extends Subject<EmailNotificationObserv
     }
 
     @Async("taskExecutor")
-    protected CompletableFuture<Void> sendMailToAllStudents(List<Enrollment> enrollments, Assignment assignment) {
+    protected void sendMailToAllStudents(List<Enrollment> enrollments, Assignment assignment) {
         String message = "Assignment '" + assignment.getTitle() +
                 "' was added in the " + assignment.getCourse().getName() + " course";
 
@@ -296,6 +307,6 @@ public class CourseServiceImplementation extends Subject<EmailNotificationObserv
                 logger.error("Error notifying student {}: {}", enrollment.getStudent().getEmail(), e.getMessage());
             }
         }
-        return CompletableFuture.completedFuture(null);
+        CompletableFuture.completedFuture(null);
     }
 }

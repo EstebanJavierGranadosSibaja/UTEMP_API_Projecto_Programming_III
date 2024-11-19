@@ -11,14 +11,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.una.programmingIII.UTEMP_Project.dtos.DepartmentDTO;
 import org.una.programmingIII.UTEMP_Project.dtos.CourseDTO;
+import org.una.programmingIII.UTEMP_Project.dtos.DepartmentDTO;
 import org.una.programmingIII.UTEMP_Project.exceptions.InvalidDataException;
 import org.una.programmingIII.UTEMP_Project.exceptions.ResourceNotFoundException;
-import org.una.programmingIII.UTEMP_Project.models.Department;
 import org.una.programmingIII.UTEMP_Project.models.Course;
-import org.una.programmingIII.UTEMP_Project.repositories.DepartmentRepository;
+import org.una.programmingIII.UTEMP_Project.models.Department;
 import org.una.programmingIII.UTEMP_Project.repositories.CourseRepository;
+import org.una.programmingIII.UTEMP_Project.repositories.DepartmentRepository;
 import org.una.programmingIII.UTEMP_Project.repositories.FacultyRepository;
 import org.una.programmingIII.UTEMP_Project.transformers.mappers.GenericMapper;
 import org.una.programmingIII.UTEMP_Project.transformers.mappers.GenericMapperFactory;
@@ -94,7 +94,6 @@ public class DepartmentServiceImplementation implements DepartmentService {
         try {
             Department department = departmentMapper.convertToEntity(departmentDTO);
             department.setFaculty(getEntityById(departmentDTO.getFaculty().getId(), facultyRepository, "Faculty"));
-
             return executeWithLogging(() -> departmentMapper.convertToDTO(departmentRepository.save(department)),
                     "Error creating department");
         } catch (ResourceNotFoundException e) {
@@ -131,6 +130,7 @@ public class DepartmentServiceImplementation implements DepartmentService {
             throw new RuntimeException("An unexpected error occurred while updating the department.", e);
         }
     }
+
     @Override
     @Transactional
     public void deleteDepartment(Long id) {
