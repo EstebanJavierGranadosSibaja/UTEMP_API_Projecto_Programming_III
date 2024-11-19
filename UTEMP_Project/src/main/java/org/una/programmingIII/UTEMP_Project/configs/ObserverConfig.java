@@ -1,11 +1,10 @@
 package org.una.programmingIII.UTEMP_Project.configs;
 
-import org.una.programmingIII.UTEMP_Project.services.EmailNotificationObserver;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
-
-import jakarta.annotation.PostConstruct;
-import org.una.programmingIII.UTEMP_Project.services.user.UserServiceImplementation;
+import org.una.programmingIII.UTEMP_Project.services.EmailNotificationObserver;
+import org.una.programmingIII.UTEMP_Project.services.UserServiceImplementation;
 
 @Configuration
 public class ObserverConfig {
