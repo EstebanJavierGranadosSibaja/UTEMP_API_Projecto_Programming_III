@@ -5,11 +5,15 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ColumnDefault;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.una.programmingIII.UTEMP_Project.transformers.converters.UserPermissionConverter;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -21,7 +25,7 @@ import java.util.List;
 @Builder
 @Entity
 @Table(name = "users")
-public class User implements Identifiable  {
+public class User implements Identifiable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
@@ -74,9 +78,13 @@ public class User implements Identifiable  {
     private UserRole role;
 
     @Convert(converter = UserPermissionConverter.class)
-    @Column(name = "permissions", nullable = false)
+    @Column(name = "permissions", nullable = false, length = 800)
     @Builder.Default
     private List<UserPermission> permissions = new ArrayList<>();
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+    @Column(nullable = false)
+    private LocalDateTime lastUpdate;
 
     @Transient
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -94,12 +102,6 @@ public class User implements Identifiable  {
 
         return authorities;
     }
-
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
-    @Column(nullable = false)
-    private LocalDateTime lastUpdate;
 
     @PrePersist
     protected void onCreate() {
