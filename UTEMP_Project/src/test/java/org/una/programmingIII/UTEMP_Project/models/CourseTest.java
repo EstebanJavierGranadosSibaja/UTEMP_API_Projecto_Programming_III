@@ -54,7 +54,7 @@ public class CourseTest {
         assertNotNull(course.getCreatedAt());
         assertNotNull(course.getLastUpdate());
         assertEquals(CourseState.ACTIVE, course.getState());
-        assertTrue(course.getAssignment().isEmpty()); // Verifica que la lista de asignaciones esté vacía al inicio
+        assertTrue(course.getAssignments().isEmpty()); // Verifica que la lista de asignaciones esté vacía al inicio
         assertTrue(course.getEnrollments().isEmpty()); // Verifica que la lista de inscripciones esté vacía al inicio
     }
 
@@ -115,9 +115,9 @@ public class CourseTest {
     void testAddAssignment() {
         Assignment assignment = new Assignment();
         assignment.setCourse(course); // Relacionar el Assignment con el Course
-        course.getAssignment().add(assignment);
-        assertEquals(1, course.getAssignment().size());
-        assertTrue(course.getAssignment().contains(assignment));
+        course.getAssignments().add(assignment);
+        assertEquals(1, course.getAssignments().size());
+        assertTrue(course.getAssignments().contains(assignment));
     }
 
     @Test
