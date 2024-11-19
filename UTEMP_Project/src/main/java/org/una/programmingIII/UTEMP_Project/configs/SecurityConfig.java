@@ -15,11 +15,11 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.una.programmingIII.UTEMP_Project.security.filters.JwtRequestFilter;
 import org.una.programmingIII.UTEMP_Project.security.utils.CustomAccessDeniedHandler;
 import org.una.programmingIII.UTEMP_Project.security.utils.CustomAuthenticationEntryPoint;
-import org.una.programmingIII.UTEMP_Project.security.filters.JwtRequestFilter;
-import org.una.programmingIII.UTEMP_Project.services.jwtTokenProvider.JwtTokenProviderService;
-import org.una.programmingIII.UTEMP_Project.services.user.CustomUserDetailsService;
+import org.una.programmingIII.UTEMP_Project.security.utils.jwtTokenProvider.JwtTokenProvider;
+import org.una.programmingIII.UTEMP_Project.services.CustomUserDetailsService;
 
 import java.util.Arrays;
 import java.util.List;
@@ -30,11 +30,11 @@ import java.util.List;
 public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
-    private final JwtTokenProviderService jwtTokenProviderService;
+    private final JwtTokenProvider jwtTokenProviderService;
     private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public SecurityConfig(CustomUserDetailsService userDetailsService, JwtTokenProviderService jwtTokenProviderService, PasswordEncoder passwordEncoder) {
+    public SecurityConfig(CustomUserDetailsService userDetailsService, JwtTokenProvider jwtTokenProviderService, PasswordEncoder passwordEncoder) {
         this.userDetailsService = userDetailsService;
         this.jwtTokenProviderService = jwtTokenProviderService;
         this.passwordEncoder = passwordEncoder;
@@ -45,8 +45,8 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(authorizeRequests ->
                         authorizeRequests
-                                .requestMatchers("/utemp/auth/login", "/swagger-ui/**", "/v3/api-docs/**")
-                                .permitAll()
+                                .requestMatchers("/utemp/auth/login").permitAll()
+                                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                                 .anyRequest().authenticated()
                 )
                 .csrf(AbstractHttpConfigurer::disable)
@@ -61,14 +61,13 @@ public class SecurityConfig {
         return http.build();
     }
 
-
     @Bean
     public AuthenticationManager authManager(HttpSecurity http) throws Exception {
         AuthenticationManagerBuilder authenticationManagerBuilder =
                 http.getSharedObject(AuthenticationManagerBuilder.class);
         authenticationManagerBuilder
                 .userDetailsService(userDetailsService)
-                .passwordEncoder(passwordEncoder); // Mantenido aquí
+                .passwordEncoder(passwordEncoder);
         return authenticationManagerBuilder.build();
     }
 
